@@ -1,19 +1,2 @@
-<resources>
-    <string name="app_name">Mensa</string>
-    <string name="title_item_detail">Mensa Detail</string>
-    <string name="mensa">Mensa</string>
-    <string name="share">teilen</string>
-    <string name="no_menus_loaded">Keine Internetverbindung oder keine Menus heute.</string>
-    <string name="price">CHF %1$s</string>
-    <string name="closed">geschlossen</string>
-    <string name="source">
-        see
-        <a href="https://sites.google.com/view/privacypolicy-ethuzhmensaapp/">privacy policy</a>
-        and
-        <a href="https://github.com/famoser/Mensa">source code</a>
-    </string>
-    <string name="settings">Einstellungen</string>
-    <string name="show_only_expanded">nur ausgeklappte Einträge</string>
-    <string name="show_menus_in_german">Menus auf Englisch</string>
-    <string name="no_expanded_canteens">keine ausgeklappten Einträge</string>
-</resources>
+<?xml version="1.0" encoding="utf-8"?>
+<resources></resources>

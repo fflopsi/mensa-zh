@@ -1,2 +1,0 @@
-- Monochrome icons (danke @thgoebel)
-- Verbesserter Kontrast von deaktivierten Mensas

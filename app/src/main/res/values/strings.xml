@@ -1,20 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Mensa</string>
-    <string name="title_item_detail">Mensa Detail</string>
-    <string name="mensa">mensa</string>
-    <string name="share">share</string>
-    <string name="no_menus_loaded">No internet connection or no menus today.</string>
-    <string name="price">CHF %1$s</string>
-    <string name="closed">closed</string>
-    <string name="source">
-        see
-        <a href="https://sites.google.com/view/privacypolicy-ethuzhmensaapp/">privacy policy</a>
-        and
-        <a href="https://github.com/famoser/Mensa">source code</a>
-    </string>
-    <string name="settings">settings</string>
-    <string name="show_only_expanded">only expanded entries</string>
-    <string name="show_menus_in_german">menus in German</string>
-    <string name="no_expanded_canteens">no expanded canteens</string>
+  <string name="app_name" translatable="false">MensaZH</string>
 </resources>

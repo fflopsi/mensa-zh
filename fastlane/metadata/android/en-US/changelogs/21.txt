@@ -1,2 +1,0 @@
-- Add monochrome icons (thanks @thgoebel)
-- Improve contrast of disabled mensa
