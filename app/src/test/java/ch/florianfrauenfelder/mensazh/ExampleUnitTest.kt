@@ -1,4 +1,4 @@
-package ch.frauenfelderflorian.mensazh
+package ch.florianfrauenfelder.mensazh
 
 import org.junit.Test
 

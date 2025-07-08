@@ -1,2 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+  <string name="no_expanded_canteens">keine ausgeklappten Einträge</string>
+  <string name="settings">Einstellungen</string>
+  <string name="closed">geschlossen</string>
+  <string name="price">CHF %1$s</string>
+  <string name="share">Teilen</string>
+  <string name="open_in_browser">Open in browser</string>
+  <string name="show_only_expanded">Only expanded entries</string>
+  <string name="show_menus_in_german">Menus in German</string>
+  <string name="copied_to_clipboard">Copied to clipboard</string>
+</resources>
