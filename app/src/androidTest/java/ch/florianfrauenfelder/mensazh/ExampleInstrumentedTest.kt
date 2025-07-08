@@ -1,4 +1,4 @@
-package ch.frauenfelderflorian.mensazh
+package ch.florianfrauenfelder.mensazh
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

@@ -1,4 +1,4 @@
-package ch.frauenfelderflorian.mensazh.ui.theme
+package ch.florianfrauenfelder.mensazh.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
