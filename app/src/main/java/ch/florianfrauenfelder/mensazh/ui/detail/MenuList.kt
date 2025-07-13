@@ -1,4 +1,4 @@
-package ch.florianfrauenfelder.mensazh.ui.components
+package ch.florianfrauenfelder.mensazh.ui.detail
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import ch.florianfrauenfelder.mensazh.models.Menu
 
 @Composable
-fun DetailMenuList(
+fun MenuList(
   menus: List<Menu>,
   selectedMenu: Menu,
   modifier: Modifier = Modifier,
@@ -29,7 +29,7 @@ fun DetailMenuList(
     modifier = modifier.fillMaxWidth(),
   ) {
     items(menus) {
-      DetailMenuRow(menu = it, selected = it == selectedMenu)
+      MenuRow(menu = it, selected = it == selectedMenu)
     }
     if (bottomSpacer) {
       item {

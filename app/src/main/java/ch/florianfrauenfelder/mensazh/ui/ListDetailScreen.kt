@@ -1,4 +1,4 @@
-package ch.florianfrauenfelder.mensazh.ui.screens
+package ch.florianfrauenfelder.mensazh.ui
 
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
@@ -60,13 +60,13 @@ import ch.florianfrauenfelder.mensazh.services.saveIsFavoriteMensa
 import ch.florianfrauenfelder.mensazh.services.saveShowMenusInGerman
 import ch.florianfrauenfelder.mensazh.services.saveShowOnlyFavoriteMensas
 import ch.florianfrauenfelder.mensazh.services.showOnlyFavoriteMensasFlow
-import ch.florianfrauenfelder.mensazh.ui.components.DetailMenuList
-import ch.florianfrauenfelder.mensazh.ui.components.LocationList
+import ch.florianfrauenfelder.mensazh.ui.detail.MenuList
+import ch.florianfrauenfelder.mensazh.ui.list.LocationList
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(
+fun ListDetailScreen(
   locations: List<Location>,
   showMenusInGerman: Boolean,
   isRefreshing: Boolean,
@@ -208,7 +208,7 @@ fun MainScreen(
       detailPane = {
         AnimatedPane {
           scaffoldNavigator.currentDestination?.contentKey?.let {
-            DetailMenuList(
+            MenuList(
               menus = it.mensa!!.menus,
               selectedMenu = it,
               listState = detailListState,
