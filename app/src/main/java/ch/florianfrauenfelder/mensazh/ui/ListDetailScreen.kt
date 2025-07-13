@@ -2,9 +2,11 @@ package ch.florianfrauenfelder.mensazh.ui
 
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
@@ -18,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material3.Checkbox
@@ -77,8 +80,8 @@ fun ListDetailScreen(
   val scope = rememberCoroutineScope()
   val context = LocalContext.current
 
-  val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-  val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<Menu>()
+  val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+  val navigator = rememberListDetailPaneScaffoldNavigator<Menu>()
   val detailListState = rememberLazyListState()
 
   val showOnlyFavoriteMensas by context.showOnlyFavoriteMensasFlow.collectAsStateWithLifecycle(
@@ -91,11 +94,20 @@ fun ListDetailScreen(
         title = {
           Text(
             text = "${stringResource(R.string.app_name)}${
-              if (scaffoldNavigator.currentDestination?.contentKey != null) {
-                ": ${(scaffoldNavigator.currentDestination?.contentKey as Menu).mensa!!.title}"
-              } else ""
+              navigator.currentDestination?.contentKey?.let { ": ${it.mensa!!.title}" } ?: ""
             }",
           )
+        },
+        navigationIcon = {
+          AnimatedVisibility(
+            visible = navigator.canNavigateBack(),
+            enter = fadeIn() + expandHorizontally(),
+            exit = fadeOut() + shrinkHorizontally(),
+          ) {
+            IconButton(onClick = { scope.launch { navigator.navigateBack() } }) {
+              Icon(Icons.AutoMirrored.Default.ArrowBack, stringResource(R.string.back))
+            }
+          }
         },
         actions = {
           var expanded by remember { mutableStateOf(false) }
@@ -157,15 +169,14 @@ fun ListDetailScreen(
       )
     },
     floatingActionButton = {
-      AnimatedVisibility(visible = scaffoldNavigator.currentDestination?.contentKey != null) {
+      AnimatedVisibility(visible = navigator.currentDestination?.contentKey != null) {
         ExtendedFloatingActionButton(
           text = { Text(text = stringResource(R.string.open_in_browser)) },
           icon = { Icon(Icons.Default.OpenInBrowser, stringResource(R.string.open_in_browser)) },
           expanded = scrollBehavior.state.collapsedFraction != 1f || !detailListState.canScrollForward,
           onClick = {
             Intent(Intent.ACTION_VIEW).apply {
-              data =
-                scaffoldNavigator.currentDestination?.contentKey?.mensa!!.url.toString().toUri()
+              data = navigator.currentDestination?.contentKey?.mensa!!.url.toString().toUri()
               context.startActivity(this)
             }
           },
@@ -184,7 +195,7 @@ fun ListDetailScreen(
         .padding(top = insets.calculateTopPadding()),
     ) {
       NavigableListDetailPaneScaffold(
-        navigator = scaffoldNavigator,
+        navigator = navigator,
         listPane = {
           AnimatedPane(modifier = Modifier.preferredWidth(450.dp)) {
             LocationList(
@@ -194,7 +205,7 @@ fun ListDetailScreen(
                 scope.launch { context.saveIsFavoriteMensa(mensa, favorite) }
               },
               onMenuClick = {
-                scope.launch { scaffoldNavigator.navigateTo(ListDetailPaneScaffoldRole.Detail, it) }
+                scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, it) }
               },
               listBottomPadding = insets.calculateBottomPadding(),
             )
@@ -202,7 +213,7 @@ fun ListDetailScreen(
         },
         detailPane = {
           AnimatedPane {
-            scaffoldNavigator.currentDestination?.contentKey?.let {
+            navigator.currentDestination?.contentKey?.let {
               MenuList(
                 menus = it.mensa!!.menus,
                 selectedMenu = it,
