@@ -28,11 +28,17 @@ fun MenuList(
     contentPadding = PaddingValues(bottom = listBottomPadding),
     modifier = modifier.fillMaxWidth(),
   ) {
-    items(menus) {
-      MenuRow(menu = it, selected = it == selectedMenu)
+    items(
+      items = menus,
+      key = { it.title + it.description },
+    ) {
+      MenuRow(
+        menu = it,
+        selected = it == selectedMenu,
+      )
     }
     if (bottomSpacer) {
-      item {
+      item(key = 0) {
         Spacer(modifier = Modifier.height(80.dp))
       }
     }

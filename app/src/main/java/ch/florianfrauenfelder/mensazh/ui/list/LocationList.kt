@@ -40,7 +40,7 @@ fun LocationList(
     contentPadding = PaddingValues(bottom = listBottomPadding),
     modifier = modifier.fillMaxWidth(),
   ) {
-    item {
+    item(key = -1) {
       AnimatedVisibility(
         visible = showOnlyFavoriteMensas && !locations.any {
           it.mensas.any { it.state == Mensa.State.Expanded }
@@ -56,7 +56,10 @@ fun LocationList(
         }
       }
     }
-    items(locations) {
+    items(
+      items = locations,
+      key = { it.title },
+    ) {
       AnimatedVisibility(
         visible = !showOnlyFavoriteMensas || it.mensas.any { it.state == Mensa.State.Expanded },
         enter = fadeIn() + expandVertically(),
@@ -70,7 +73,7 @@ fun LocationList(
         )
       }
     }
-    item {
+    item(key = 0) {
       Row(
         horizontalArrangement = Arrangement.Center,
         modifier = Modifier.fillMaxWidth(),
