@@ -14,7 +14,6 @@ import ch.florianfrauenfelder.mensazh.models.MensaViewModel
 import ch.florianfrauenfelder.mensazh.services.Prefs
 import ch.florianfrauenfelder.mensazh.services.providers.AbstractMensaProvider
 import ch.florianfrauenfelder.mensazh.services.showMenusInGermanFlow
-import ch.florianfrauenfelder.mensazh.ui.screens.MainScreen
 import ch.florianfrauenfelder.mensazh.ui.theme.MensaZHTheme
 import java.util.Date
 
@@ -47,7 +46,7 @@ fun MensaZHApp(
   }
 
   MensaZHTheme {
-    MainScreen(
+    ListDetailScreen(
       locations = viewModel.locations,
       showMenusInGerman = showMenusInGerman,
       isRefreshing = viewModel.isRefreshing,

@@ -1,4 +1,4 @@
-package ch.florianfrauenfelder.mensazh.ui.components
+package ch.florianfrauenfelder.mensazh.ui.detail
 
 import android.content.ClipData
 import android.content.Intent
@@ -30,7 +30,7 @@ import ch.florianfrauenfelder.mensazh.models.Menu
 import kotlinx.coroutines.launch
 
 @Composable
-fun DetailMenuRow(
+fun MenuRow(
   menu: Menu,
   selected: Boolean,
   modifier: Modifier = Modifier,

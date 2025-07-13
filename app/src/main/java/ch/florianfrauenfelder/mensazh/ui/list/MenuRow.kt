@@ -1,4 +1,4 @@
-package ch.florianfrauenfelder.mensazh.ui.components
+package ch.florianfrauenfelder.mensazh.ui.list
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
