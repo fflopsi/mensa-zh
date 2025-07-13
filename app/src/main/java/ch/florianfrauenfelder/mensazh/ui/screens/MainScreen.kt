@@ -10,6 +10,8 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -45,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -74,7 +77,7 @@ fun MainScreen(
   val context = LocalContext.current
 
   val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-  val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator()
+  val scaffoldNavigator = rememberListDetailPaneScaffoldNavigator<Menu>()
   val detailListState = rememberLazyListState()
 
   val showOnlyFavoriteMensas by context.showOnlyFavoriteMensasFlow.collectAsStateWithLifecycle(
@@ -159,11 +162,11 @@ fun MainScreen(
           icon = { Icon(Icons.Default.OpenInBrowser, stringResource(R.string.open_in_browser)) },
           expanded = scrollBehavior.state.collapsedFraction != 1f || !detailListState.canScrollForward,
           onClick = {
-            val i = Intent(Intent.ACTION_VIEW)
-            i.data =
-              (scaffoldNavigator.currentDestination?.contentKey as Menu).mensa!!.url.toString()
-                .toUri()
-            context.startActivity(i)
+            Intent(Intent.ACTION_VIEW).apply {
+              data =
+                scaffoldNavigator.currentDestination?.contentKey?.mensa!!.url.toString().toUri()
+              context.startActivity(this)
+            }
           },
         )
       }
@@ -197,6 +200,7 @@ fun MainScreen(
                   scaffoldNavigator.navigateTo(ListDetailPaneScaffoldRole.Detail, it)
                 }
               },
+              listBottomPadding = insets.calculateBottomPadding()
             )
           }
         }
@@ -205,17 +209,22 @@ fun MainScreen(
         AnimatedPane {
           scaffoldNavigator.currentDestination?.contentKey?.let {
             DetailMenuList(
-              menus = (it as Menu).mensa!!.menus,
+              menus = it.mensa!!.menus,
               selectedMenu = it,
-              endSpacer = true,
               listState = detailListState,
+              bottomSpacer = true,
+              listBottomPadding = insets.calculateBottomPadding(),
             )
           }
         }
       },
       modifier = Modifier
         .consumeWindowInsets(insets)
-        .padding(insets),
+        .padding(
+          top = insets.calculateTopPadding(),
+          start = insets.calculateStartPadding(LocalLayoutDirection.current),
+          end = insets.calculateEndPadding(LocalLayoutDirection.current),
+        ),
     )
   }
 }
