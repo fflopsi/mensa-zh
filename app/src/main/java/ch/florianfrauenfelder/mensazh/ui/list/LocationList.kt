@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -31,67 +30,59 @@ import ch.florianfrauenfelder.mensazh.models.Menu
 @Composable
 fun LocationList(
   locations: List<Location>,
-  isRefreshing: Boolean,
-  onRefresh: () -> Unit,
   showOnlyFavoriteMensas: Boolean,
   saveIsFavoriteMensa: (Mensa, Boolean) -> Unit,
   onMenuClick: (Menu) -> Unit,
   modifier: Modifier = Modifier,
   listBottomPadding: Dp = 0.dp,
 ) {
-  PullToRefreshBox(
-    isRefreshing = isRefreshing,
-    onRefresh = onRefresh,
+  LazyColumn(
+    contentPadding = PaddingValues(bottom = listBottomPadding),
     modifier = modifier.fillMaxWidth(),
   ) {
-    LazyColumn(
-      contentPadding = PaddingValues(bottom = listBottomPadding),
-      modifier = Modifier.fillMaxWidth(),
-    ) {
-      item {
-        AnimatedVisibility(
-          visible = showOnlyFavoriteMensas && !locations.any {
-            it.mensas.any { it.state == Mensa.State.Expanded }
-          },
-          enter = fadeIn() + expandVertically(),
-          exit = fadeOut() + shrinkVertically(),
-        ) {
-          Row(
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth(),
-          ) {
-            Text(text = stringResource(R.string.no_expanded_canteens))
-          }
-        }
-      }
-      items(locations) {
-        AnimatedVisibility(
-          visible = !showOnlyFavoriteMensas || it.mensas.any { it.state == Mensa.State.Expanded },
-          enter = fadeIn() + expandVertically(),
-          exit = fadeOut() + shrinkVertically(),
-        ) {
-          LocationRow(
-            location = it,
-            showOnlyFavoriteMensas = showOnlyFavoriteMensas,
-            saveIsFavoriteMensa = saveIsFavoriteMensa,
-            onMenuClick = onMenuClick,
-          )
-        }
-      }
-      item {
+    item {
+      AnimatedVisibility(
+        visible = showOnlyFavoriteMensas && !locations.any {
+          it.mensas.any { it.state == Mensa.State.Expanded }
+        },
+        enter = fadeIn() + expandVertically(),
+        exit = fadeOut() + shrinkVertically(),
+      ) {
         Row(
           horizontalArrangement = Arrangement.Center,
           modifier = Modifier.fillMaxWidth(),
         ) {
-          Text(
-            text = buildAnnotatedString { append("aha") },
-            modifier = Modifier.padding(
-              end = 8.dp,
-              top = 32.dp,
-              bottom = 8.dp,
-            ),
-          )
+          Text(text = stringResource(R.string.no_expanded_canteens))
         }
+      }
+    }
+    items(locations) {
+      AnimatedVisibility(
+        visible = !showOnlyFavoriteMensas || it.mensas.any { it.state == Mensa.State.Expanded },
+        enter = fadeIn() + expandVertically(),
+        exit = fadeOut() + shrinkVertically(),
+      ) {
+        LocationRow(
+          location = it,
+          showOnlyFavoriteMensas = showOnlyFavoriteMensas,
+          saveIsFavoriteMensa = saveIsFavoriteMensa,
+          onMenuClick = onMenuClick,
+        )
+      }
+    }
+    item {
+      Row(
+        horizontalArrangement = Arrangement.Center,
+        modifier = Modifier.fillMaxWidth(),
+      ) {
+        Text(
+          text = buildAnnotatedString { append("aha") },
+          modifier = Modifier.padding(
+            end = 8.dp,
+            top = 32.dp,
+            bottom = 8.dp,
+          ),
+        )
       }
     }
   }
