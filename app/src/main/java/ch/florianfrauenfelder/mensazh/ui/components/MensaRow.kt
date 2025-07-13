@@ -18,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -89,6 +90,10 @@ fun MensaRow(
           color = when (mensa.state) {
             Mensa.State.Closed, Mensa.State.Initial -> MaterialTheme.colorScheme.onPrimaryContainer
             Mensa.State.Available, Mensa.State.Expanded -> MaterialTheme.colorScheme.onPrimary
+          },
+          fontStyle = when (mensa.state) {
+            Mensa.State.Closed -> FontStyle.Italic
+            else -> null
           },
           modifier = Modifier.padding(8.dp),
         )
