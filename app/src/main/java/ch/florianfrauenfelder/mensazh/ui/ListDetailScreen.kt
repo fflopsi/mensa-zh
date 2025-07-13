@@ -37,6 +37,7 @@ import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -175,56 +176,56 @@ fun ListDetailScreen(
     modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
   ) { insets ->
 
-    NavigableListDetailPaneScaffold(
-      navigator = scaffoldNavigator,
-      listPane = {
-        AnimatedPane(modifier = Modifier.preferredWidth(450.dp)) {
-          Box {
-            AnimatedVisibility(
-              visible = isRefreshing,
-              enter = fadeIn() + expandVertically(),
-              exit = fadeOut() + shrinkVertically(),
-            ) {
-              LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-            }
+    PullToRefreshBox(
+      isRefreshing = isRefreshing,
+      onRefresh = onRefresh,
+      modifier = Modifier
+        .consumeWindowInsets(insets)
+        .padding(top = insets.calculateTopPadding()),
+    ) {
+      NavigableListDetailPaneScaffold(
+        navigator = scaffoldNavigator,
+        listPane = {
+          AnimatedPane(modifier = Modifier.preferredWidth(450.dp)) {
             LocationList(
               locations = locations,
-              isRefreshing = isRefreshing,
-              onRefresh = onRefresh,
               showOnlyFavoriteMensas = showOnlyFavoriteMensas,
               saveIsFavoriteMensa = { mensa, favorite ->
                 scope.launch { context.saveIsFavoriteMensa(mensa, favorite) }
               },
               onMenuClick = {
-                scope.launch {
-                  scaffoldNavigator.navigateTo(ListDetailPaneScaffoldRole.Detail, it)
-                }
+                scope.launch { scaffoldNavigator.navigateTo(ListDetailPaneScaffoldRole.Detail, it) }
               },
-              listBottomPadding = insets.calculateBottomPadding()
-            )
-          }
-        }
-      },
-      detailPane = {
-        AnimatedPane {
-          scaffoldNavigator.currentDestination?.contentKey?.let {
-            MenuList(
-              menus = it.mensa!!.menus,
-              selectedMenu = it,
-              listState = detailListState,
-              bottomSpacer = true,
               listBottomPadding = insets.calculateBottomPadding(),
             )
           }
-        }
-      },
-      modifier = Modifier
-        .consumeWindowInsets(insets)
-        .padding(
-          top = insets.calculateTopPadding(),
+        },
+        detailPane = {
+          AnimatedPane {
+            scaffoldNavigator.currentDestination?.contentKey?.let {
+              MenuList(
+                menus = it.mensa!!.menus,
+                selectedMenu = it,
+                listState = detailListState,
+                bottomSpacer = true,
+                listBottomPadding = insets.calculateBottomPadding(),
+              )
+            }
+          }
+        },
+        modifier = Modifier.padding(
           start = insets.calculateStartPadding(LocalLayoutDirection.current),
           end = insets.calculateEndPadding(LocalLayoutDirection.current),
         ),
-    )
+      )
+
+      AnimatedVisibility(
+        visible = isRefreshing,
+        enter = fadeIn() + expandVertically(),
+        exit = fadeOut() + shrinkVertically(),
+      ) {
+        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+      }
+    }
   }
 }
