@@ -8,5 +8,5 @@
   <string name="open_in_browser">Open in browser</string>
   <string name="show_only_expanded">Only expanded entries</string>
   <string name="show_menus_in_german">Menus in German</string>
-  <string name="copied_to_clipboard">Copied to clipboard</string>
+  <string name="back">Back</string>
 </resources>
