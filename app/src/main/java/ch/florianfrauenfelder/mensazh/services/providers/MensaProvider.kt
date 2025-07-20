@@ -13,16 +13,14 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 
-abstract class AbstractMensaProvider(
-  private val cacheService: CacheService,
-) {
+abstract class MensaProvider(private val cacheService: CacheService) {
   abstract fun getLocations(): List<Location>
 
   protected fun tryGetMenusFromCache(
     providerPrefix: String,
     mensaId: String,
     date: Date,
-    language: String,
+    language: Language,
   ): List<Menu>? = cacheService.readMenus(getCacheKey(providerPrefix, mensaId, date, language))
 
 
@@ -85,7 +83,7 @@ abstract class AbstractMensaProvider(
     providerPrefix: String,
     facilityId: String,
     date: Date,
-    language: String,
+    language: Language,
     menus: List<Menu>,
   ) = cacheService.saveMenus(getCacheKey(providerPrefix, facilityId, date, language), menus)
 
@@ -93,7 +91,7 @@ abstract class AbstractMensaProvider(
     providerPrefix: String,
     facilityId: String,
     date: Date,
-    language: String,
+    language: Language,
   ): String = "$providerPrefix.$facilityId.${getDateTimeString(date)}.$language"
 
   @SuppressLint("SimpleDateFormat")
@@ -116,15 +114,17 @@ abstract class AbstractMensaProvider(
       replace("\n ", "\n")
     }
 
-  protected fun languageToString(language: Language): String = when (language) {
-    Language.German -> "de"
-    Language.English -> "en"
-  }
-
   protected fun fallbackLanguage(language: Language): Language = when (language) {
     Language.German -> Language.English
     Language.English -> Language.German
   }
 
-  enum class Language { German, English }
+  enum class Language {
+    German, English;
+
+    override fun toString() = when (this) {
+      German -> "de"
+      English -> "en"
+    }
+  }
 }

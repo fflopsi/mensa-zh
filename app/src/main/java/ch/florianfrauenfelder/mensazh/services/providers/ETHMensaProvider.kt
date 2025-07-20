@@ -18,7 +18,7 @@ import java.util.UUID
 class ETHMensaProvider(
   private val cacheService: CacheService,
   private val assetService: AssetService,
-) : AbstractMensaProvider(cacheService) {
+) : MensaProvider(cacheService) {
   private val mensaMap = mutableMapOf<Mensa, EthMensa>()
 
   suspend fun getMenus(date: Date, language: Language, ignoreCache: Boolean): List<Mensa> {
@@ -57,26 +57,25 @@ class ETHMensaProvider(
     ignoreCache: Boolean,
     language: Language,
   ): Map<String, List<Menu>> {
-    val languageString = languageToString(language)
     if (!ignoreCache) {
-      getMenuByMensaIdFromCache(date, languageString)?.let { return it }
+      getMenuByMensaIdFromCache(date, language)?.let { return it }
     }
 
-    val menuByFacilityIds = getMensaMenusFromCookpit(languageString, date, ignoreCache)
+    val menuByFacilityIds = getMensaMenusFromCookpit(language, date, ignoreCache)
 
     cacheService.saveMensaIds(
-      key = getMensaIdCacheKey(date, languageString),
+      key = getMensaIdCacheKey(date, language),
       mensaIds = menuByFacilityIds.keys.toList(),
     )
 
     for ((facilityId, menus) in menuByFacilityIds) {
-      cacheMenus(CACHE_PROVIDER_PREFIX, facilityId, date, languageString, menus)
+      cacheMenus(CACHE_PROVIDER_PREFIX, facilityId, date, language, menus)
     }
 
     return menuByFacilityIds
   }
 
-  private fun getMenuByMensaIdFromCache(date: Date, language: String): Map<String, List<Menu>>? {
+  private fun getMenuByMensaIdFromCache(date: Date, language: Language): Map<String, List<Menu>>? {
     val impactedMensas =
       cacheService.readMensaIds(getMensaIdCacheKey(date, language)) ?: return null
 
@@ -93,11 +92,11 @@ class ETHMensaProvider(
     return menuByMensaId
   }
 
-  private fun getMensaIdCacheKey(date: Date, language: String): String =
+  private fun getMensaIdCacheKey(date: Date, language: Language): String =
     "$CACHE_PROVIDER_PREFIX.${getDateTimeString(date)}.$language"
 
   private suspend fun getMensaMenusFromCookpit(
-    language: String,
+    language: Language,
     date: Date,
     ignoreCache: Boolean,
   ): MutableMap<String, List<Menu>> {
@@ -133,13 +132,14 @@ class ETHMensaProvider(
     else -> null
   }
 
-  private fun isNoMenuNotice(menu: Menu, language: String): Boolean = when (language) {
-    "en" -> listOf("We look forward to serving you this menu again soon!", "is closed", "Closed")
-    "de" -> listOf(
-      "Dieses Menu servieren wir Ihnen gerne bald wieder!", "geschlossen", "Geschlossen"
+  private fun isNoMenuNotice(menu: Menu, language: Language): Boolean = when (language) {
+    Language.English -> listOf(
+      "We look forward to serving you this menu again soon!", "is closed", "Closed"
     )
 
-    else -> emptyList()
+    Language.German -> listOf(
+      "Dieses Menu servieren wir Ihnen gerne bald wieder!", "geschlossen", "Geschlossen"
+    )
   }.any { menu.description.contains(it) || menu.title == it }
 
 

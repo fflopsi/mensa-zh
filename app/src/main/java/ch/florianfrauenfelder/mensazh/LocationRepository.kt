@@ -5,8 +5,8 @@ import ch.florianfrauenfelder.mensazh.models.Location
 import ch.florianfrauenfelder.mensazh.models.Mensa
 import ch.florianfrauenfelder.mensazh.services.AssetService
 import ch.florianfrauenfelder.mensazh.services.CacheService
-import ch.florianfrauenfelder.mensazh.services.providers.AbstractMensaProvider
 import ch.florianfrauenfelder.mensazh.services.providers.ETHMensaProvider
+import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
 import ch.florianfrauenfelder.mensazh.services.providers.UZHMensaProvider
 import java.util.Date
 
@@ -38,7 +38,7 @@ class LocationRepository(
 
   suspend fun refresh(
     date: Date,
-    language: AbstractMensaProvider.Language,
+    language: MensaProvider.Language,
     ignoreCache: Boolean = false,
   ): List<Mensa> {
     cacheService.startObserveCacheUsage()
