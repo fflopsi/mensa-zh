@@ -20,7 +20,7 @@ import java.util.UUID
 class UZHMensaProvider(
   private val cacheService: CacheService,
   private val assetService: AssetService,
-) : AbstractMensaProvider(cacheService) {
+) : MensaProvider(cacheService) {
   private val mensaMap: MutableMap<Mensa, UzhMensa> = HashMap()
 
   suspend fun getMenus(language: Language, date: Date, ignoreCache: Boolean): List<Mensa> = try {

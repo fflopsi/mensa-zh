@@ -12,7 +12,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ch.florianfrauenfelder.mensazh.models.MensaViewModel
 import ch.florianfrauenfelder.mensazh.services.Prefs
-import ch.florianfrauenfelder.mensazh.services.providers.AbstractMensaProvider
+import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
 import ch.florianfrauenfelder.mensazh.services.showMenusInGermanFlow
 import ch.florianfrauenfelder.mensazh.ui.theme.MensaZHTheme
 import java.util.Date
@@ -30,9 +30,9 @@ fun MensaZHApp(
   val language by remember {
     derivedStateOf {
       if (showMenusInGerman) {
-        AbstractMensaProvider.Language.German
+        MensaProvider.Language.German
       } else {
-        AbstractMensaProvider.Language.English
+        MensaProvider.Language.English
       }
     }
   }
