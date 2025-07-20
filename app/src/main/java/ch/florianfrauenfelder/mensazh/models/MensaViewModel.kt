@@ -6,7 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import ch.florianfrauenfelder.mensazh.LocationRepository
+import ch.florianfrauenfelder.mensazh.services.LocationRepository
 import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
