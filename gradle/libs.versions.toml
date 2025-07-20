@@ -1,14 +1,14 @@
 [versions]
 app = "1.0"
-agp = "8.10.1"
+agp = "8.11.1"
 kotlin = "2.2.0"
 coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
-lifecycle = "2.9.1"
+lifecycle = "2.9.2"
 activityCompose = "1.10.1"
-composeBom = "2025.06.01"
+composeBom = "2025.07.00"
 datastore = "1.1.7"
 serialization = "1.9.0"
 
