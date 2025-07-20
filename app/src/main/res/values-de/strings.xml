@@ -9,4 +9,8 @@
   <string name="show_only_expanded">Nur ausgeklappte Einträge</string>
   <string name="show_menus_in_german">Menus auf Deutsch</string>
   <string name="back">Zurück</string>
+  <string name="refresh">Aktualisieren</string>
+  <string name="no_internet_or_menus">Keine Internetverbindung oder keine Menus heute.</string>
+  <string name="privacy_policy">Datenschutzbestimmungen</string>
+  <string name="source_code">Quellcode</string>
 </resources>
