@@ -8,8 +8,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ch.florianfrauenfelder.mensazh.models.MensaViewModel
+import ch.florianfrauenfelder.mensazh.services.LocationRepository
 import ch.florianfrauenfelder.mensazh.services.favoriteMensasFlow
-import ch.florianfrauenfelder.mensazh.ui.MensaZHApp
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {

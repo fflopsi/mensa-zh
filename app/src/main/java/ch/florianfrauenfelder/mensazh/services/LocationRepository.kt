@@ -1,10 +1,8 @@
-package ch.florianfrauenfelder.mensazh
+package ch.florianfrauenfelder.mensazh.services
 
 import android.content.Context
 import ch.florianfrauenfelder.mensazh.models.Location
 import ch.florianfrauenfelder.mensazh.models.Mensa
-import ch.florianfrauenfelder.mensazh.services.AssetService
-import ch.florianfrauenfelder.mensazh.services.CacheService
 import ch.florianfrauenfelder.mensazh.services.providers.ETHMensaProvider
 import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
 import ch.florianfrauenfelder.mensazh.services.providers.UZHMensaProvider

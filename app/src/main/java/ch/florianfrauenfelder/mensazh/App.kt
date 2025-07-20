@@ -1,4 +1,4 @@
-package ch.florianfrauenfelder.mensazh.ui
+package ch.florianfrauenfelder.mensazh
 
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.runtime.Composable
@@ -14,6 +14,7 @@ import ch.florianfrauenfelder.mensazh.models.MensaViewModel
 import ch.florianfrauenfelder.mensazh.services.Prefs
 import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
 import ch.florianfrauenfelder.mensazh.services.showMenusInGermanFlow
+import ch.florianfrauenfelder.mensazh.ui.ListDetailScreen
 import ch.florianfrauenfelder.mensazh.ui.theme.MensaZHTheme
 import java.util.Date
 
@@ -24,6 +25,7 @@ fun MensaZHApp(
   viewModel: MensaViewModel = viewModel(),
 ) {
   val context = LocalContext.current
+
   val showMenusInGerman by context.showMenusInGermanFlow.collectAsStateWithLifecycle(
     initialValue = Prefs.Defaults.SHOW_MENUS_IN_GERMAN,
   )
@@ -37,10 +39,6 @@ fun MensaZHApp(
     }
   }
 
-  // Not necessary I think
-//  LaunchedEffect(Unit) {
-//    viewModel.refresh(date = Date(), language = language)
-//  }
   LaunchedEffect(showMenusInGerman) {
     viewModel.refresh(date = Date(), language = language)
   }
