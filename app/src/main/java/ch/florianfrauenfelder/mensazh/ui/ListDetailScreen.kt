@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.OpenInBrowser
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -32,6 +33,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -42,6 +45,7 @@ import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneSca
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -82,11 +86,21 @@ fun ListDetailScreen(
 
   val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
   val navigator = rememberListDetailPaneScaffoldNavigator<Menu>()
+  val snackbarState = remember { SnackbarHostState() }
   val detailListState = rememberLazyListState()
 
   val showOnlyFavoriteMensas by context.showOnlyFavoriteMensasFlow.collectAsStateWithLifecycle(
     initialValue = Prefs.Defaults.SHOW_ONLY_FAVORITE_MENSAS,
   )
+
+  LaunchedEffect(isRefreshing) {
+    if (!isRefreshing && locations.flatMap { it.mensas }.flatMap { it.menus }.isEmpty()) {
+      snackbarState.showSnackbar(
+        message = context.getString(R.string.no_internet_or_menus),
+        withDismissAction = true,
+      )
+    }
+  }
 
   Scaffold(
     topBar = {
@@ -110,6 +124,9 @@ fun ListDetailScreen(
           }
         },
         actions = {
+          IconButton(onClick = onRefresh) {
+            Icon(Icons.Default.Refresh, stringResource(R.string.refresh))
+          }
           var expanded by remember { mutableStateOf(false) }
           Box {
             IconButton(
@@ -184,6 +201,7 @@ fun ListDetailScreen(
       }
     },
     contentWindowInsets = WindowInsets.safeDrawing,
+    snackbarHost = { SnackbarHost(snackbarState) },
     modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
   ) { insets ->
 
