@@ -34,7 +34,7 @@ fun MenuList(
     ) {
       MenuRow(
         menu = it,
-        selected = it == selectedMenu,
+        selected = it.title == selectedMenu.title,
       )
     }
     if (bottomSpacer) {
