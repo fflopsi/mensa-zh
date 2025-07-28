@@ -1,11 +1,10 @@
 package ch.florianfrauenfelder.mensazh.services
 
-import android.content.Context
 import ch.florianfrauenfelder.mensazh.models.Menu
 import java.io.File
 import kotlin.io.encoding.Base64
 
-class CacheService(private val context: Context) {
+class CacheService(private val cacheDir: File) {
   private val touchedCacheKeys = hashSetOf<String>()
 
   fun startObserveCacheUsage() = touchedCacheKeys.clear()
@@ -24,7 +23,7 @@ class CacheService(private val context: Context) {
 
   fun readString(key: String): String? = readRaw(getCacheKey(key, CacheType.String))
 
-  fun removeAllUntouchedCacheEntries() = context.cacheDir.listFiles()?.forEach { file ->
+  fun removeAllUntouchedCacheEntries() = cacheDir.listFiles()?.forEach { file ->
     if (file.name.startsWith(CACHE_PREFIX) && file.name !in touchedCacheKeys) {
       file.delete()
     }
@@ -61,8 +60,7 @@ class CacheService(private val context: Context) {
     return cacheKey
   }
 
-  private fun getFile(key: String): File =
-    File(context.cacheDir, Base64.UrlSafe.encode(key.toByteArray()))
+  private fun getFile(key: String): File = File(cacheDir, Base64.UrlSafe.encode(key.toByteArray()))
 
   private enum class CacheType { Menu, MensaIds, String }
 
