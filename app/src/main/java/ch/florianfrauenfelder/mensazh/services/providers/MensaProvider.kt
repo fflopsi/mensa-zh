@@ -14,7 +14,9 @@ import java.util.Calendar
 import java.util.Date
 
 abstract class MensaProvider(private val cacheService: CacheService) {
-  abstract fun getLocations(): List<Location>
+  abstract suspend fun getLocations(): List<Location>
+
+  protected abstract val cacheProviderPrefix: String
 
   protected fun tryGetMenusFromCache(
     providerPrefix: String,
@@ -25,26 +27,9 @@ abstract class MensaProvider(private val cacheService: CacheService) {
 
 
   private fun getMensaRequestCacheKey(url: URL): String =
-    "${ETHMensaProvider.CACHE_PROVIDER_PREFIX}.$url"
+    "$cacheProviderPrefix.$url"
 
-  protected fun getCachedRequest(url: URL, ignoreCache: Boolean): String? {
-    val cacheKey = getMensaRequestCacheKey(url)
-
-    if (!ignoreCache) {
-      cacheService.readString(cacheKey)?.let { return it }
-    }
-
-    return try {
-      val json = url.readText()
-      cacheService.saveString(cacheKey, json)
-      json
-    } catch (e: Exception) {
-      Log.e("AbstractMensaProvider", "cached request failed: $url", e)
-      null
-    }
-  }
-
-  protected suspend fun getCachedRequest2(url: URL, ignoreCache: Boolean): String? {
+  protected suspend fun getCachedRequest(url: URL, ignoreCache: Boolean): String? {
     val cacheKey = getMensaRequestCacheKey(url)
 
     if (!ignoreCache) {
