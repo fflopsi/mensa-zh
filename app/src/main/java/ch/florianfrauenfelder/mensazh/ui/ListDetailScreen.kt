@@ -235,6 +235,9 @@ fun ListDetailScreen(
               MenuList(
                 menus = it.mensa!!.menus,
                 selectedMenu = it,
+                selectMenu = { menu ->
+                  scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, menu) }
+                },
                 listState = detailListState,
                 bottomSpacer = true,
                 listBottomPadding = insets.calculateBottomPadding(),

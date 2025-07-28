@@ -18,6 +18,7 @@ import ch.florianfrauenfelder.mensazh.models.Menu
 fun MenuList(
   menus: List<Menu>,
   selectedMenu: Menu,
+  selectMenu: (Menu) -> Unit,
   modifier: Modifier = Modifier,
   listState: LazyListState = rememberLazyListState(),
   listBottomPadding: Dp = 0.dp,
@@ -35,6 +36,7 @@ fun MenuList(
       MenuRow(
         menu = it,
         selected = it.title == selectedMenu.title,
+        select = selectMenu,
       )
     }
     if (bottomSpacer) {
