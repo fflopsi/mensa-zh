@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import ch.florianfrauenfelder.mensazh.models.MensaViewModel
+import ch.florianfrauenfelder.mensazh.models.AppViewModel
 import ch.florianfrauenfelder.mensazh.services.Prefs
 import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
 import ch.florianfrauenfelder.mensazh.services.showMenusInGermanFlow
@@ -21,7 +21,7 @@ import java.util.Date
 @Composable
 fun MensaZHApp(
   modifier: Modifier = Modifier,
-  viewModel: MensaViewModel = viewModel(),
+  viewModel: AppViewModel = viewModel(),
 ) {
   val context = LocalContext.current
 
