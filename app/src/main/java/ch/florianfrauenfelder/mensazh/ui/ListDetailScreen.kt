@@ -8,9 +8,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.focusable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -21,12 +18,8 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -47,11 +40,8 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -65,9 +55,8 @@ import ch.florianfrauenfelder.mensazh.models.Location
 import ch.florianfrauenfelder.mensazh.models.Menu
 import ch.florianfrauenfelder.mensazh.services.Prefs
 import ch.florianfrauenfelder.mensazh.services.saveIsFavoriteMensa
-import ch.florianfrauenfelder.mensazh.services.saveShowMenusInGerman
-import ch.florianfrauenfelder.mensazh.services.saveShowOnlyFavoriteMensas
 import ch.florianfrauenfelder.mensazh.services.showOnlyFavoriteMensasFlow
+import ch.florianfrauenfelder.mensazh.ui.components.SettingsDropdown
 import ch.florianfrauenfelder.mensazh.ui.detail.MenuList
 import ch.florianfrauenfelder.mensazh.ui.list.LocationList
 import kotlinx.coroutines.launch
@@ -127,60 +116,10 @@ fun ListDetailScreen(
           IconButton(onClick = onRefresh) {
             Icon(Icons.Default.Refresh, stringResource(R.string.refresh))
           }
-          var expanded by remember { mutableStateOf(false) }
-          Box {
-            IconButton(
-              onClick = { expanded = !expanded },
-              modifier = Modifier.focusable(),
-            ) {
-              Icon(Icons.Default.MoreHoriz, stringResource(R.string.settings))
-            }
-            DropdownMenu(
-              expanded = expanded,
-              onDismissRequest = { expanded = false },
-            ) {
-              DropdownMenuItem(
-                text = {
-                  Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                      text = stringResource(R.string.show_only_expanded),
-                      modifier = Modifier
-                        .padding(end = 16.dp)
-                        .weight(1f),
-                    )
-                    Checkbox(
-                      checked = showOnlyFavoriteMensas,
-                      onCheckedChange = {
-                        scope.launch { context.saveShowOnlyFavoriteMensas(!showOnlyFavoriteMensas) }
-                      },
-                    )
-                  }
-                },
-                onClick = {
-                  scope.launch { context.saveShowOnlyFavoriteMensas(!showOnlyFavoriteMensas) }
-                },
-              )
-              DropdownMenuItem(
-                text = {
-                  Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                      text = stringResource(R.string.show_menus_in_german),
-                      modifier = Modifier
-                        .padding(end = 16.dp)
-                        .weight(1f),
-                    )
-                    Checkbox(
-                      checked = showMenusInGerman,
-                      onCheckedChange = {
-                        scope.launch { context.saveShowMenusInGerman(!showMenusInGerman) }
-                      },
-                    )
-                  }
-                },
-                onClick = { scope.launch { context.saveShowMenusInGerman(!showMenusInGerman) } },
-              )
-            }
-          }
+          SettingsDropdown(
+            showOnlyFavoriteMensas = showOnlyFavoriteMensas,
+            showMenusInGerman = showMenusInGerman,
+          )
         },
         scrollBehavior = scrollBehavior,
       )
