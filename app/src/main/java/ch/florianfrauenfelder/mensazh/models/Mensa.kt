@@ -26,7 +26,7 @@ data class Mensa(
 
   var state by mutableStateOf(State.Initial)
 
-  override fun toString() = title + menus
+  override fun toString() = title
 
   companion object {
     val dummy = Mensa(
