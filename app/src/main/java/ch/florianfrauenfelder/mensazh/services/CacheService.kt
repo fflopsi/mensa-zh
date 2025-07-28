@@ -4,7 +4,6 @@ import android.content.Context
 import ch.florianfrauenfelder.mensazh.models.Menu
 import java.io.File
 import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 
 class CacheService(private val context: Context) {
   private val touchedCacheKeys = hashSetOf<String>()
@@ -25,11 +24,9 @@ class CacheService(private val context: Context) {
 
   fun readString(key: String): String? = readRaw(getCacheKey(key, CacheType.String))
 
-  fun removeAllUntouchedCacheEntries() {
-    for (file in context.cacheDir.listFiles() ?: return) {
-      if (file.name.startsWith(CACHE_PREFIX) && file.name !in touchedCacheKeys) {
-        file.delete()
-      }
+  fun removeAllUntouchedCacheEntries() = context.cacheDir.listFiles()?.forEach { file ->
+    if (file.name.startsWith(CACHE_PREFIX) && file.name !in touchedCacheKeys) {
+      file.delete()
     }
   }
 
@@ -64,7 +61,6 @@ class CacheService(private val context: Context) {
     return cacheKey
   }
 
-  @OptIn(ExperimentalEncodingApi::class)
   private fun getFile(key: String): File =
     File(context.cacheDir, Base64.UrlSafe.encode(key.toByteArray()))
 
