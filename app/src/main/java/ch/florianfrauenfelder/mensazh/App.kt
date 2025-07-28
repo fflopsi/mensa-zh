@@ -3,7 +3,6 @@ package ch.florianfrauenfelder.mensazh
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -29,14 +28,8 @@ fun MensaZHApp(
   val showMenusInGerman by context.showMenusInGermanFlow.collectAsStateWithLifecycle(
     initialValue = Prefs.Defaults.SHOW_MENUS_IN_GERMAN,
   )
-  val language by remember {
-    derivedStateOf {
-      if (showMenusInGerman) {
-        MensaProvider.Language.German
-      } else {
-        MensaProvider.Language.English
-      }
-    }
+  val language = remember(showMenusInGerman) {
+    if (showMenusInGerman) MensaProvider.Language.German else MensaProvider.Language.English
   }
 
   LaunchedEffect(showMenusInGerman) {
