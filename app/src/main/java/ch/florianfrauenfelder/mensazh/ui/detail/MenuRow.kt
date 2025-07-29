@@ -67,6 +67,7 @@ fun MenuRow(
           haptics.performHapticFeedback(HapticFeedbackType.LongPress)
           select(menu)
         },
+        onLongClickLabel = stringResource(R.string.select_menu),
       )
       .fillMaxWidth(),
   ) {
