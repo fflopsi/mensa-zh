@@ -13,4 +13,5 @@
   <string name="no_internet_or_menus">Keine Internetverbindung oder keine Menus heute.</string>
   <string name="privacy_policy">Datenschutzbestimmungen</string>
   <string name="source_code">Quellcode</string>
+  <string name="select_menu">Menu auswählen</string>
 </resources>
