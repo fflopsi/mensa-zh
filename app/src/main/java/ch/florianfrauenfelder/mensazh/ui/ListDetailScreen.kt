@@ -56,6 +56,7 @@ import ch.florianfrauenfelder.mensazh.models.Menu
 import ch.florianfrauenfelder.mensazh.services.Prefs
 import ch.florianfrauenfelder.mensazh.services.saveIsFavoriteMensa
 import ch.florianfrauenfelder.mensazh.services.showOnlyFavoriteMensasFlow
+import ch.florianfrauenfelder.mensazh.services.showOnlyOpenMensasFlow
 import ch.florianfrauenfelder.mensazh.ui.components.SettingsDropdown
 import ch.florianfrauenfelder.mensazh.ui.detail.MenuList
 import ch.florianfrauenfelder.mensazh.ui.list.LocationList
@@ -78,6 +79,9 @@ fun ListDetailScreen(
   val snackbarState = remember { SnackbarHostState() }
   val detailListState = rememberLazyListState()
 
+  val showOnlyOpenMensas by context.showOnlyOpenMensasFlow.collectAsStateWithLifecycle(
+    initialValue = Prefs.Defaults.SHOW_ONLY_OPEN_MENSAS,
+  )
   val showOnlyFavoriteMensas by context.showOnlyFavoriteMensasFlow.collectAsStateWithLifecycle(
     initialValue = Prefs.Defaults.SHOW_ONLY_FAVORITE_MENSAS,
   )
@@ -117,6 +121,7 @@ fun ListDetailScreen(
             Icon(Icons.Default.Refresh, stringResource(R.string.refresh))
           }
           SettingsDropdown(
+            showOnlyOpenMensas = showOnlyOpenMensas,
             showOnlyFavoriteMensas = showOnlyFavoriteMensas,
             showMenusInGerman = showMenusInGerman,
           )
@@ -157,6 +162,7 @@ fun ListDetailScreen(
           AnimatedPane(modifier = Modifier.preferredWidth(450.dp)) {
             LocationList(
               locations = locations,
+              showOnlyOpenMensas = showOnlyOpenMensas,
               showOnlyFavoriteMensas = showOnlyFavoriteMensas,
               saveIsFavoriteMensa = { mensa, favorite ->
                 scope.launch { context.saveIsFavoriteMensa(mensa, favorite) }

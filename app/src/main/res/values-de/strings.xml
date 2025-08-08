@@ -14,4 +14,5 @@
   <string name="privacy_policy">Datenschutzbestimmungen</string>
   <string name="source_code">Quellcode</string>
   <string name="select_menu">Menu auswählen</string>
+  <string name="show_only_open">Nur offene Mensen</string>
 </resources>

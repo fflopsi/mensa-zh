@@ -26,13 +26,15 @@ import androidx.compose.ui.unit.dp
 import ch.florianfrauenfelder.mensazh.R
 import ch.florianfrauenfelder.mensazh.services.saveShowMenusInGerman
 import ch.florianfrauenfelder.mensazh.services.saveShowOnlyFavoriteMensas
+import ch.florianfrauenfelder.mensazh.services.saveShowOnlyOpenMensas
 import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsDropdown(
+  showOnlyOpenMensas: Boolean,
   showOnlyFavoriteMensas: Boolean,
   showMenusInGerman: Boolean,
-  modifier: Modifier = Modifier
+  modifier: Modifier = Modifier,
 ) {
   val context = LocalContext.current
   val scope = rememberCoroutineScope()
@@ -54,6 +56,25 @@ fun SettingsDropdown(
         text = {
           Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
+              text = stringResource(R.string.show_only_open),
+              modifier = Modifier
+                .padding(end = 16.dp)
+                .weight(1f),
+            )
+            Checkbox(
+              checked = showOnlyOpenMensas,
+              onCheckedChange = {
+                scope.launch { context.saveShowOnlyOpenMensas(!showOnlyOpenMensas) }
+              },
+            )
+          }
+        },
+        onClick = { scope.launch { context.saveShowOnlyOpenMensas(!showOnlyOpenMensas) } },
+      )
+      DropdownMenuItem(
+        text = {
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
               text = stringResource(R.string.show_only_expanded),
               modifier = Modifier
                 .padding(end = 16.dp)
@@ -67,9 +88,7 @@ fun SettingsDropdown(
             )
           }
         },
-        onClick = {
-          scope.launch { context.saveShowOnlyFavoriteMensas(!showOnlyFavoriteMensas) }
-        },
+        onClick = { scope.launch { context.saveShowOnlyFavoriteMensas(!showOnlyFavoriteMensas) } },
       )
       DropdownMenuItem(
         text = {

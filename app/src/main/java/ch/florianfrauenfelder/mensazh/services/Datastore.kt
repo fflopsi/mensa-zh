@@ -13,12 +13,14 @@ val Context.dataStore by preferencesDataStore(name = "settings")
 object Prefs {
   object Keys {
     val FAVORITE_MENSAS = stringSetPreferencesKey("favorite_mensas")
+    val SHOW_ONLY_OPEN_MENSAS = booleanPreferencesKey("show_only_open_mensas")
     val SHOW_ONLY_FAVORITE_MENSAS = booleanPreferencesKey("show_only_favorite_mensas")
-    val SHOW_MENUS_IN_GERMAN = booleanPreferencesKey("invert_language")
+    val SHOW_MENUS_IN_GERMAN = booleanPreferencesKey("german_menus")
   }
 
   object Defaults {
     val FAVORITE_MENSAS = emptySet<String>()
+    const val SHOW_ONLY_OPEN_MENSAS = false
     const val SHOW_ONLY_FAVORITE_MENSAS = false
     const val SHOW_MENUS_IN_GERMAN = false
   }
@@ -34,6 +36,15 @@ suspend fun Context.saveIsFavoriteMensa(mensa: Mensa, favorite: Boolean) {
 
 val Context.favoriteMensasFlow
   get() = dataStore.data.map { it[Prefs.Keys.FAVORITE_MENSAS] ?: Prefs.Defaults.FAVORITE_MENSAS }
+
+suspend fun Context.saveShowOnlyOpenMensas(showOnlyOpenMensas: Boolean) {
+  dataStore.edit { it[Prefs.Keys.SHOW_ONLY_OPEN_MENSAS] = showOnlyOpenMensas }
+}
+
+val Context.showOnlyOpenMensasFlow
+  get() = dataStore.data.map {
+    it[Prefs.Keys.SHOW_ONLY_OPEN_MENSAS] ?: Prefs.Defaults.SHOW_ONLY_OPEN_MENSAS
+  }
 
 suspend fun Context.saveShowOnlyFavoriteMensas(showOnlyFavoriteMensas: Boolean) {
   dataStore.edit { it[Prefs.Keys.SHOW_ONLY_FAVORITE_MENSAS] = showOnlyFavoriteMensas }
