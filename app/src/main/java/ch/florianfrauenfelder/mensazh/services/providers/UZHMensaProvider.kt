@@ -148,8 +148,20 @@ class UZHMensaProvider(
   }
 
   private fun isNoMenuNotice(menu: Menu, language: Language): Boolean = when (language) {
-    Language.English -> arrayOf("no dinner", "is closed", "geschlossen", "Wir sind ab Vollsemester")
-    Language.German -> arrayOf("kein Abendessen", "geschlossen", "Wir sind ab Vollsemester")
+    Language.English -> arrayOf(
+      "kein Abendessen",
+      "no dinner",
+      "geschlossen",
+      "is closed",
+      "Wir sind ab Vollsemester",
+    )
+
+    Language.German -> arrayOf(
+      "kein Abendessen",
+      "geschlossen",
+      "Wir sind ab Vollsemester",
+      "Betriebsferien",
+    )
   }.any { menu.description.contains(it) }
 
   @Serializable

@@ -136,6 +136,7 @@ class ETHMensaProvider(
       "We look forward to serving you this menu again soon!",
       "is closed",
       "Closed",
+      "novalue",
     )
 
     Language.German -> listOf(
