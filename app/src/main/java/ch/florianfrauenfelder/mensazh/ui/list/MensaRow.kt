@@ -1,6 +1,10 @@
 package ch.florianfrauenfelder.mensazh.ui.list
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -62,10 +66,10 @@ fun MensaRow(
       Row(
         modifier = rowModifier
           .background(
-            when (mensa.state) {
+            color = when (mensa.state) {
               Mensa.State.Closed, Mensa.State.Initial -> MaterialTheme.colorScheme.primaryContainer
               Mensa.State.Available, Mensa.State.Expanded -> MaterialTheme.colorScheme.primary
-            }
+            },
           )
           .fillMaxWidth(),
       ) {
@@ -100,11 +104,16 @@ fun MensaRow(
       }
       AnimatedVisibility(mensa.state == Mensa.State.Expanded) {
         Column(modifier = Modifier.fillMaxWidth()) {
-          mensa.menus.forEach {
-            MenuRow(
-              menu = it,
-              onClick = { onMenuClick(it) },
-            )
+          mensa.menus.forEach { menu ->
+            AnimatedContent(
+              targetState = menu,
+              transitionSpec = { fadeIn().togetherWith(fadeOut()) },
+            ) {
+              MenuRow(
+                menu = it,
+                onClick = { onMenuClick(it) },
+              )
+            }
             HorizontalDivider()
           }
         }

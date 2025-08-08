@@ -16,6 +16,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
@@ -30,21 +33,30 @@ import ch.florianfrauenfelder.mensazh.ui.components.InfoLinks
 @Composable
 fun LocationList(
   locations: List<Location>,
+  showOnlyOpenMensas: Boolean,
   showOnlyFavoriteMensas: Boolean,
   saveIsFavoriteMensa: (Mensa, Boolean) -> Unit,
   onMenuClick: (Menu) -> Unit,
   modifier: Modifier = Modifier,
   listBottomPadding: Dp = 0.dp,
 ) {
+  val showEmptyNotice by remember(locations, showOnlyOpenMensas, showOnlyFavoriteMensas) {
+    derivedStateOf {
+      locations.isEmpty() || (showOnlyOpenMensas && locations.flatMap { it.mensas }.all {
+        it.state == Mensa.State.Closed
+      }) || (showOnlyFavoriteMensas && locations.flatMap { it.mensas }.none {
+        it.state == Mensa.State.Expanded
+      })
+    }
+  }
+
   LazyColumn(
     contentPadding = PaddingValues(bottom = listBottomPadding),
     modifier = modifier.fillMaxWidth(),
   ) {
     item(key = -1) {
       AnimatedVisibility(
-        visible = showOnlyFavoriteMensas && !locations.flatMap { it.mensas }.any {
-          it.state == Mensa.State.Expanded
-        },
+        visible = showEmptyNotice,
         enter = fadeIn() + expandVertically(),
         exit = fadeOut() + shrinkVertically(),
       ) {
@@ -59,14 +71,25 @@ fun LocationList(
     items(
       items = locations,
       key = { it.title },
-    ) {
+    ) { location ->
+      val showLocation by remember(location, showOnlyOpenMensas, showOnlyFavoriteMensas) {
+        derivedStateOf {
+          !((showOnlyOpenMensas && location.mensas.all {
+            it.state == Mensa.State.Closed
+          }) || (showOnlyFavoriteMensas && location.mensas.none {
+            it.state == Mensa.State.Expanded
+          }))
+        }
+      }
+
       AnimatedVisibility(
-        visible = !showOnlyFavoriteMensas || it.mensas.any { it.state == Mensa.State.Expanded },
+        visible = showLocation,
         enter = fadeIn() + expandVertically(),
         exit = fadeOut() + shrinkVertically(),
       ) {
         LocationRow(
-          location = it,
+          location = location,
+          showOnlyOpenMensas = showOnlyOpenMensas,
           showOnlyFavoriteMensas = showOnlyFavoriteMensas,
           saveIsFavoriteMensa = saveIsFavoriteMensa,
           onMenuClick = onMenuClick,
