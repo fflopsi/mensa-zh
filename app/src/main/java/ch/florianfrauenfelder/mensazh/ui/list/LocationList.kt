@@ -13,24 +13,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLinkStyles
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import ch.florianfrauenfelder.mensazh.R
 import ch.florianfrauenfelder.mensazh.models.Location
 import ch.florianfrauenfelder.mensazh.models.Mensa
 import ch.florianfrauenfelder.mensazh.models.Menu
+import ch.florianfrauenfelder.mensazh.ui.components.InfoLinks
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
 @Composable
@@ -80,47 +74,16 @@ fun LocationList(
       }
     }
     item(key = 0) {
-      Row(
-        horizontalArrangement = Arrangement.Center,
-        modifier = Modifier.fillMaxWidth(),
-      ) {
-        Text(
-          text = buildAnnotatedString {
-            withLink(
-              LinkAnnotation.Url(
-                stringResource(R.string.url_privacy_policy),
-                TextLinkStyles(
-                  style = SpanStyle(
-                    color = MaterialTheme.colorScheme.tertiary,
-                    textDecoration = TextDecoration.Underline,
-                  ),
-                )
-              )
-            ) {
-              append(stringResource(R.string.privacy_policy))
-            }
-            append(", ")
-            withLink(
-              LinkAnnotation.Url(
-                stringResource(R.string.url_source_code),
-                TextLinkStyles(
-                  style = SpanStyle(
-                    color = MaterialTheme.colorScheme.tertiary,
-                    textDecoration = TextDecoration.Underline,
-                  ),
-                )
-              )
-            ) {
-              append(stringResource(R.string.source_code))
-            }
-          },
-          modifier = Modifier.padding(
+      InfoLinks(
+        modifier = Modifier
+          .padding(
+            start = 8.dp,
             end = 8.dp,
             top = 32.dp,
             bottom = 8.dp,
-          ),
-        )
-      }
+          )
+          .fillMaxWidth(),
+      )
     }
   }
 }
