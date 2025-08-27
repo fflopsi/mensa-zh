@@ -55,8 +55,8 @@ val Context.showOnlyFavoriteMensasFlow
     it[Prefs.Keys.SHOW_ONLY_FAVORITE_MENSAS] ?: Prefs.Defaults.SHOW_ONLY_FAVORITE_MENSAS
   }
 
-suspend fun Context.saveShowMenusInGerman(invertLanguage: Boolean) {
-  dataStore.edit { it[Prefs.Keys.SHOW_MENUS_IN_GERMAN] = invertLanguage }
+suspend fun Context.saveShowMenusInGerman(showMenusInGerman: Boolean) {
+  dataStore.edit { it[Prefs.Keys.SHOW_MENUS_IN_GERMAN] = showMenusInGerman }
 }
 
 val Context.showMenusInGermanFlow
