@@ -24,7 +24,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ch.florianfrauenfelder.mensazh.R
-import ch.florianfrauenfelder.mensazh.services.saveShowMenusInGerman
+import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
 import ch.florianfrauenfelder.mensazh.services.saveShowOnlyFavoriteMensas
 import ch.florianfrauenfelder.mensazh.services.saveShowOnlyOpenMensas
 import kotlinx.coroutines.launch
@@ -33,7 +33,8 @@ import kotlinx.coroutines.launch
 fun SettingsDropdown(
   showOnlyOpenMensas: Boolean,
   showOnlyFavoriteMensas: Boolean,
-  showMenusInGerman: Boolean,
+  language: MensaProvider.Language,
+  setLanguage: (MensaProvider.Language) -> Unit,
   modifier: Modifier = Modifier,
 ) {
   val context = LocalContext.current
@@ -100,14 +101,12 @@ fun SettingsDropdown(
                 .weight(1f),
             )
             Checkbox(
-              checked = showMenusInGerman,
-              onCheckedChange = {
-                scope.launch { context.saveShowMenusInGerman(!showMenusInGerman) }
-              },
+              checked = language.showMenusInGerman,
+              onCheckedChange = { setLanguage(!language) },
             )
           }
         },
-        onClick = { scope.launch { context.saveShowMenusInGerman(!showMenusInGerman) } },
+        onClick = { setLanguage(!language) },
       )
     }
   }

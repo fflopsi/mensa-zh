@@ -5,23 +5,19 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ch.florianfrauenfelder.mensazh.models.AppViewModel
 import ch.florianfrauenfelder.mensazh.services.AssetService
 import ch.florianfrauenfelder.mensazh.services.CacheService
-import ch.florianfrauenfelder.mensazh.services.Prefs
 import ch.florianfrauenfelder.mensazh.services.favoriteMensasFlow
-import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
+import ch.florianfrauenfelder.mensazh.services.providers.showMenusInGermanToLanguage
+import ch.florianfrauenfelder.mensazh.services.saveShowMenusInGerman
 import ch.florianfrauenfelder.mensazh.services.showMenusInGermanFlow
-import ch.florianfrauenfelder.mensazh.ui.ListDetailScreen
+import ch.florianfrauenfelder.mensazh.ui.App
 import ch.florianfrauenfelder.mensazh.ui.theme.MensaZHTheme
-import java.util.Date
+import kotlinx.coroutines.flow.map
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,31 +30,30 @@ class MainActivity : ComponentActivity() {
           assetService = AssetService(this@MainActivity.assets),
           cacheService = CacheService(this@MainActivity.cacheDir),
           favoriteMensas = this@MainActivity.favoriteMensasFlow,
+          initialLanguage = this@MainActivity.showMenusInGermanFlow.map { it.showMenusInGermanToLanguage },
+          saveLanguage = { this@MainActivity.saveShowMenusInGerman(it.showMenusInGerman) },
         ) as T
       }
     }
 
     setContent {
       val viewModel: AppViewModel = viewModel(factory = viewModelFactory)
-      val context = LocalContext.current
 
-      val showMenusInGerman by context.showMenusInGermanFlow.collectAsStateWithLifecycle(
-        initialValue = Prefs.Defaults.SHOW_MENUS_IN_GERMAN,
-      )
-      val language = remember(showMenusInGerman) {
-        if (showMenusInGerman) MensaProvider.Language.German else MensaProvider.Language.English
-      }
-
-      LaunchedEffect(showMenusInGerman) {
-        viewModel.refresh(date = Date(), language = language)
+      LaunchedEffect(Unit) {
+        viewModel.refresh()
       }
 
       MensaZHTheme {
-        ListDetailScreen(
+        App(
+          destination = viewModel.destination,
+          setDestination = viewModel::setDestination,
+          weekday = viewModel.weekday,
+          setWeekday = viewModel::setWeekday,
           locations = viewModel.locations,
-          showMenusInGerman = showMenusInGerman,
+          language = viewModel.language,
+          setLanguage = viewModel::setLanguage,
           isRefreshing = viewModel.isRefreshing,
-          onRefresh = { viewModel.refresh(date = Date(), language = language, ignoreCache = true) },
+          onRefresh = { viewModel.refresh(ignoreCache = true) },
         )
       }
     }

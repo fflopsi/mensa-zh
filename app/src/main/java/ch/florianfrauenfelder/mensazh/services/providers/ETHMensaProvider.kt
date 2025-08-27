@@ -3,6 +3,7 @@ package ch.florianfrauenfelder.mensazh.services.providers
 import ch.florianfrauenfelder.mensazh.models.Location
 import ch.florianfrauenfelder.mensazh.models.Mensa
 import ch.florianfrauenfelder.mensazh.models.Menu
+import ch.florianfrauenfelder.mensazh.models.Weekday
 import ch.florianfrauenfelder.mensazh.services.AssetService
 import ch.florianfrauenfelder.mensazh.services.CacheService
 import ch.florianfrauenfelder.mensazh.services.SerializationService
@@ -10,7 +11,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.net.URI
 import java.net.URL
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
@@ -36,7 +36,11 @@ class ETHMensaProvider(
     }
   }
 
-  suspend fun getMenus(date: Date, language: Language, ignoreCache: Boolean): List<Mensa> {
+  override suspend fun getMenus(
+    date: Date,
+    language: Language,
+    ignoreCache: Boolean,
+  ): List<Mensa> {
     val mensas = mutableListOf<Mensa>()
     try {
       val menuByFacilityIds = getMenuByFacilityId(date, ignoreCache, language)
@@ -76,8 +80,8 @@ class ETHMensaProvider(
   }
 
   private fun getMenuByMensaIdFromCache(date: Date, language: Language): Map<String, List<Menu>>? {
-    val impactedMensas = cacheService.readMensaIds(getMensaIdCacheKey(date, language))
-      ?: return null
+    val impactedMensas =
+      cacheService.readMensaIds(getMensaIdCacheKey(date, language)) ?: return null
 
     val menuByMensaId = hashMapOf<String, List<Menu>>()
     impactedMensas.forEach { mensaId ->
@@ -99,25 +103,27 @@ class ETHMensaProvider(
     language: Language,
     date: Date,
     ignoreCache: Boolean,
-  ): MutableMap<String, List<Menu>> {
+  ): Map<String, List<Menu>> {
     // Observation: dateslug is ignored by API; all future entries are returned in any case
     val dateSlug = getDateTimeStringOfMonday(date)
-    val url = URL("https://idapps.ethz.ch/cookpit-pub-services/v1/weeklyrotas?client-id=ethz-wcms&lang=$language&rs-first=0&rs-size=50&valid-after=$dateSlug")
+    val url =
+      URL("https://idapps.ethz.ch/cookpit-pub-services/v1/weeklyrotas?client-id=ethz-wcms&lang=$language&rs-first=0&rs-size=50&valid-after=$dateSlug")
     val json = getCachedRequest(url, ignoreCache) ?: throw Exception("Cannot load web content")
     val data: ApiRoot = SerializationService.deserialize(json)
 
     val menuByFacilityIds = hashMapOf<String, List<Menu>>()
     data.weeklyRotaArray.filter { it.validFrom == dateSlug }.forEach { weeklyRotaArray ->
-      val today = weeklyRotaArray.dayOfWeekArray.firstOrNull {
-        it.dayOfWeekCode == Calendar.getInstance().apply { time = date }[Calendar.DAY_OF_WEEK] - 1
-      } ?: return@forEach
-      today.openingHourArray?.forEach { openingHour ->
-        openingHour.mealTimeArray?.forEach { mealTime ->
-          if (mealTime.lineArray == null) return@forEach
-          val time = parseMealTime(mealTime.name) ?: return@forEach
-          menuByFacilityIds["${weeklyRotaArray.facilityId}_$time"] = mealTime.lineArray.mapNotNull {
-            parseApiLineArray(it.name, it.meal)
-          }.filter { !isNoMenuNotice(it, language) }
+      weeklyRotaArray.dayOfWeekArray.forEach { dayOfWeekArray ->
+        val weekday = Weekday.entries[dayOfWeekArray.dayOfWeekCode - 1]
+        dayOfWeekArray.openingHourArray?.forEach { openingHour ->
+          openingHour.mealTimeArray?.forEach { mealTime ->
+            if (mealTime.lineArray == null) return@forEach
+            val time = parseMealTime(mealTime.name) ?: return@forEach
+            menuByFacilityIds["${weeklyRotaArray.facilityId}_$time"] =
+              menuByFacilityIds["${weeklyRotaArray.facilityId}_$time"].orEmpty() + mealTime.lineArray.mapNotNull {
+                parseApiLineArray(it.name, it.meal, weekday)
+              }.filter { !isNoMenuNotice(it, language) }
+          }
         }
       }
     }
@@ -146,13 +152,15 @@ class ETHMensaProvider(
     )
   }.any { menu.description.contains(it) || menu.title == it }
 
-  private fun parseApiLineArray(name: String, meal: ApiMeal?): Menu? = if (meal == null) null
-  else Menu(
-    title = name,
-    description = "${meal.name.trim()}\n${meal.description.replace("\\s+".toRegex(), " ")}",
-    price = meal.mealPriceArray.orEmpty().map { String.format(Locale.US, "%.2f", it.price) },
-    allergens = meal.allergenArray?.joinToString(separator = ", ") { it.desc },
-  )
+  private fun parseApiLineArray(name: String, meal: ApiMeal?, weekday: Weekday): Menu? =
+    if (meal == null) null
+    else Menu(
+      title = name,
+      description = "${meal.name.trim()}\n${meal.description.replace("\\s+".toRegex(), " ")}",
+      price = meal.mealPriceArray.orEmpty().map { String.format(Locale.US, "%.2f", it.price) },
+      allergens = meal.allergenArray?.joinToString(separator = ", ") { it.desc },
+      weekday = weekday,
+    )
 
   @Serializable
   private data class EthLocation(val title: String, val mensas: List<EthMensa>)

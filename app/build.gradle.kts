@@ -69,8 +69,10 @@ dependencies {
   implementation(libs.androidx.adaptive)
   implementation(libs.androidx.adaptive.layout)
   implementation(libs.androidx.adaptive.navigation)
+  implementation(libs.androidx.adaptive.navigation.suite)
   implementation(libs.androidx.datastore)
   implementation(libs.kotlinx.serialization.json)
+  implementation(libs.kotlinx.datetime)
 
   testImplementation(libs.junit)
   androidTestImplementation(libs.androidx.junit)

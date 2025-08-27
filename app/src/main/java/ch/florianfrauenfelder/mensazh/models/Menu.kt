@@ -13,6 +13,7 @@ data class Menu(
   val description: String,
   val price: List<String>,
   val allergens: String?,
+  val weekday: Weekday,
 ) : Parcelable {
   @IgnoredOnParcel
   @Transient
@@ -26,6 +27,7 @@ data class Menu(
       description = "Gnocchi mit Quornwürfel und Tomatensauce",
       price = listOf("14.50", "20.50", "21.30"),
       allergens = "Sellerie, Nüsse, Schweinefleisch",
+      weekday = Weekday.Monday,
     )
   }
 }

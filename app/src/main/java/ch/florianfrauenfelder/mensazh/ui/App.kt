@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -26,8 +27,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -36,6 +39,7 @@ import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -51,9 +55,12 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.florianfrauenfelder.mensazh.R
+import ch.florianfrauenfelder.mensazh.models.Destination
 import ch.florianfrauenfelder.mensazh.models.Location
 import ch.florianfrauenfelder.mensazh.models.Menu
+import ch.florianfrauenfelder.mensazh.models.Weekday
 import ch.florianfrauenfelder.mensazh.services.Prefs
+import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
 import ch.florianfrauenfelder.mensazh.services.saveIsFavoriteMensa
 import ch.florianfrauenfelder.mensazh.services.showOnlyFavoriteMensasFlow
 import ch.florianfrauenfelder.mensazh.services.showOnlyOpenMensasFlow
@@ -64,9 +71,14 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun ListDetailScreen(
+fun App(
+  destination: Destination,
+  setDestination: (Destination) -> Unit,
+  weekday: Weekday,
+  setWeekday: (Weekday) -> Unit,
   locations: List<Location>,
-  showMenusInGerman: Boolean,
+  language: MensaProvider.Language,
+  setLanguage: (MensaProvider.Language) -> Unit,
   isRefreshing: Boolean,
   onRefresh: () -> Unit,
   modifier: Modifier = Modifier,
@@ -123,7 +135,8 @@ fun ListDetailScreen(
           SettingsDropdown(
             showOnlyOpenMensas = showOnlyOpenMensas,
             showOnlyFavoriteMensas = showOnlyFavoriteMensas,
-            showMenusInGerman = showMenusInGerman,
+            language = language,
+            setLanguage = setLanguage,
           )
         },
         scrollBehavior = scrollBehavior,
@@ -156,45 +169,75 @@ fun ListDetailScreen(
         .consumeWindowInsets(insets)
         .padding(top = insets.calculateTopPadding()),
     ) {
-      NavigableListDetailPaneScaffold(
-        navigator = navigator,
-        listPane = {
-          AnimatedPane(modifier = Modifier.preferredWidth(450.dp)) {
-            LocationList(
-              locations = locations,
-              showOnlyOpenMensas = showOnlyOpenMensas,
-              showOnlyFavoriteMensas = showOnlyFavoriteMensas,
-              saveIsFavoriteMensa = { mensa, favorite ->
-                scope.launch { context.saveIsFavoriteMensa(mensa, favorite) }
-              },
-              onMenuClick = {
-                scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, it) }
-              },
-              listBottomPadding = insets.calculateBottomPadding(),
+      NavigationSuiteScaffold(
+        navigationSuiteItems = {
+          Destination.entries.forEach {
+            item(
+              icon = { Icon(it.icon, stringResource(it.label)) },
+              label = { Text(stringResource(it.label)) },
+              selected = it == destination,
+              onClick = { setDestination(it) },
             )
           }
         },
-        detailPane = {
-          AnimatedPane {
-            navigator.currentDestination?.contentKey?.let {
-              MenuList(
-                menus = it.mensa!!.menus,
-                selectedMenu = it,
-                selectMenu = { menu ->
-                  scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, menu) }
-                },
-                listState = detailListState,
-                bottomSpacer = true,
-                listBottomPadding = insets.calculateBottomPadding(),
+      ) {
+        Column {
+          NavigableListDetailPaneScaffold(
+            navigator = navigator,
+            listPane = {
+              AnimatedPane(modifier = Modifier.preferredWidth(450.dp)) {
+                LocationList(
+                  locations = locations,
+                  showOnlyOpenMensas = showOnlyOpenMensas,
+                  showOnlyFavoriteMensas = showOnlyFavoriteMensas,
+                  saveIsFavoriteMensa = { mensa, favorite ->
+                    scope.launch { context.saveIsFavoriteMensa(mensa, favorite) }
+                  },
+                  onMenuClick = {
+                    scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, it) }
+                  },
+                  listBottomPadding = insets.calculateBottomPadding(),
+                )
+              }
+            },
+            detailPane = {
+              AnimatedPane {
+                navigator.currentDestination?.contentKey?.let {
+                  MenuList(
+                    menus = it.mensa!!.menus,
+                    selectedMenu = it,
+                    selectMenu = { menu ->
+                      scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, menu) }
+                    },
+                    listState = detailListState,
+                    bottomSpacer = true,
+                    listBottomPadding = insets.calculateBottomPadding(),
+                  )
+                }
+              }
+            },
+            modifier = Modifier
+              .padding(
+                start = insets.calculateStartPadding(LocalLayoutDirection.current),
+                end = insets.calculateEndPadding(LocalLayoutDirection.current),
               )
+              .weight(1f),
+          )
+          AnimatedVisibility(
+            visible = destination in listOf(Destination.ThisWeek, Destination.NextWeek),
+          ) {
+            SecondaryTabRow(selectedTabIndex = weekday.ordinal) {
+              Weekday.entries.forEach {
+                Tab(
+                  selected = weekday == it,
+                  onClick = { setWeekday(it) },
+                  text = { Text(text = stringResource(it.label)) },
+                )
+              }
             }
           }
-        },
-        modifier = Modifier.padding(
-          start = insets.calculateStartPadding(LocalLayoutDirection.current),
-          end = insets.calculateEndPadding(LocalLayoutDirection.current),
-        ),
-      )
+        }
+      }
 
       AnimatedVisibility(
         visible = isRefreshing,

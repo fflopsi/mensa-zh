@@ -3,8 +3,11 @@ package ch.florianfrauenfelder.mensazh.services.providers
 import android.annotation.SuppressLint
 import android.util.Log
 import ch.florianfrauenfelder.mensazh.models.Location
+import ch.florianfrauenfelder.mensazh.models.Mensa
 import ch.florianfrauenfelder.mensazh.models.Menu
 import ch.florianfrauenfelder.mensazh.services.CacheService
+import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider.Language.English
+import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider.Language.German
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
@@ -16,6 +19,12 @@ import java.util.Date
 abstract class MensaProvider(private val cacheService: CacheService) {
   abstract suspend fun getLocations(): List<Location>
 
+  abstract suspend fun getMenus(
+    date: Date,
+    language: Language,
+    ignoreCache: Boolean,
+  ): List<Mensa>
+
   protected abstract val cacheProviderPrefix: String
 
   protected fun tryGetMenusFromCache(
@@ -26,8 +35,7 @@ abstract class MensaProvider(private val cacheService: CacheService) {
   ): List<Menu>? = cacheService.readMenus(getCacheKey(providerPrefix, mensaId, date, language))
 
 
-  private fun getMensaRequestCacheKey(url: URL): String =
-    "$cacheProviderPrefix.$url"
+  private fun getMensaRequestCacheKey(url: URL): String = "$cacheProviderPrefix.$url"
 
   protected suspend fun getCachedRequest(url: URL, ignoreCache: Boolean): String? {
     val cacheKey = getMensaRequestCacheKey(url)
@@ -99,10 +107,7 @@ abstract class MensaProvider(private val cacheService: CacheService) {
       replace("\n ", "\n")
     }
 
-  protected fun fallbackLanguage(language: Language): Language = when (language) {
-    Language.German -> Language.English
-    Language.English -> Language.German
-  }
+  protected fun fallbackLanguage(language: Language) = !language
 
   enum class Language {
     German, English;
@@ -111,5 +116,18 @@ abstract class MensaProvider(private val cacheService: CacheService) {
       German -> "de"
       English -> "en"
     }
+
+    operator fun not(): Language {
+      if (this == German) return English
+      return German
+    }
+
+    val showMenusInGerman get() = this == German
+
+    companion object {
+      val default get() = English
+    }
   }
 }
+
+val Boolean.showMenusInGermanToLanguage get() = if (this) German else English
