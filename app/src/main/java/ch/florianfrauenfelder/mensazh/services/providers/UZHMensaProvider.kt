@@ -3,6 +3,7 @@ package ch.florianfrauenfelder.mensazh.services.providers
 import ch.florianfrauenfelder.mensazh.models.Location
 import ch.florianfrauenfelder.mensazh.models.Mensa
 import ch.florianfrauenfelder.mensazh.models.Menu
+import ch.florianfrauenfelder.mensazh.models.Weekday
 import ch.florianfrauenfelder.mensazh.services.AssetService
 import ch.florianfrauenfelder.mensazh.services.CacheService
 import ch.florianfrauenfelder.mensazh.services.SerializationService
@@ -38,11 +39,16 @@ class UZHMensaProvider(
     }
   }
 
-  suspend fun getMenus(date: Date, language: Language, ignoreCache: Boolean): List<Mensa> {
+  override suspend fun getMenus(
+    date: Date,
+    language: Language,
+    ignoreCache: Boolean,
+  ): List<Mensa> {
     val mensas = mutableListOf<Mensa>()
     try {
       val json = loadFromApi(ignoreCache, date) ?: return emptyList()
-      val menuPerMensa = parseApiRoot(SerializationService.deserialize<ApiRoot>(json), uzhMensas, language)
+      val menuPerMensa =
+        parseApiRoot(SerializationService.deserialize<ApiRoot>(json), uzhMensas, language)
       uzhMensas.forEach { uzhMensa ->
         mensas += uzhMensa.toMensa().apply {
           menus = menuPerMensa[uzhMensa].orEmpty()
@@ -80,9 +86,13 @@ class UZHMensaProvider(
         setRequestProperty("Content-Type", "application/json")
         // API key included directly here to enable builds in fdroid
         // in any case, the API keys would have also been found in the APK
-        setRequestProperty("api-key", "Y203MHVwaXU0OWFyeXM2MHRscWUyZncwcTpTQTJRRy83eXE5NmEzczNyRS91TjhBaysrYWl4aCs5SGhRUE9xOTk3ZzdDa1ZpdFVvQkJhK3hHN0Yyd1lLaTNu")
+        setRequestProperty(
+          "api-key",
+          "Y203MHVwaXU0OWFyeXM2MHRscWUyZncwcTpTQTJRRy83eXE5NmEzczNyRS91TjhBaysrYWl4aCs5SGhRUE9xOTk3ZzdDa1ZpdFVvQkJhK3hHN0Yyd1lLaTNu"
+        )
         val isoDateString = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(date)
-        val requestBody = "{\"query\":\"query Client { organisation(where: {id: \\\"cm1tjaby3002o72q4lhhak996\\\", tenantId: \\\"zfv\\\"}) { outlets(take: 100) { slug calendar { day(date: \\\"$isoDateString\\\") { menuItems { prices { amount } ... on OutletMenuItemDish { category { name path } dish { allergens { allergen { name } } name_i18n { label locale } } } } } } } }}\",\"operationName\":\"Client\"}"
+        val requestBody =
+          "{\"query\":\"query Client { organisation(where: {id: \\\"cm1tjaby3002o72q4lhhak996\\\", tenantId: \\\"zfv\\\"}) { outlets(take: 100) { slug calendar { day(date: \\\"$isoDateString\\\") { menuItems { prices { amount } ... on OutletMenuItemDish { category { name path } dish { allergens { allergen { name } } name_i18n { label locale } } } } } } } }}\",\"operationName\":\"Client\"}"
         outputStream.run {
           write(requestBody.toByteArray())
           flush()
@@ -106,8 +116,9 @@ class UZHMensaProvider(
     val result = mutableMapOf<UzhMensa, List<Menu>>()
 
     mensas.forEach { mensa ->
-      var menuItems = root.data?.organisation?.outlets?.find { it.slug == mensa.slug }?.calendar?.day?.menuItems
-        ?: return@forEach
+      var menuItems =
+        root.data?.organisation?.outlets?.find { it.slug == mensa.slug }?.calendar?.day?.menuItems
+          ?: return@forEach
 
       // filter by category if it exists and does not result in no entry
       if (mensa.categoryPath != null) {
@@ -135,6 +146,7 @@ class UZHMensaProvider(
           allergens = relevantMenu.dish?.allergens?.mapNotNull {
             it.allergen?.name
           }?.joinToString(separator = ", "),
+          weekday = Weekday.fromNow(),
         ).run {
           if (isNoMenuNotice(this, language)) return@forEach
           parsedMenus.add(this)
