@@ -62,6 +62,8 @@ import ch.florianfrauenfelder.mensazh.models.Weekday
 import ch.florianfrauenfelder.mensazh.services.Prefs
 import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
 import ch.florianfrauenfelder.mensazh.services.saveIsFavoriteMensa
+import ch.florianfrauenfelder.mensazh.services.saveShowOnlyFavoriteMensas
+import ch.florianfrauenfelder.mensazh.services.saveShowOnlyOpenMensas
 import ch.florianfrauenfelder.mensazh.services.showOnlyFavoriteMensasFlow
 import ch.florianfrauenfelder.mensazh.services.showOnlyOpenMensasFlow
 import ch.florianfrauenfelder.mensazh.ui.components.SettingsDropdown
@@ -134,7 +136,9 @@ fun App(
           }
           SettingsDropdown(
             showOnlyOpenMensas = showOnlyOpenMensas,
+            setShowOnlyOpenMensas = { scope.launch { context.saveShowOnlyOpenMensas(it) } },
             showOnlyFavoriteMensas = showOnlyFavoriteMensas,
+            setShowOnlyFavoriteMensas = { scope.launch { context.saveShowOnlyFavoriteMensas(it) } },
             language = language,
             setLanguage = setLanguage,
           )
