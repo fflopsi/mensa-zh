@@ -18,4 +18,15 @@
   <string name="source_code">Source code</string>
   <string name="select_menu">Select menu</string>
   <string name="show_only_open">Only open mensas</string>
+  <string name="today">Today</string>
+  <string name="tomorrow">Tomorrow</string>
+  <string name="this_week">This week</string>
+  <string name="next_week">Next week</string>
+  <string name="monday">Mo</string>
+  <string name="tuesday">Tu</string>
+  <string name="wednesday">We</string>
+  <string name="thursday">Th</string>
+  <string name="friday">Fr</string>
+  <string name="saturday">Sa</string>
+  <string name="sunday">Su</string>
 </resources>

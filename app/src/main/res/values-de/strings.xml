@@ -15,4 +15,15 @@
   <string name="source_code">Quellcode</string>
   <string name="select_menu">Menu auswählen</string>
   <string name="show_only_open">Nur offene Mensen</string>
+  <string name="today">Heute</string>
+  <string name="tomorrow">Morgen</string>
+  <string name="this_week">Diese Woche</string>
+  <string name="next_week">Nächste Woche</string>
+  <string name="monday">Mo</string>
+  <string name="tuesday">Di</string>
+  <string name="wednesday">Mi</string>
+  <string name="thursday">Do</string>
+  <string name="friday">Fr</string>
+  <string name="saturday">Sa</string>
+  <string name="sunday">So</string>
 </resources>
