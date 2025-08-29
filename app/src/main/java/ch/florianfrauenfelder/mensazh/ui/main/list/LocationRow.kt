@@ -1,4 +1,4 @@
-package ch.florianfrauenfelder.mensazh.ui.list
+package ch.florianfrauenfelder.mensazh.ui.main.list
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column

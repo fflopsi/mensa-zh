@@ -1,4 +1,4 @@
-package ch.florianfrauenfelder.mensazh.ui.detail
+package ch.florianfrauenfelder.mensazh.ui.main.detail
 
 import android.content.ClipData
 import android.content.Intent
