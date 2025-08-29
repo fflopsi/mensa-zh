@@ -12,18 +12,26 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import ch.florianfrauenfelder.mensazh.R
 import ch.florianfrauenfelder.mensazh.services.AssetService
 import ch.florianfrauenfelder.mensazh.services.CacheService
+import ch.florianfrauenfelder.mensazh.services.favoriteMensasFlow
 import ch.florianfrauenfelder.mensazh.services.providers.ETHMensaProvider
 import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
 import ch.florianfrauenfelder.mensazh.services.providers.UZHMensaProvider
+import ch.florianfrauenfelder.mensazh.services.providers.showMenusInGermanToLanguage
+import ch.florianfrauenfelder.mensazh.services.saveShowMenusInGerman
+import ch.florianfrauenfelder.mensazh.services.showMenusInGermanFlow
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.DayOfWeek.FRIDAY
@@ -187,6 +195,21 @@ class AppViewModel(
             else -> Mensa.State.Available
           }
         }
+      }
+    }
+  }
+
+  companion object {
+    val Factory = viewModelFactory {
+      initializer {
+        val application = checkNotNull(this[APPLICATION_KEY])
+        AppViewModel(
+          assetService = AssetService(application.assets),
+          cacheService = CacheService(application.cacheDir),
+          favoriteMensas = application.favoriteMensasFlow,
+          initialLanguage = application.showMenusInGermanFlow.map { it.showMenusInGermanToLanguage },
+          saveLanguage = { application.saveShowMenusInGerman(it.showMenusInGerman) },
+        )
       }
     }
   }
