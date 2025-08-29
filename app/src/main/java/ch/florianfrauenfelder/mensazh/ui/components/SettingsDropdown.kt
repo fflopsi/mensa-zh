@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -32,6 +33,7 @@ fun SettingsDropdown(
   setShowOnlyFavoriteMensas: (Boolean) -> Unit,
   language: MensaProvider.Language,
   setLanguage: (MensaProvider.Language) -> Unit,
+  navigateToSettings: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   var expanded by remember { mutableStateOf(false) }
@@ -96,6 +98,21 @@ fun SettingsDropdown(
           }
         },
         onClick = { setLanguage(!language) },
+      )
+      HorizontalDivider()
+      DropdownMenuItem(
+        text = {
+          Text(
+            text = stringResource(R.string.more_settings),
+            modifier = Modifier
+              .padding(end = 16.dp)
+              .weight(1f),
+          )
+        },
+        onClick = {
+          expanded = false
+          navigateToSettings()
+        },
       )
     }
   }

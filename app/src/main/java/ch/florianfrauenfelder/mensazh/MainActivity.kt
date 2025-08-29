@@ -16,7 +16,6 @@ import ch.florianfrauenfelder.mensazh.services.providers.showMenusInGermanToLang
 import ch.florianfrauenfelder.mensazh.services.saveShowMenusInGerman
 import ch.florianfrauenfelder.mensazh.services.showMenusInGermanFlow
 import ch.florianfrauenfelder.mensazh.ui.App
-import ch.florianfrauenfelder.mensazh.ui.theme.MensaZHTheme
 import kotlinx.coroutines.flow.map
 
 class MainActivity : ComponentActivity() {
@@ -43,19 +42,17 @@ class MainActivity : ComponentActivity() {
         viewModel.refresh()
       }
 
-      MensaZHTheme {
-        App(
-          destination = viewModel.destination,
-          setDestination = viewModel::setDestination,
-          weekday = viewModel.weekday,
-          setWeekday = viewModel::setWeekday,
-          locations = viewModel.locations,
-          language = viewModel.language,
-          setLanguage = viewModel::setLanguage,
-          isRefreshing = viewModel.isRefreshing,
-          onRefresh = { viewModel.refresh(ignoreCache = true) },
-        )
-      }
+      App(
+        destination = viewModel.destination,
+        setDestination = viewModel::setDestination,
+        weekday = viewModel.weekday,
+        setWeekday = viewModel::setWeekday,
+        locations = viewModel.locations,
+        language = viewModel.language,
+        setLanguage = viewModel::setLanguage,
+        isRefreshing = viewModel.isRefreshing,
+        onRefresh = { viewModel.refresh(ignoreCache = true) },
+      )
     }
   }
 }

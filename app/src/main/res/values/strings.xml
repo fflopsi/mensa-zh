@@ -29,4 +29,14 @@
   <string name="friday">Fr</string>
   <string name="saturday">Sa</string>
   <string name="sunday">Su</string>
+  <string name="theme">Theme</string>
+  <string name="light">Light</string>
+  <string name="dark">Dark</string>
+  <string name="auto">Auto</string>
+  <string name="active">Active</string>
+  <string name="use_dynamic_colors">Use dynamic colors</string>
+  <string name="more_settings">More settings…</string>
+  <string name="show_only_open_desc">Hide mensas that don\'t have menus for the day</string>
+  <string name="show_only_expanded_desc">Hide mensas that are collapsed or closed</string>
+  <string name="show_menus_in_german_desc">Where possible, show menu title and description in German</string>
 </resources>

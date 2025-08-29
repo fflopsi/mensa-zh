@@ -71,6 +71,7 @@ dependencies {
   implementation(libs.androidx.adaptive.navigation)
   implementation(libs.androidx.adaptive.navigation.suite)
   implementation(libs.androidx.datastore)
+  implementation(libs.androidx.navigation.compose)
   implementation(libs.kotlinx.serialization.json)
   implementation(libs.kotlinx.datetime)
 

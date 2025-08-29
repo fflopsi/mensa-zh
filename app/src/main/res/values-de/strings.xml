@@ -26,4 +26,14 @@
   <string name="friday">Fr</string>
   <string name="saturday">Sa</string>
   <string name="sunday">So</string>
+  <string name="theme">Farbschema</string>
+  <string name="light">Hell</string>
+  <string name="dark">Dunkel</string>
+  <string name="auto">Auto</string>
+  <string name="active">Aktiv</string>
+  <string name="use_dynamic_colors">Dynamische Farben benutzen</string>
+  <string name="more_settings">Mehr Einstellungen…</string>
+  <string name="show_only_open_desc">Mensen verstecken, die an diesem Tag keine Menus anbieten</string>
+  <string name="show_only_expanded_desc">Mensen verstecken, die eingeklappt oder geschlossen sind</string>
+  <string name="show_menus_in_german_desc">Menutitel und -beschreibung wo möglich auf Deutsch anzeigen</string>
 </resources>

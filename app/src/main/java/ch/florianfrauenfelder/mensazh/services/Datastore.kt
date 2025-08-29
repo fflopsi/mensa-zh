@@ -3,6 +3,7 @@ package ch.florianfrauenfelder.mensazh.services
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import ch.florianfrauenfelder.mensazh.models.Mensa
@@ -16,6 +17,8 @@ object Prefs {
     val SHOW_ONLY_OPEN_MENSAS = booleanPreferencesKey("show_only_open_mensas")
     val SHOW_ONLY_FAVORITE_MENSAS = booleanPreferencesKey("show_only_favorite_mensas")
     val SHOW_MENUS_IN_GERMAN = booleanPreferencesKey("german_menus")
+    val THEME = intPreferencesKey("theme")
+    val USE_DYNAMIC_COLOR = booleanPreferencesKey("dyanmic_color")
   }
 
   object Defaults {
@@ -23,6 +26,8 @@ object Prefs {
     const val SHOW_ONLY_OPEN_MENSAS = false
     const val SHOW_ONLY_FAVORITE_MENSAS = false
     const val SHOW_MENUS_IN_GERMAN = false
+    const val THEME = 0
+    const val USE_DYNAMIC_COLOR = true
   }
 }
 
@@ -62,4 +67,21 @@ suspend fun Context.saveShowMenusInGerman(showMenusInGerman: Boolean) {
 val Context.showMenusInGermanFlow
   get() = dataStore.data.map {
     it[Prefs.Keys.SHOW_MENUS_IN_GERMAN] ?: Prefs.Defaults.SHOW_MENUS_IN_GERMAN
+  }
+
+suspend fun Context.saveTheme(theme: Int) {
+  require(theme in 0..2) { "Value $theme is not allowed for theme." }
+  dataStore.edit { it[Prefs.Keys.THEME] = theme }
+}
+
+val Context.themeFlow
+  get() = dataStore.data.map { it[Prefs.Keys.THEME] ?: Prefs.Defaults.THEME }
+
+suspend fun Context.saveUseDynamicColor(useDynamicColor: Boolean) {
+  dataStore.edit { it[Prefs.Keys.USE_DYNAMIC_COLOR] = useDynamicColor }
+}
+
+val Context.useDynamicColorFlow
+  get() = dataStore.data.map {
+    it[Prefs.Keys.USE_DYNAMIC_COLOR] ?: Prefs.Defaults.USE_DYNAMIC_COLOR
   }

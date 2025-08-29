@@ -10,6 +10,7 @@ lifecycle = "2.9.2"
 activityCompose = "1.10.1"
 composeBom = "2025.07.00"
 datastore = "1.1.7"
+navigation = "2.9.3"
 serialization = "1.9.0"
 datetime = "0.7.1"
 
@@ -35,6 +36,7 @@ androidx-adaptive-layout = { group = "androidx.compose.material3.adaptive", name
 androidx-adaptive-navigation = { group = "androidx.compose.material3.adaptive", name = "adaptive-navigation" }
 androidx-adaptive-navigation-suite = { group = "androidx.compose.material3", name = "material3-adaptive-navigation-suite" }
 androidx-datastore = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "datetime" }
 
