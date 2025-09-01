@@ -43,7 +43,6 @@ import kotlinx.datetime.DayOfWeek.TUESDAY
 import kotlinx.datetime.DayOfWeek.WEDNESDAY
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
-import java.util.Date
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
@@ -162,11 +161,13 @@ class AppViewModel(
     isRefreshing = true
     cacheService.startObserveCacheUsage()
 
-    val date =
-      Date().apply { if (destination == Destination.NextWeek) time += 7 * 24 * 60 * 60 * 1000 }
     val updatedMensas = withContext(Dispatchers.IO) {
-      val ethAsync = async { ethMensaProvider.getMenus(date, language, ignoreCache) }
-      val uzhAsync = async { uzhMensaProvider.getMenus(date, language, ignoreCache) }
+      val ethAsync = async {
+        ethMensaProvider.getMenus(language, destination == Destination.NextWeek, ignoreCache)
+      }
+      val uzhAsync = async {
+        uzhMensaProvider.getMenus(language, destination == Destination.NextWeek, ignoreCache)
+      }
       ethAsync.await() + uzhAsync.await()
     }.onEach { mensa ->
       mensa.menus = mensa.menus.filter {

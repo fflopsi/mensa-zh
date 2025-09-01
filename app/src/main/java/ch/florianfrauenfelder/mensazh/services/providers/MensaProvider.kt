@@ -20,8 +20,8 @@ abstract class MensaProvider(private val cacheService: CacheService) {
   abstract suspend fun getLocations(): List<Location>
 
   abstract suspend fun getMenus(
-    date: Date,
     language: Language,
+    nextWeek: Boolean,
     ignoreCache: Boolean,
   ): List<Mensa>
 

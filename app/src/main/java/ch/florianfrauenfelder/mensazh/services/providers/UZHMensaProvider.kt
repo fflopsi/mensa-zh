@@ -13,7 +13,6 @@ import kotlinx.serialization.Serializable
 import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URL
-import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
@@ -40,13 +39,13 @@ class UZHMensaProvider(
   }
 
   override suspend fun getMenus(
-    date: Date,
     language: Language,
+    nextWeek: Boolean,
     ignoreCache: Boolean,
   ): List<Mensa> {
     val mensas = mutableListOf<Mensa>()
     try {
-      val json = loadFromApi(ignoreCache, date) ?: return emptyList()
+      val json = loadFromApi(nextWeek, ignoreCache) ?: return emptyList()
       val menuPerMensa =
         parseApiRoot(SerializationService.deserialize<ApiRoot>(json), uzhMensas, language)
       uzhMensas.forEach { uzhMensa ->
@@ -62,51 +61,74 @@ class UZHMensaProvider(
   }
 
   private suspend fun loadFromApi(
+    nextWeek: Boolean,
     ignoreCache: Boolean,
-    date: Date,
   ): String? {
+    val date = Date().apply { if (nextWeek) time += 7 * 24 * 60 * 60 * 1000 }
     val cacheKey = cacheProviderPrefix + getDateTimeString(date)
 
     if (!ignoreCache) {
       cacheService.readString(cacheKey)?.let { return it }
     }
 
-    val location = loadLocationFromApi(date)
+    val location = loadLocationFromApi(nextWeek)
     location?.let { cacheService.saveString(cacheKey, it) }
     return location
   }
 
-  private suspend fun loadLocationFromApi(date: Date): String? = withContext(Dispatchers.IO) {
-    (URL("https://api.zfv.ch/graphql").openConnection() as HttpURLConnection).run {
-      requestMethod = "POST"
-      try {
-        // Set up the connection
-        doOutput = true
-        setRequestProperty("Accept", "*/*")
-        setRequestProperty("Content-Type", "application/json")
-        // API key included directly here to enable builds in fdroid
-        // in any case, the API keys would have also been found in the APK
-        setRequestProperty(
-          "api-key",
-          "Y203MHVwaXU0OWFyeXM2MHRscWUyZncwcTpTQTJRRy83eXE5NmEzczNyRS91TjhBaysrYWl4aCs5SGhRUE9xOTk3ZzdDa1ZpdFVvQkJhK3hHN0Yyd1lLaTNu"
-        )
-        val isoDateString = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(date)
-        val requestBody =
-          "{\"query\":\"query Client { organisation(where: {id: \\\"cm1tjaby3002o72q4lhhak996\\\", tenantId: \\\"zfv\\\"}) { outlets(take: 100) { slug calendar { day(date: \\\"$isoDateString\\\") { menuItems { prices { amount } ... on OutletMenuItemDish { category { name path } dish { allergens { allergen { name } } name_i18n { label locale } } } } } } } }}\",\"operationName\":\"Client\"}"
-        outputStream.run {
-          write(requestBody.toByteArray())
-          flush()
-          close()
+  private suspend fun loadLocationFromApi(nextWeek: Boolean): String? =
+    withContext(Dispatchers.IO) {
+      (URL("https://api.zfv.ch/graphql").openConnection() as HttpURLConnection).run {
+        requestMethod = "POST"
+        try {
+          // Set up the connection
+          doOutput = true
+          setRequestProperty("Accept", "*/*")
+          setRequestProperty("Content-Type", "application/json")
+          // API key included directly here to enable builds in fdroid
+          // in any case, the API keys would have also been found in the APK
+          setRequestProperty(
+            "api-key",
+            "Y203MHVwaXU0OWFyeXM2MHRscWUyZncwcTpTQTJRRy83eXE5NmEzczNyRS91TjhBaysrYWl4aCs5SGhRUE9xOTk3ZzdDa1ZpdFVvQkJhK3hHN0Yyd1lLaTNu"
+          )
+          val requestBody =
+            "{\"query\":\"query Client {" +
+              "organisation(where: {id: \\\"cm1tjaby3002o72q4lhhak996\\\", tenantId: \\\"zfv\\\"}) {" +
+              "  outlets(take: 100) { slug calendar {" +
+              "    week${if (nextWeek) "(week: \\\"next\\\")" else ""} {" +
+              "      daily {" +
+              "        date { weekdayNumber }" +
+              "        menuItems {" +
+              "          prices { amount }" +
+              "          ... on OutletMenuItemDish {" +
+              "            category { name path }" +
+              "            dish {" +
+              "              allergens { allergen { name } }" +
+              "              name_i18n { label locale }" +
+              "              media { media { url } }" +
+              "              isVegetarian isVegan" +
+              "            }" +
+              "          }" +
+              "        }" +
+              "      }" +
+              "    }" +
+              "  } }" +
+              "}" +
+              "}\",\"operationName\":\"Client\"}"
+          outputStream.run {
+            write(requestBody.toByteArray())
+            flush()
+            close()
+          }
+          return@withContext inputStream.bufferedReader().use { it.readText() }
+        } catch (_: Exception) {
+          // do not care, likely because of network errors. in any case, cannot recover
+        } finally {
+          disconnect()
         }
-        return@withContext inputStream.bufferedReader().use { it.readText() }
-      } catch (_: Exception) {
-        // do not care, likely because of network errors. in any case, cannot recover
-      } finally {
-        disconnect()
       }
+      null
     }
-    null
-  }
 
   private fun parseApiRoot(
     root: ApiRoot,
@@ -116,40 +138,42 @@ class UZHMensaProvider(
     val result = mutableMapOf<UzhMensa, List<Menu>>()
 
     mensas.forEach { mensa ->
-      var menuItems =
-        root.data?.organisation?.outlets?.find { it.slug == mensa.slug }?.calendar?.day?.menuItems
+      var menusByWeekday =
+        root.data?.organisation?.outlets?.find { it.slug == mensa.slug }?.calendar?.week?.daily?.associate { Weekday.entries[it.date.weekdayNumber - 1] to it.menuItems.orEmpty() }
           ?: return@forEach
-
-      // filter by category if it exists and does not result in no entry
       if (mensa.categoryPath != null) {
-        menuItems = menuItems.filter { item ->
-          item.category?.path?.any { it.contains(mensa.categoryPath) } == true
-        }.toTypedArray()
+        menusByWeekday = menusByWeekday.onEach { pair ->
+          pair.key to pair.value.filter { item ->
+            item.category?.path?.any { it.contains(mensa.categoryPath) } == true
+          }
+        }
       }
 
       val parsedMenus = mutableListOf<Menu>()
-      menuItems.forEach { relevantMenu ->
-        val deDescription = relevantMenu.dish?.name_i18n?.find { it.locale == "de" }?.label
-        val descriptionRaw = if (language == Language.German && deDescription != null) {
-          deDescription
-        } else {
-          relevantMenu.dish?.name_i18n?.find { it.locale == "en" }?.label
-        }
+      menusByWeekday.forEach { weekday, items ->
+        items.forEach { relevantMenu ->
+          val deDescription = relevantMenu.dish?.name_i18n?.find { it.locale == "de" }?.label
+          val descriptionRaw = if (language == Language.German && deDescription != null) {
+            deDescription
+          } else {
+            relevantMenu.dish?.name_i18n?.find { it.locale == "en" }?.label
+          }
 
-        Menu(
-          title = relevantMenu.category?.name ?: return@forEach,
-          description = descriptionRaw?.replaceFirst(",", "\n")?.replace("\n ", "\n")
-            ?: return@forEach,
-          price = relevantMenu.prices?.mapNotNull { it.amount?.toFloat() }?.sorted()?.map {
-            String.format(Locale.US, "%.2f", it)
-          } ?: emptyList(),
-          allergens = relevantMenu.dish?.allergens?.mapNotNull {
-            it.allergen?.name
-          }?.joinToString(separator = ", "),
-          weekday = Weekday.fromNow(),
-        ).run {
-          if (isNoMenuNotice(this, language)) return@forEach
-          parsedMenus.add(this)
+          Menu(
+            title = relevantMenu.category?.name ?: return@forEach,
+            description = descriptionRaw?.replaceFirst(",", "\n")?.replace("\n ", "\n")
+              ?: return@forEach,
+            price = relevantMenu.prices?.mapNotNull { it.amount?.toFloat() }?.sorted()?.map {
+              String.format(Locale.US, "%.2f", it)
+            } ?: emptyList(),
+            allergens = relevantMenu.dish?.allergens?.mapNotNull {
+              it.allergen?.name
+            }?.joinToString(separator = ", "),
+            weekday = weekday,
+          ).run {
+            if (isNoMenuNotice(this, language)) return@forEach
+            parsedMenus.add(this)
+          }
         }
       }
 
@@ -219,13 +243,19 @@ class UZHMensaProvider(
 
   @Serializable
   private class Calendar {
-    var day: Day? = null
+    var week: Week? = null
   }
 
   @Serializable
-  private class Day {
-    var menuItems: Array<MenuItem>? = null
-  }
+  private data class Week(
+    val daily: List<Day>,
+  )
+
+  @Serializable
+  private data class Day(
+    val date: ApiDate,
+    val menuItems: List<MenuItem>? = null,
+  )
 
   @Serializable
   private class MenuItem {
@@ -244,6 +274,9 @@ class UZHMensaProvider(
   private class Dish {
     var name_i18n: Array<i18nValue>? = null
     var allergens: Array<AllergenContainer>? = null
+    var media: List<Media>? = null
+    var isVegetarian: Boolean? = null
+    var isVegan: Boolean? = null
   }
 
   @Serializable
@@ -266,4 +299,19 @@ class UZHMensaProvider(
     var label: String? = null
     var locale: String? = null
   }
+
+  @Serializable
+  private data class Media(
+    val media: MediaAttr? = null,
+  )
+
+  @Serializable
+  private data class MediaAttr(
+    val url: String? = null,
+  )
+
+  @Serializable
+  private data class ApiDate(
+    val weekdayNumber: Int,
+  )
 }
