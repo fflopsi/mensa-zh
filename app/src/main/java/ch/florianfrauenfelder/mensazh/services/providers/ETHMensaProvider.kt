@@ -37,13 +37,13 @@ class ETHMensaProvider(
   }
 
   override suspend fun getMenus(
-    date: Date,
     language: Language,
+    nextWeek: Boolean,
     ignoreCache: Boolean,
   ): List<Mensa> {
     val mensas = mutableListOf<Mensa>()
     try {
-      val menuByFacilityIds = getMenuByFacilityId(date, ignoreCache, language)
+      val menuByFacilityIds = getMenuByFacilityId(language, nextWeek, ignoreCache)
       ethMensas.forEach { ethMensa ->
         mensas += ethMensa.toMensa().apply {
           menus = menuByFacilityIds[ethMensa.getMapId()].orEmpty()
@@ -57,15 +57,16 @@ class ETHMensaProvider(
   }
 
   private suspend fun getMenuByFacilityId(
-    date: Date,
-    ignoreCache: Boolean,
     language: Language,
+    nextWeek: Boolean,
+    ignoreCache: Boolean,
   ): Map<String, List<Menu>> {
+    val date = Date().apply { if (nextWeek) time += 7 * 24 * 60 * 60 * 1000 }
     if (!ignoreCache) {
       getMenuByMensaIdFromCache(date, language)?.let { return it }
     }
 
-    val menuByFacilityIds = getMensaMenusFromCookpit(language, date, ignoreCache)
+    val menuByFacilityIds = getMensaMenusFromCookpit(language, nextWeek, ignoreCache)
 
     cacheService.saveMensaIds(
       key = getMensaIdCacheKey(date, language),
@@ -101,11 +102,12 @@ class ETHMensaProvider(
 
   private suspend fun getMensaMenusFromCookpit(
     language: Language,
-    date: Date,
+    nextWeek: Boolean,
     ignoreCache: Boolean,
   ): Map<String, List<Menu>> {
     // Observation: dateslug is ignored by API; all future entries are returned in any case
-    val dateSlug = getDateTimeStringOfMonday(date)
+    val dateSlug =
+      getDateTimeStringOfMonday(Date().apply { if (nextWeek) time += 7 * 24 * 60 * 60 * 1000 })
     val url =
       URL("https://idapps.ethz.ch/cookpit-pub-services/v1/weeklyrotas?client-id=ethz-wcms&lang=$language&rs-first=0&rs-size=50&valid-after=$dateSlug")
     val json = getCachedRequest(url, ignoreCache) ?: throw Exception("Cannot load web content")
