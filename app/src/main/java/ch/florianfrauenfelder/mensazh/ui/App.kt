@@ -95,7 +95,8 @@ fun App(
           setShowOnlyOpenMensas = { scope.launch { context.saveShowOnlyOpenMensas(it) } },
           showOnlyFavoriteMensas = showOnlyFavoriteMensas,
           setShowOnlyFavoriteMensas = { scope.launch { context.saveShowOnlyFavoriteMensas(it) } },
-          navigateToSettings = { scope.launch { navController.navigate(Route.Settings) } })
+          navigateToSettings = { navController.navigate(Route.Settings) },
+        )
       }
       composable<Route.Settings> {
         SettingsScreen(
@@ -109,7 +110,7 @@ fun App(
           saveTheme = { scope.launch { context.saveTheme(it) } },
           dynamicColor = dynamicColor,
           saveDynamicColor = { scope.launch { context.saveUseDynamicColor(it) } },
-          navigateUp = { scope.launch { navController.navigate(Route.Main) } },
+          navigateUp = { navController.navigateUp() },
         )
       }
     }
