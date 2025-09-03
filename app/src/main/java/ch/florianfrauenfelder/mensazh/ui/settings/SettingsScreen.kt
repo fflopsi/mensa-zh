@@ -3,6 +3,8 @@ package ch.florianfrauenfelder.mensazh.ui.settings
 import android.os.Build
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -29,8 +31,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import ch.florianfrauenfelder.mensazh.R
 import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
+import ch.florianfrauenfelder.mensazh.ui.components.InfoLinks
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -159,6 +163,14 @@ fun SettingsScreen(
             Switch(checked = dynamicColor, onCheckedChange = null)
           }
         }
+      }
+      item { HorizontalDivider() }
+      item {
+        InfoLinks(
+          modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth(),
+        )
       }
     }
   }
