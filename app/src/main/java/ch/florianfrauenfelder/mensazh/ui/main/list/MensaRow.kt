@@ -59,8 +59,7 @@ fun MensaRow(
         horizontal = 8.dp,
         vertical = 4.dp,
       )
-      .focusable()
-      .fillMaxWidth(),
+      .focusable(),
   ) {
     Column(modifier = Modifier.fillMaxWidth()) {
       Row(
@@ -112,6 +111,7 @@ fun MensaRow(
               MenuRow(
                 menu = it,
                 onClick = { onMenuClick(it) },
+                modifier = Modifier.fillMaxWidth(),
               )
             }
             HorizontalDivider()

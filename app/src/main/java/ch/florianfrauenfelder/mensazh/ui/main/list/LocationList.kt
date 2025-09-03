@@ -51,7 +51,7 @@ fun LocationList(
 
   LazyColumn(
     contentPadding = contentPadding,
-    modifier = modifier.fillMaxWidth(),
+    modifier = modifier,
   ) {
     item(key = -1) {
       AnimatedVisibility(
@@ -92,6 +92,7 @@ fun LocationList(
           showOnlyFavoriteMensas = showOnlyFavoriteMensas,
           saveIsFavoriteMensa = saveIsFavoriteMensa,
           onMenuClick = onMenuClick,
+          modifier = Modifier.fillMaxWidth(),
         )
       }
     }

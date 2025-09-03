@@ -203,6 +203,7 @@ fun MainScreen(
                     onMenuClick = {
                       scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, it) }
                     },
+                    modifier = Modifier.fillMaxWidth(),
                   )
                 }
               },
@@ -217,6 +218,7 @@ fun MainScreen(
                           navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, menu)
                         }
                       },
+                      modifier = Modifier.fillMaxWidth(),
                     )
                   }
                 }
