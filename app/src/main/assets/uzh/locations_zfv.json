@@ -1,5 +1,6 @@
 [
   {
+    "id": "125c00f8-dfbb-4db6-9683-6113cb78aa68",
     "title": "UZH Zentrum",
     "mensas": [
       {
@@ -56,6 +57,7 @@
     ]
   },
   {
+    "id": "99222f55-901f-417a-bcbc-191e38628485",
     "title": "UZH Irchel",
     "mensas": [
       {
@@ -91,6 +93,7 @@
     ]
   },
   {
+    "id": "8b4b82af-64ae-45c9-bc43-dc8a4580a019",
     "title": "UZH Other",
     "mensas": [
       {

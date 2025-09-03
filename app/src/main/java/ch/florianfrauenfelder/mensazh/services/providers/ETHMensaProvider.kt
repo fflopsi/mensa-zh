@@ -27,6 +27,7 @@ class ETHMensaProvider(
     val json: String = assetService.readStringFile("eth/locations.json") ?: return emptyList()
     return SerializationService.deserializeList<EthLocation>(json).map { ethLocation ->
       Location(
+        id = UUID.fromString(ethLocation.id),
         title = ethLocation.title,
         mensas = ethLocation.mensas.map {
           ethMensas += it
@@ -167,7 +168,7 @@ class ETHMensaProvider(
     )
 
   @Serializable
-  private data class EthLocation(val title: String, val mensas: List<EthMensa>)
+  private data class EthLocation(val id: String, val title: String, val mensas: List<EthMensa>)
 
   @Serializable
   private data class EthMensa(

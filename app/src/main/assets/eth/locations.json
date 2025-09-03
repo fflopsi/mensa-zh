@@ -1,5 +1,6 @@
 [
   {
+    "id": "99120f22-7a65-4b36-8619-9eb318334950",
     "title": "ETH Zentrum",
     "mensas": [
       {
@@ -77,6 +78,7 @@
     ]
   },
   {
+    "id": "b5c9bc49-c1e0-4f24-807f-e2212a9933fe",
     "title": "ETH Hönggerberg",
     "mensas": [
       {
@@ -172,6 +174,7 @@
     ]
   },
   {
+    "id": "ce04e654-d13b-4733-b878-884514d079b7",
     "title": "ETH Oerlikon",
     "mensas": [
       {

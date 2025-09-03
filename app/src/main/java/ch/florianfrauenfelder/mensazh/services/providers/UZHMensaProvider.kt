@@ -29,6 +29,7 @@ class UZHMensaProvider(
     val json: String = assetService.readStringFile("uzh/locations_zfv.json") ?: return emptyList()
     return SerializationService.deserializeList<UzhLocation>(json).map { uzhLocation ->
       Location(
+        id = UUID.fromString(uzhLocation.id),
         title = uzhLocation.title,
         mensas = uzhLocation.mensas.map {
           uzhMensas += it
@@ -204,7 +205,7 @@ class UZHMensaProvider(
   }.any { menu.description.contains(it) }
 
   @Serializable
-  private data class UzhLocation(val title: String, val mensas: List<UzhMensa>)
+  private data class UzhLocation(val id: String, val title: String, val mensas: List<UzhMensa>)
 
   @Serializable
   private data class UzhMensa(
