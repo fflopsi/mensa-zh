@@ -21,7 +21,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import ch.florianfrauenfelder.mensazh.R
 import ch.florianfrauenfelder.mensazh.models.Location
@@ -38,7 +37,7 @@ fun LocationList(
   saveIsFavoriteMensa: (Mensa, Boolean) -> Unit,
   onMenuClick: (Menu) -> Unit,
   modifier: Modifier = Modifier,
-  listBottomPadding: Dp = 0.dp,
+  contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
   val showEmptyNotice by remember(locations, showOnlyOpenMensas, showOnlyFavoriteMensas) {
     derivedStateOf {
@@ -51,7 +50,7 @@ fun LocationList(
   }
 
   LazyColumn(
-    contentPadding = PaddingValues(bottom = listBottomPadding),
+    contentPadding = contentPadding,
     modifier = modifier.fillMaxWidth(),
   ) {
     item(key = -1) {

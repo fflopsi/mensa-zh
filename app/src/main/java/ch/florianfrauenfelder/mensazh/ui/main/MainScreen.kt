@@ -10,19 +10,15 @@ import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -43,13 +39,18 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffo
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import ch.florianfrauenfelder.mensazh.R
@@ -83,13 +84,15 @@ fun MainScreen(
   navigateToSettings: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  val scope = rememberCoroutineScope()
   val context = LocalContext.current
+  val density = LocalDensity.current
+  val scope = rememberCoroutineScope()
 
   val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
   val navigator = rememberListDetailPaneScaffoldNavigator<Menu>()
   val snackbarState = remember { SnackbarHostState() }
-  val detailListState = rememberLazyListState()
+
+  var tabRowSize by remember { mutableStateOf(IntSize.Zero) }
 
   LaunchedEffect(isRefreshing) {
     if (!isRefreshing && locations.flatMap { it.mensas }.flatMap { it.menus }.isEmpty()) {
@@ -122,6 +125,18 @@ fun MainScreen(
           }
         },
         actions = {
+          AnimatedVisibility(visible = navigator.currentDestination?.contentKey != null) {
+            IconButton(
+              onClick = {
+                Intent(Intent.ACTION_VIEW).apply {
+                  data = navigator.currentDestination?.contentKey?.mensa!!.url.toString().toUri()
+                  context.startActivity(this)
+                }
+              },
+            ) {
+              Icon(Icons.Default.OpenInBrowser, stringResource(R.string.open_in_browser))
+            }
+          }
           IconButton(onClick = onRefresh) {
             Icon(Icons.Default.Refresh, stringResource(R.string.refresh))
           }
@@ -138,23 +153,7 @@ fun MainScreen(
         scrollBehavior = scrollBehavior,
       )
     },
-    floatingActionButton = {
-      AnimatedVisibility(visible = navigator.currentDestination?.contentKey != null) {
-        ExtendedFloatingActionButton(
-          text = { Text(text = stringResource(R.string.open_in_browser)) },
-          icon = { Icon(Icons.Default.OpenInBrowser, stringResource(R.string.open_in_browser)) },
-          expanded = scrollBehavior.state.collapsedFraction != 1f || !detailListState.canScrollForward,
-          onClick = {
-            Intent(Intent.ACTION_VIEW).apply {
-              data = navigator.currentDestination?.contentKey?.mensa!!.url.toString().toUri()
-              context.startActivity(this)
-            }
-          },
-        )
-      }
-    },
     contentWindowInsets = WindowInsets.safeDrawing,
-    snackbarHost = { SnackbarHost(snackbarState) },
     modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
   ) { insets ->
 
@@ -162,8 +161,8 @@ fun MainScreen(
       isRefreshing = isRefreshing,
       onRefresh = onRefresh,
       modifier = Modifier
-        .consumeWindowInsets(insets)
-        .padding(top = insets.calculateTopPadding()),
+        .padding(insets)
+        .consumeWindowInsets(insets),
     ) {
       NavigationSuiteScaffold(
         navigationSuiteItems = {
@@ -177,58 +176,65 @@ fun MainScreen(
           }
         },
       ) {
-        Column {
-          NavigableListDetailPaneScaffold(
-            navigator = navigator,
-            listPane = {
-              AnimatedPane(modifier = Modifier.preferredWidth(450.dp)) {
-                LocationList(
-                  locations = locations,
-                  showOnlyOpenMensas = showOnlyOpenMensas,
-                  showOnlyFavoriteMensas = showOnlyFavoriteMensas,
-                  saveIsFavoriteMensa = { mensa, favorite ->
-                    scope.launch { context.saveIsFavoriteMensa(mensa, favorite) }
-                  },
-                  onMenuClick = {
-                    scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, it) }
-                  },
-                  listBottomPadding = insets.calculateBottomPadding(),
-                )
-              }
-            },
-            detailPane = {
-              AnimatedPane {
-                navigator.currentDestination?.contentKey?.let {
-                  MenuList(
-                    menus = it.mensa!!.menus,
-                    selectedMenu = it,
-                    selectMenu = { menu ->
-                      scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, menu) }
+        Scaffold(
+          snackbarHost = {
+            SnackbarHost(
+              hostState = snackbarState,
+              modifier = Modifier.padding(bottom = with(density) { tabRowSize.height.toDp() }),
+            )
+          },
+        ) { innerInsets ->
+          Column(
+            modifier = Modifier
+              .padding(innerInsets)
+              .consumeWindowInsets(innerInsets),
+          ) {
+            NavigableListDetailPaneScaffold(
+              navigator = navigator,
+              listPane = {
+                AnimatedPane(modifier = Modifier.preferredWidth(450.dp)) {
+                  LocationList(
+                    locations = locations,
+                    showOnlyOpenMensas = showOnlyOpenMensas,
+                    showOnlyFavoriteMensas = showOnlyFavoriteMensas,
+                    saveIsFavoriteMensa = { mensa, favorite ->
+                      scope.launch { context.saveIsFavoriteMensa(mensa, favorite) }
                     },
-                    listState = detailListState,
-                    bottomSpacer = true,
-                    listBottomPadding = insets.calculateBottomPadding(),
+                    onMenuClick = {
+                      scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, it) }
+                    },
                   )
                 }
-              }
-            },
-            modifier = Modifier
-              .padding(
-                start = insets.calculateStartPadding(LocalLayoutDirection.current),
-                end = insets.calculateEndPadding(LocalLayoutDirection.current),
-              )
-              .weight(1f),
-          )
-          AnimatedVisibility(
-            visible = destination in listOf(Destination.ThisWeek, Destination.NextWeek),
-          ) {
-            SecondaryTabRow(selectedTabIndex = weekday.ordinal) {
-              Weekday.entries.forEach {
-                Tab(
-                  selected = weekday == it,
-                  onClick = { setWeekday(it) },
-                  text = { Text(text = stringResource(it.label)) },
-                )
+              },
+              detailPane = {
+                AnimatedPane {
+                  navigator.currentDestination?.contentKey?.let {
+                    MenuList(
+                      menus = it.mensa!!.menus,
+                      selectedMenu = it,
+                      selectMenu = { menu ->
+                        scope.launch {
+                          navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, menu)
+                        }
+                      },
+                    )
+                  }
+                }
+              },
+              modifier = Modifier.weight(1f),
+            )
+            AnimatedVisibility(
+              visible = destination in listOf(Destination.ThisWeek, Destination.NextWeek),
+              modifier = Modifier.onSizeChanged { tabRowSize = it },
+            ) {
+              SecondaryTabRow(selectedTabIndex = weekday.ordinal) {
+                Weekday.entries.forEach {
+                  Tab(
+                    selected = weekday == it,
+                    onClick = { setWeekday(it) },
+                    text = { Text(text = stringResource(it.label)) },
+                  )
+                }
               }
             }
           }

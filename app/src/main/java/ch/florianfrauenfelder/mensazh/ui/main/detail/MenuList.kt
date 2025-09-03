@@ -1,16 +1,11 @@
 package ch.florianfrauenfelder.mensazh.ui.main.detail
 
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import ch.florianfrauenfelder.mensazh.models.Menu
 
@@ -20,13 +15,10 @@ fun MenuList(
   selectedMenu: Menu,
   selectMenu: (Menu) -> Unit,
   modifier: Modifier = Modifier,
-  listState: LazyListState = rememberLazyListState(),
-  listBottomPadding: Dp = 0.dp,
-  bottomSpacer: Boolean = false,
+  contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
   LazyColumn(
-    state = listState,
-    contentPadding = PaddingValues(bottom = listBottomPadding),
+    contentPadding = contentPadding,
     modifier = modifier.fillMaxWidth(),
   ) {
     items(
@@ -38,11 +30,6 @@ fun MenuList(
         selected = it.title == selectedMenu.title,
         select = selectMenu,
       )
-    }
-    if (bottomSpacer) {
-      item(key = 0) {
-        Spacer(modifier = Modifier.height(80.dp))
-      }
     }
   }
 }
