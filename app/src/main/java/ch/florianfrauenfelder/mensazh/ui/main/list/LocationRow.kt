@@ -24,7 +24,7 @@ fun LocationRow(
   onMenuClick: (Menu) -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  Column(modifier = modifier.fillMaxWidth()) {
+  Column(modifier = modifier) {
     Text(
       text = location.title,
       modifier = Modifier.padding(
@@ -47,6 +47,7 @@ fun LocationRow(
             mensa = it,
             saveIsFavoriteMensa = saveIsFavoriteMensa,
             onMenuClick = onMenuClick,
+            modifier = Modifier.fillMaxWidth(),
           )
         }
       }

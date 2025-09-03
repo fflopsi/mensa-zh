@@ -73,8 +73,7 @@ fun MenuRow(
           select(menu)
         },
         onLongClickLabel = stringResource(R.string.select_menu),
-      )
-      .fillMaxWidth(),
+      ),
   ) {
     Row(
       modifier = Modifier

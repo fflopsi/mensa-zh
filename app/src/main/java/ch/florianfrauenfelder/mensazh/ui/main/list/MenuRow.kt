@@ -5,7 +5,6 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
@@ -30,8 +29,7 @@ fun MenuRow(
   Row(
     modifier = modifier
       .clickable(onClick = onClick)
-      .focusable()
-      .fillMaxWidth(),
+      .focusable(),
   ) {
     Text(
       text = menu.description,

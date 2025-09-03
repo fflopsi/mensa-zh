@@ -19,7 +19,7 @@ fun MenuList(
 ) {
   LazyColumn(
     contentPadding = contentPadding,
-    modifier = modifier.fillMaxWidth(),
+    modifier = modifier,
   ) {
     items(
       items = menus,
@@ -29,6 +29,7 @@ fun MenuList(
         menu = it,
         selected = it.title == selectedMenu.title,
         select = selectMenu,
+        modifier = Modifier.fillMaxWidth(),
       )
     }
   }
