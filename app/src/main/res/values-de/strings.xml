@@ -36,4 +36,6 @@
   <string name="show_only_open_desc">Mensen verstecken, die an diesem Tag keine Menus anbieten</string>
   <string name="show_only_expanded_desc">Mensen verstecken, die eingeklappt oder geschlossen sind</string>
   <string name="show_menus_in_german_desc">Menutitel und -beschreibung wo möglich auf Deutsch anzeigen</string>
+  <string name="vegan">Vegan</string>
+  <string name="vegetarian">Vegetarisch</string>
 </resources>

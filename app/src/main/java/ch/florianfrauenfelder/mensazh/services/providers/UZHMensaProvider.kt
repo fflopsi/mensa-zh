@@ -47,7 +47,7 @@ class UZHMensaProvider(
     try {
       val json = loadFromApi(nextWeek, ignoreCache) ?: return emptyList()
       val menuPerMensa =
-        parseApiRoot(SerializationService.deserialize<ApiRoot>(json), uzhMensas, language)
+        parseApiRoot(SerializationService.deserialize<Api.Root>(json), uzhMensas, language)
       uzhMensas.forEach { uzhMensa ->
         mensas += uzhMensa.toMensa().apply {
           menus = menuPerMensa[uzhMensa].orEmpty()
@@ -131,7 +131,7 @@ class UZHMensaProvider(
     }
 
   private fun parseApiRoot(
-    root: ApiRoot,
+    root: Api.Root,
     mensas: List<UzhMensa>,
     language: Language,
   ): Map<UzhMensa, List<Menu>> {
@@ -139,7 +139,8 @@ class UZHMensaProvider(
 
     mensas.forEach { mensa ->
       var menusByWeekday =
-        root.data?.organisation?.outlets?.find { it.slug == mensa.slug }?.calendar?.week?.daily?.associate { Weekday.entries[it.date.weekdayNumber - 1] to it.menuItems.orEmpty() }
+        root.data?.organisation?.outlets?.find { it.slug == mensa.slug }?.calendar?.week?.daily
+          ?.associate { Weekday.entries[it.date.weekdayNumber - 1] to it.menuItems.orEmpty() }
           ?: return@forEach
       if (mensa.categoryPath != null) {
         menusByWeekday = menusByWeekday.onEach { pair ->
@@ -169,6 +170,8 @@ class UZHMensaProvider(
             allergens = relevantMenu.dish?.allergens?.mapNotNull {
               it.allergen?.name
             }?.joinToString(separator = ", "),
+            isVegetarian = relevantMenu.dish?.isVegetarian ?: false,
+            isVegan = relevantMenu.dish?.isVegan ?: false,
             weekday = weekday,
           ).run {
             if (isNoMenuNotice(this, language)) return@forEach
@@ -220,98 +223,66 @@ class UZHMensaProvider(
     )
   }
 
-  @Serializable
-  private class ApiRoot {
-    var data: ApiData? = null
+  private object Api {
+    @Serializable
+    data class Root(val data: Data? = null)
+
+    @Serializable
+    data class Data(val organisation: Organisation? = null)
+
+    @Serializable
+    data class Organisation(val outlets: List<Outlet>? = null)
+
+    @Serializable
+    data class Outlet(val slug: String? = null, val calendar: Calendar? = null)
+
+    @Serializable
+    data class Calendar(val week: Week? = null)
+
+    @Serializable
+    data class Week(val daily: List<Day>)
+
+    @Serializable
+    data class Day(val date: Api.Date, val menuItems: List<MenuItem>? = null)
+
+    @Serializable
+    data class Date(val weekdayNumber: Int)
+
+    @Serializable
+    data class MenuItem(
+      val prices: List<Price>? = null,
+      val category: Category? = null,
+      val dish: Dish? = null,
+    )
+
+    @Serializable
+    data class Price(val amount: String? = null)
+
+    @Serializable
+    data class Category(val name: String? = null, val path: List<String>? = null)
+
+    @Serializable
+    data class Dish(
+      val name_i18n: List<I18nName>? = null,
+      val allergens: List<AllergenContainer>? = null,
+      val media: List<MediaContainer>? = null,
+      val isVegetarian: Boolean? = null,
+      val isVegan: Boolean? = null,
+    )
+
+    @Serializable
+    data class I18nName(val label: String? = null, val locale: String? = null)
+
+    @Serializable
+    data class AllergenContainer(val allergen: Allergen? = null)
+
+    @Serializable
+    data class Allergen(val name: String? = null)
+
+    @Serializable
+    data class MediaContainer(val media: Media? = null)
+
+    @Serializable
+    data class Media(val url: String? = null)
   }
-
-  @Serializable
-  private class ApiData {
-    var organisation: ApiOrganisation? = null
-  }
-
-  @Serializable
-  private class ApiOrganisation {
-    var outlets: Array<Outlet>? = null
-  }
-
-  @Serializable
-  private class Outlet {
-    var slug: String? = null
-    var calendar: Calendar? = null
-  }
-
-  @Serializable
-  private class Calendar {
-    var week: Week? = null
-  }
-
-  @Serializable
-  private data class Week(
-    val daily: List<Day>,
-  )
-
-  @Serializable
-  private data class Day(
-    val date: ApiDate,
-    val menuItems: List<MenuItem>? = null,
-  )
-
-  @Serializable
-  private class MenuItem {
-    var prices: Array<Price>? = null
-    var category: Category? = null
-    var dish: Dish? = null
-  }
-
-  @Serializable
-  private class Category {
-    var name: String? = null
-    var path: Array<String>? = null
-  }
-
-  @Serializable
-  private class Dish {
-    var name_i18n: Array<i18nValue>? = null
-    var allergens: Array<AllergenContainer>? = null
-    var media: List<Media>? = null
-    var isVegetarian: Boolean? = null
-    var isVegan: Boolean? = null
-  }
-
-  @Serializable
-  private class AllergenContainer {
-    var allergen: Allergen? = null
-  }
-
-  @Serializable
-  private class Allergen {
-    var name: String? = null
-  }
-
-  @Serializable
-  private class Price {
-    var amount: String? = null
-  }
-
-  @Serializable
-  private class i18nValue {
-    var label: String? = null
-    var locale: String? = null
-  }
-
-  @Serializable
-  private data class Media(
-    val media: MediaAttr? = null,
-  )
-
-  @Serializable
-  private data class MediaAttr(
-    val url: String? = null,
-  )
-
-  @Serializable
-  private data class ApiDate(
-    val weekdayNumber: Int,
-  )
 }

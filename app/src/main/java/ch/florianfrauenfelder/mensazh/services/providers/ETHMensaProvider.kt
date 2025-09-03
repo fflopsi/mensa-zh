@@ -111,7 +111,7 @@ class ETHMensaProvider(
     val url =
       URL("https://idapps.ethz.ch/cookpit-pub-services/v1/weeklyrotas?client-id=ethz-wcms&lang=$language&rs-first=0&rs-size=50&valid-after=$dateSlug")
     val json = getCachedRequest(url, ignoreCache) ?: throw Exception("Cannot load web content")
-    val data: ApiRoot = SerializationService.deserialize(json)
+    val data: Api.Root = SerializationService.deserialize(json)
 
     val menuByFacilityIds = hashMapOf<String, List<Menu>>()
     data.weeklyRotaArray.filter { it.validFrom == dateSlug }.forEach { weeklyRotaArray ->
@@ -154,13 +154,15 @@ class ETHMensaProvider(
     )
   }.any { menu.description.contains(it) || menu.title == it }
 
-  private fun parseApiLineArray(name: String, meal: ApiMeal?, weekday: Weekday): Menu? =
+  private fun parseApiLineArray(name: String, meal: Api.Meal?, weekday: Weekday): Menu? =
     if (meal == null) null
     else Menu(
       title = name,
       description = "${meal.name.trim()}\n${meal.description.replace("\\s+".toRegex(), " ")}",
       price = meal.mealPriceArray.orEmpty().map { String.format(Locale.US, "%.2f", it.price) },
       allergens = meal.allergenArray?.joinToString(separator = ", ") { it.desc },
+      isVegetarian = meal.mealClassArray?.any { it.desc.contains("vegetari", true) } ?: false,
+      isVegan = meal.mealClassArray?.any { it.desc.contains("vegan", true) } ?: false,
       weekday = weekday,
     )
 
@@ -188,90 +190,85 @@ class ETHMensaProvider(
     )
   }
 
-  @Serializable
-  private data class ApiRoot(
-    @SerialName("weekly-rota-array") val weeklyRotaArray: List<ApiWeeklyRotaArray>,
-  )
+  private object Api {
+    @Serializable
+    data class Root(@SerialName("weekly-rota-array") val weeklyRotaArray: List<WeeklyRota>)
 
-  @Serializable
-  private data class ApiWeeklyRotaArray(
-    @SerialName("weekly-rota-id") val weeklyRotaId: Int,
-    @SerialName("facility-id") val facilityId: Int,
-    @SerialName("valid-from") val validFrom: String,
-    @SerialName("day-of-week-array") val dayOfWeekArray: List<ApiDayOfWeekArray>,
-    @SerialName("valid-to") val validTo: String? = null,
-  )
+    @Serializable
+    data class WeeklyRota(
+      @SerialName("weekly-rota-id") val weeklyRotaId: Int,
+      @SerialName("facility-id") val facilityId: Int,
+      @SerialName("valid-from") val validFrom: String,
+      @SerialName("day-of-week-array") val dayOfWeekArray: List<DayOfWeek>,
+      @SerialName("valid-to") val validTo: String? = null,
+    )
 
-  @Serializable
-  private data class ApiDayOfWeekArray(
-    @SerialName("day-of-week-code") val dayOfWeekCode: Int,
-    @SerialName("day-of-week-desc") val dayOfWeekDesc: String,
-    @SerialName("day-of-week-desc-short") val dayOfWeekDescShort: String,
-    @SerialName("opening-hour-array") val openingHourArray: List<ApiOpeningHourArray>? = null,
-  )
+    @Serializable
+    data class DayOfWeek(
+      @SerialName("day-of-week-code") val dayOfWeekCode: Int,
+      @SerialName("day-of-week-desc") val dayOfWeekDesc: String,
+      @SerialName("day-of-week-desc-short") val dayOfWeekDescShort: String,
+      @SerialName("opening-hour-array") val openingHourArray: List<OpeningHour>? = null,
+    )
 
-  @Serializable
-  private data class ApiOpeningHourArray(
-    @SerialName("time-from") val timeFrom: String,
-    @SerialName("time-to") val timeTo: String,
-    @SerialName("meal-time-array") val mealTimeArray: List<ApiMealTimeArray>? = null,
-  )
+    @Serializable
+    data class OpeningHour(
+      @SerialName("time-from") val timeFrom: String,
+      @SerialName("time-to") val timeTo: String,
+      @SerialName("meal-time-array") val mealTimeArray: List<MealTime>? = null,
+    )
 
-  @Serializable
-  private data class ApiMealTimeArray(
-    val name: String,
-    @SerialName("time-from") val timeFrom: String,
-    @SerialName("time-to") val timeTo: String,
-    val menu: ApiMenu? = null,
-    @SerialName("line-array") val lineArray: List<ApiLineArray>? = null,
-  )
+    @Serializable
+    data class MealTime(
+      val name: String,
+      @SerialName("time-from") val timeFrom: String,
+      @SerialName("time-to") val timeTo: String,
+      val menu: ApiMenu? = null,
+      @SerialName("line-array") val lineArray: List<Line>? = null,
+    )
 
-  @Serializable
-  private data class ApiMenu(
-    @SerialName("menu-url") val menuUrl: String,
-  )
+    @Serializable
+    data class ApiMenu(@SerialName("menu-url") val menuUrl: String)
 
-  @Serializable
-  private data class ApiLineArray(
-    val name: String,
-    val meal: ApiMeal? = null,
-  )
+    @Serializable
+    data class Line(val name: String, val meal: Meal? = null)
 
-  @Serializable
-  private data class ApiMeal(
-    @SerialName("line-id") val lineId: Int,
-    val name: String,
-    val description: String,
-    @SerialName("price-unit-code") val priceUnitCode: Int,
-    @SerialName("price-unit-desc") val priceUnitDesc: String,
-    @SerialName("price-unit-desc-short") val priceUnitDescShort: String,
-    @SerialName("meal-price-array") val mealPriceArray: List<ApiMealPriceArray>? = null,
-    @SerialName("meal-class-array") val mealClassArray: List<ApiMealClassArray>? = null,
-    @SerialName("allergen-array") val allergenArray: List<ApiAllergenArray>? = null,
-  )
+    @Serializable
+    data class Meal(
+      @SerialName("line-id") val lineId: Int,
+      val name: String,
+      val description: String,
+      @SerialName("price-unit-code") val priceUnitCode: Int,
+      @SerialName("price-unit-desc") val priceUnitDesc: String,
+      @SerialName("price-unit-desc-short") val priceUnitDescShort: String,
+      @SerialName("meal-price-array") val mealPriceArray: List<MealPrice>? = null,
+      @SerialName("meal-class-array") val mealClassArray: List<MealClass>? = null,
+      @SerialName("allergen-array") val allergenArray: List<Allergen>? = null,
+    )
 
-  @Serializable
-  private data class ApiMealPriceArray(
-    val price: Double,
-    @SerialName("customer-group-code") val customerGroupCode: Int,
-    @SerialName("customer-group-position") val customerGroupPosition: Int,
-    @SerialName("customer-group-desc") val customerGroupDesc: String,
-    @SerialName("customer-group-desc-short") val customerGroupDescShort: String,
-  )
+    @Serializable
+    data class MealPrice(
+      val price: Double,
+      @SerialName("customer-group-code") val customerGroupCode: Int,
+      @SerialName("customer-group-position") val customerGroupPosition: Int,
+      @SerialName("customer-group-desc") val customerGroupDesc: String,
+      @SerialName("customer-group-desc-short") val customerGroupDescShort: String,
+    )
 
-  @Serializable
-  private data class ApiMealClassArray(
-    val code: Int,
-    val position: Int,
-    @SerialName("desc-short") val descShort: String,
-    val desc: String,
-  )
+    @Serializable
+    data class MealClass(
+      val code: Int,
+      val position: Int,
+      @SerialName("desc-short") val descShort: String,
+      val desc: String,
+    )
 
-  @Serializable
-  private data class ApiAllergenArray(
-    val code: Long,
-    val position: Long,
-    @SerialName("desc-short") val descShort: String,
-    val desc: String,
-  )
+    @Serializable
+    data class Allergen(
+      val code: Long,
+      val position: Long,
+      @SerialName("desc-short") val descShort: String,
+      val desc: String,
+    )
+  }
 }

@@ -5,8 +5,10 @@ import android.content.Intent
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.CardDefaults
@@ -20,6 +22,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
@@ -58,9 +61,11 @@ fun MenuRow(
       .combinedClickable(
         onClick = {
           scope.launch {
-            clipboard.setClipEntry(ClipEntry(
-              ClipData.newPlainText("meals content", "${menu.title}: ${menu.description}"),
-            ))
+            clipboard.setClipEntry(
+              ClipEntry(
+                ClipData.newPlainText("meals content", "${menu.title}: ${menu.description}"),
+              )
+            )
           }
         },
         onLongClick = {
@@ -77,12 +82,22 @@ fun MenuRow(
         .padding(8.dp),
     ) {
       Column(modifier = Modifier.weight(1f)) {
-        if (menu.title.isNotBlank()) {
-          Text(
-            text = menu.title,
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.bodyLarge,
-          )
+        Row {
+          if (menu.title.isNotBlank()) {
+            Text(
+              text = menu.title,
+              fontWeight = FontWeight.Bold,
+              style = MaterialTheme.typography.bodyLarge,
+            )
+            if (menu.isVegan || menu.isVegetarian) {
+              Spacer(modifier = Modifier.width(8.dp))
+              Text(
+                text = stringResource(if (menu.isVegan) R.string.vegan else R.string.vegetarian),
+                color = Color(0xFF22AA22),
+                fontWeight = FontWeight.Bold,
+              )
+            }
+          }
         }
         if (menu.price.isNotEmpty()) {
           Text(
@@ -111,13 +126,15 @@ fun MenuRow(
       }
       FilledIconButton(
         onClick = {
-          context.startActivity(Intent.createChooser(
-            Intent(Intent.ACTION_SEND).apply {
-              putExtra(Intent.EXTRA_TEXT, "${menu.title}: ${menu.description}")
-              type = "text/plain"
-            },
-            null,
-          ))
+          context.startActivity(
+            Intent.createChooser(
+              Intent(Intent.ACTION_SEND).apply {
+                putExtra(Intent.EXTRA_TEXT, "${menu.title}: ${menu.description}")
+                type = "text/plain"
+              },
+              null,
+            )
+          )
         },
         modifier = Modifier.align(Alignment.Bottom),
       ) {
