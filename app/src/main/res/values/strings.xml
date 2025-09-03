@@ -3,6 +3,8 @@
   <string name="app_name" translatable="false">MensaZH</string>
   <string name="url_privacy_policy" translatable="false">https://github.com/fflopsi/mensa-zh/blob/main/PRIVACY_POLICY.md</string>
   <string name="url_source_code" translatable="false">https://github.com/fflopsi/mensa-zh</string>
+  <string name="vegan_short" translatable="false">V+</string>
+  <string name="vegetarian_short" translatable="false">V</string>
   <string name="no_expanded_canteens">no expanded canteens</string>
   <string name="settings">Settings</string>
   <string name="closed">closed</string>
@@ -39,4 +41,6 @@
   <string name="show_only_open_desc">Hide mensas that don\'t have menus for the day</string>
   <string name="show_only_expanded_desc">Hide mensas that are collapsed or closed</string>
   <string name="show_menus_in_german_desc">Where possible, show menu title and description in German</string>
+  <string name="vegan">Vegan</string>
+  <string name="vegetarian">Vegetarian</string>
 </resources>
