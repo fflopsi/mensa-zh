@@ -81,6 +81,9 @@ fun MainScreen(
   setShowOnlyOpenMensas: (Boolean) -> Unit,
   showOnlyFavoriteMensas: Boolean,
   setShowOnlyFavoriteMensas: (Boolean) -> Unit,
+  showTomorrow: Boolean,
+  showThisWeek: Boolean,
+  showNextWeek: Boolean,
   navigateToSettings: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -164,83 +167,95 @@ fun MainScreen(
         .padding(insets)
         .consumeWindowInsets(insets),
     ) {
-      NavigationSuiteScaffold(
-        navigationSuiteItems = {
-          Destination.entries.forEach {
-            item(
-              icon = { Icon(it.icon, stringResource(it.label)) },
-              label = { Text(stringResource(it.label)) },
-              selected = it == destination,
-              onClick = { setDestination(it) },
-            )
-          }
+      @Composable
+      fun InnerScaffold() = Scaffold(
+        snackbarHost = {
+          SnackbarHost(
+            hostState = snackbarState,
+            modifier = Modifier.padding(bottom = with(density) { tabRowSize.height.toDp() }),
+          )
         },
-      ) {
-        Scaffold(
-          snackbarHost = {
-            SnackbarHost(
-              hostState = snackbarState,
-              modifier = Modifier.padding(bottom = with(density) { tabRowSize.height.toDp() }),
-            )
-          },
-        ) { innerInsets ->
-          Column(
-            modifier = Modifier
-              .padding(innerInsets)
-              .consumeWindowInsets(innerInsets),
-          ) {
-            NavigableListDetailPaneScaffold(
-              navigator = navigator,
-              listPane = {
-                AnimatedPane(modifier = Modifier.preferredWidth(450.dp)) {
-                  LocationList(
-                    locations = locations,
-                    showOnlyOpenMensas = showOnlyOpenMensas,
-                    showOnlyFavoriteMensas = showOnlyFavoriteMensas,
-                    saveIsFavoriteMensa = { mensa, favorite ->
-                      scope.launch { context.saveIsFavoriteMensa(mensa, favorite) }
-                    },
-                    onMenuClick = {
-                      scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, it) }
+      ) { innerInsets ->
+        Column(
+          modifier = Modifier
+            .padding(innerInsets)
+            .consumeWindowInsets(innerInsets),
+        ) {
+          NavigableListDetailPaneScaffold(
+            navigator = navigator,
+            listPane = {
+              AnimatedPane(modifier = Modifier.preferredWidth(450.dp)) {
+                LocationList(
+                  locations = locations,
+                  showOnlyOpenMensas = showOnlyOpenMensas,
+                  showOnlyFavoriteMensas = showOnlyFavoriteMensas,
+                  saveIsFavoriteMensa = { mensa, favorite ->
+                    scope.launch { context.saveIsFavoriteMensa(mensa, favorite) }
+                  },
+                  onMenuClick = {
+                    scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, it) }
+                  },
+                  modifier = Modifier.fillMaxWidth(),
+                )
+              }
+            },
+            detailPane = {
+              AnimatedPane {
+                navigator.currentDestination?.contentKey?.let {
+                  MenuList(
+                    menus = it.mensa!!.menus,
+                    selectedMenu = it,
+                    selectMenu = { menu ->
+                      scope.launch {
+                        navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, menu)
+                      }
                     },
                     modifier = Modifier.fillMaxWidth(),
                   )
                 }
-              },
-              detailPane = {
-                AnimatedPane {
-                  navigator.currentDestination?.contentKey?.let {
-                    MenuList(
-                      menus = it.mensa!!.menus,
-                      selectedMenu = it,
-                      selectMenu = { menu ->
-                        scope.launch {
-                          navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, menu)
-                        }
-                      },
-                      modifier = Modifier.fillMaxWidth(),
-                    )
-                  }
-                }
-              },
-              modifier = Modifier.weight(1f),
-            )
-            AnimatedVisibility(
-              visible = destination in listOf(Destination.ThisWeek, Destination.NextWeek),
-              modifier = Modifier.onSizeChanged { tabRowSize = it },
-            ) {
-              SecondaryTabRow(selectedTabIndex = weekday.ordinal) {
-                Weekday.entries.forEach {
-                  Tab(
-                    selected = weekday == it,
-                    onClick = { setWeekday(it) },
-                    text = { Text(text = stringResource(it.label)) },
-                  )
-                }
+              }
+            },
+            modifier = Modifier.weight(1f),
+          )
+          AnimatedVisibility(
+            visible = destination in listOf(Destination.ThisWeek, Destination.NextWeek),
+            modifier = Modifier.onSizeChanged { tabRowSize = it },
+          ) {
+            SecondaryTabRow(selectedTabIndex = weekday.ordinal) {
+              Weekday.entries.forEach {
+                Tab(
+                  selected = weekday == it,
+                  onClick = { setWeekday(it) },
+                  text = { Text(text = stringResource(it.label)) },
+                )
               }
             }
           }
         }
+      }
+
+      if (showTomorrow || showThisWeek || showNextWeek) {
+        NavigationSuiteScaffold(
+          navigationSuiteItems = {
+            buildList {
+              add(Destination.Today)
+              if (showTomorrow) add(Destination.Tomorrow)
+              if (showThisWeek) add(Destination.ThisWeek)
+              if (showNextWeek) add(Destination.NextWeek)
+            }.forEach {
+              item(
+                icon = { Icon(it.icon, stringResource(it.label)) },
+                label = { Text(stringResource(it.label)) },
+                selected = it == destination,
+                onClick = { setDestination(it) },
+              )
+            }
+          },
+        ) {
+          InnerScaffold()
+        }
+      } else {
+        InnerScaffold()
       }
 
       AnimatedVisibility(

@@ -20,12 +20,18 @@ import ch.florianfrauenfelder.mensazh.models.Location
 import ch.florianfrauenfelder.mensazh.models.Weekday
 import ch.florianfrauenfelder.mensazh.services.Prefs
 import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
+import ch.florianfrauenfelder.mensazh.services.saveShowNextWeek
 import ch.florianfrauenfelder.mensazh.services.saveShowOnlyFavoriteMensas
 import ch.florianfrauenfelder.mensazh.services.saveShowOnlyOpenMensas
+import ch.florianfrauenfelder.mensazh.services.saveShowThisWeek
+import ch.florianfrauenfelder.mensazh.services.saveShowTomorrow
 import ch.florianfrauenfelder.mensazh.services.saveTheme
 import ch.florianfrauenfelder.mensazh.services.saveUseDynamicColor
+import ch.florianfrauenfelder.mensazh.services.showNextWeekFlow
 import ch.florianfrauenfelder.mensazh.services.showOnlyFavoriteMensasFlow
 import ch.florianfrauenfelder.mensazh.services.showOnlyOpenMensasFlow
+import ch.florianfrauenfelder.mensazh.services.showThisWeekFlow
+import ch.florianfrauenfelder.mensazh.services.showTomorrowFlow
 import ch.florianfrauenfelder.mensazh.services.themeFlow
 import ch.florianfrauenfelder.mensazh.services.useDynamicColorFlow
 import ch.florianfrauenfelder.mensazh.ui.main.MainScreen
@@ -62,6 +68,15 @@ fun App(
   val showOnlyFavoriteMensas by context.showOnlyFavoriteMensasFlow.collectAsStateWithLifecycle(
     initialValue = Prefs.Defaults.SHOW_ONLY_FAVORITE_MENSAS,
   )
+  val showTomorrow by context.showTomorrowFlow.collectAsStateWithLifecycle(
+    initialValue = Prefs.Defaults.SHOW_TOMORROW,
+  )
+  val showThisWeek by context.showThisWeekFlow.collectAsStateWithLifecycle(
+    initialValue = Prefs.Defaults.SHOW_THIS_WEEK,
+  )
+  val showNextWeek by context.showNextWeekFlow.collectAsStateWithLifecycle(
+    initialValue = Prefs.Defaults.SHOW_NEXT_WEEK,
+  )
 
   MensaZHTheme(
     darkTheme = when (theme) {
@@ -95,6 +110,9 @@ fun App(
           setShowOnlyOpenMensas = { scope.launch { context.saveShowOnlyOpenMensas(it) } },
           showOnlyFavoriteMensas = showOnlyFavoriteMensas,
           setShowOnlyFavoriteMensas = { scope.launch { context.saveShowOnlyFavoriteMensas(it) } },
+          showTomorrow = showTomorrow,
+          showThisWeek = showThisWeek,
+          showNextWeek = showNextWeek,
           navigateToSettings = { navController.navigate(Route.Settings) },
         )
       }
@@ -106,6 +124,12 @@ fun App(
           setShowOnlyFavoriteMensas = { scope.launch { context.saveShowOnlyFavoriteMensas(it) } },
           language = language,
           setLanguage = setLanguage,
+          showTomorrow = showTomorrow,
+          saveShowTomorrow = { scope.launch { context.saveShowTomorrow(it) } },
+          showThisWeek = showThisWeek,
+          saveShowThisWeek = { scope.launch { context.saveShowThisWeek(it) } },
+          showNextWeek = showNextWeek,
+          saveShowNextWeek = { scope.launch { context.saveShowNextWeek(it) } },
           theme = theme,
           saveTheme = { scope.launch { context.saveTheme(it) } },
           dynamicColor = dynamicColor,

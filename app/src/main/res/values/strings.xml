@@ -43,4 +43,10 @@
   <string name="show_menus_in_german_desc">Where possible, show menu title and description in German</string>
   <string name="vegan">Vegan</string>
   <string name="vegetarian">Vegetarian</string>
+  <string name="show_tomorrow">Show button for tomorrow</string>
+  <string name="show_tomorrow_desc">Show a button to see tomorrow\'s menus</string>
+  <string name="show_this_week">Show button for this week</string>
+  <string name="show_this_week_desc">Show a button to see this week\'s menus</string>
+  <string name="show_next_week">Show button for next week</string>
+  <string name="show_next_week_desc">Show a button to see next week\'s menus</string>
 </resources>

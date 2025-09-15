@@ -17,6 +17,9 @@ object Prefs {
     val SHOW_ONLY_OPEN_MENSAS = booleanPreferencesKey("show_only_open_mensas")
     val SHOW_ONLY_FAVORITE_MENSAS = booleanPreferencesKey("show_only_favorite_mensas")
     val SHOW_MENUS_IN_GERMAN = booleanPreferencesKey("german_menus")
+    val SHOW_TOMORROW = booleanPreferencesKey("show_tomorrow")
+    val SHOW_THIS_WEEK = booleanPreferencesKey("show_this_week")
+    val SHOW_NEXT_WEEK = booleanPreferencesKey("show_next_week")
     val THEME = intPreferencesKey("theme")
     val USE_DYNAMIC_COLOR = booleanPreferencesKey("dyanmic_color")
   }
@@ -26,6 +29,9 @@ object Prefs {
     const val SHOW_ONLY_OPEN_MENSAS = false
     const val SHOW_ONLY_FAVORITE_MENSAS = false
     const val SHOW_MENUS_IN_GERMAN = false
+    const val SHOW_TOMORROW = false
+    const val SHOW_THIS_WEEK = true
+    const val SHOW_NEXT_WEEK = true
     const val THEME = 0
     const val USE_DYNAMIC_COLOR = true
   }
@@ -67,6 +73,33 @@ suspend fun Context.saveShowMenusInGerman(showMenusInGerman: Boolean) {
 val Context.showMenusInGermanFlow
   get() = dataStore.data.map {
     it[Prefs.Keys.SHOW_MENUS_IN_GERMAN] ?: Prefs.Defaults.SHOW_MENUS_IN_GERMAN
+  }
+
+suspend fun Context.saveShowTomorrow(showTomorrow: Boolean) {
+  dataStore.edit { it[Prefs.Keys.SHOW_TOMORROW] = showTomorrow }
+}
+
+val Context.showTomorrowFlow
+  get() = dataStore.data.map {
+    it[Prefs.Keys.SHOW_TOMORROW] ?: Prefs.Defaults.SHOW_TOMORROW
+  }
+
+suspend fun Context.saveShowThisWeek(showThisWeek: Boolean) {
+  dataStore.edit { it[Prefs.Keys.SHOW_THIS_WEEK] = showThisWeek }
+}
+
+val Context.showThisWeekFlow
+  get() = dataStore.data.map {
+    it[Prefs.Keys.SHOW_THIS_WEEK] ?: Prefs.Defaults.SHOW_THIS_WEEK
+  }
+
+suspend fun Context.saveShowNextWeek(showNextWeek: Boolean) {
+  dataStore.edit { it[Prefs.Keys.SHOW_NEXT_WEEK] = showNextWeek }
+}
+
+val Context.showNextWeekFlow
+  get() = dataStore.data.map {
+    it[Prefs.Keys.SHOW_NEXT_WEEK] ?: Prefs.Defaults.SHOW_NEXT_WEEK
   }
 
 suspend fun Context.saveTheme(theme: Int) {
