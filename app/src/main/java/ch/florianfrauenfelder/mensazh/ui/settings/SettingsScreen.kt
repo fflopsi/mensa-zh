@@ -45,6 +45,12 @@ fun SettingsScreen(
   setShowOnlyFavoriteMensas: (Boolean) -> Unit,
   language: MensaProvider.Language,
   setLanguage: (MensaProvider.Language) -> Unit,
+  showTomorrow: Boolean,
+  saveShowTomorrow: (Boolean) -> Unit,
+  showThisWeek: Boolean,
+  saveShowThisWeek: (Boolean) -> Unit,
+  showNextWeek: Boolean,
+  saveShowNextWeek: (Boolean) -> Unit,
   theme: Int,
   saveTheme: (Int) -> Unit,
   dynamicColor: Boolean,
@@ -102,6 +108,43 @@ fun SettingsScreen(
           Switch(
             checked = language.showMenusInGerman,
             onCheckedChange = { setLanguage(!language) },
+          )
+        }
+      }
+      item { HorizontalDivider() }
+      item {
+        SettingsRow(
+          title = stringResource(R.string.show_tomorrow),
+          subtitle = stringResource(R.string.show_tomorrow_desc),
+          onClick = { saveShowTomorrow(!showTomorrow) },
+        ) {
+          Switch(
+            checked = showTomorrow,
+            onCheckedChange = { saveShowTomorrow(!showTomorrow) },
+          )
+        }
+      }
+      item {
+        SettingsRow(
+          title = stringResource(R.string.show_this_week),
+          subtitle = stringResource(R.string.show_this_week_desc),
+          onClick = { saveShowThisWeek(!showThisWeek) },
+        ) {
+          Switch(
+            checked = showThisWeek,
+            onCheckedChange = { saveShowThisWeek(!showThisWeek) },
+          )
+        }
+      }
+      item {
+        SettingsRow(
+          title = stringResource(R.string.show_next_week),
+          subtitle = stringResource(R.string.show_next_week_desc),
+          onClick = { saveShowNextWeek(!showNextWeek) },
+        ) {
+          Switch(
+            checked = showNextWeek,
+            onCheckedChange = { saveShowNextWeek(!showNextWeek) },
           )
         }
       }
