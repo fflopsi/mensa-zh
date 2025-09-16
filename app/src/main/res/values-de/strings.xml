@@ -44,4 +44,13 @@
   <string name="show_this_week_desc">Button anzeigen, um die Menus von dieser Woche zu sehen</string>
   <string name="show_next_week">Button für nächste Woche anzeigen</string>
   <string name="show_next_week_desc">Button anzeigen, um die Menus von nächster Woche zu sehen</string>
+  <string name="select_locations">Standorte anzeigen oder verbergen…</string>
+  <string name="none_selected">Keine ausgewählt</string>
+  <string name="ok">Ok</string>
+  <string name="cancel">Abbrechen</string>
+  <string name="move_down">Nach oben verschieben</string>
+  <string name="move_up">Nach unten verschieben</string>
+  <string name="remove">Entfernen</string>
+  <string name="available_locations">Verfügbare Standorte</string>
+  <string name="add">Hinzufügen</string>
 </resources>

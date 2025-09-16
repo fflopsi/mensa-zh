@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.NavigateNext
 import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DarkMode
@@ -33,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ch.florianfrauenfelder.mensazh.R
+import ch.florianfrauenfelder.mensazh.models.Location
 import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
 import ch.florianfrauenfelder.mensazh.ui.components.InfoLinks
 
@@ -45,6 +47,9 @@ fun SettingsScreen(
   setShowOnlyFavoriteMensas: (Boolean) -> Unit,
   language: MensaProvider.Language,
   setLanguage: (MensaProvider.Language) -> Unit,
+  locations: List<Location>,
+  shownLocations: List<Location>,
+  saveShownLocations: (List<Location>) -> Unit,
   showTomorrow: Boolean,
   saveShowTomorrow: (Boolean) -> Unit,
   showThisWeek: Boolean,
@@ -58,6 +63,8 @@ fun SettingsScreen(
   navigateUp: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
+  val showLocationSelector = remember { mutableStateOf(false) }
+
   Scaffold(
     topBar = {
       TopAppBar(
@@ -72,6 +79,13 @@ fun SettingsScreen(
     contentWindowInsets = WindowInsets.safeDrawing,
     modifier = modifier,
   ) { insets ->
+    LocationSelectorDialog(
+      show = showLocationSelector,
+      locations = locations,
+      shownLocations = shownLocations,
+      saveShownLocations = saveShownLocations,
+    )
+
     LazyColumn(
       contentPadding = insets,
     ) {
@@ -109,6 +123,17 @@ fun SettingsScreen(
             checked = language.showMenusInGerman,
             onCheckedChange = { setLanguage(!language) },
           )
+        }
+      }
+      item { HorizontalDivider() }
+      item {
+        SettingsRow(
+          title = stringResource(R.string.select_locations),
+          subtitle = shownLocations.map { it.title }
+            .ifEmpty { stringResource(R.string.none_selected) }.toString(),
+          onClick = { showLocationSelector.value = true },
+        ) {
+          Icon(Icons.AutoMirrored.Filled.NavigateNext, null)
         }
       }
       item { HorizontalDivider() }
