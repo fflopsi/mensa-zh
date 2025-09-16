@@ -139,15 +139,15 @@ class UZHMensaProvider(
     val result = mutableMapOf<UzhMensa, List<Menu>>()
 
     mensas.forEach { mensa ->
-      var menusByWeekday =
+      val menusByWeekday =
         root.data?.organisation?.outlets?.find { it.slug == mensa.slug }?.calendar?.week?.daily
-          ?.associate { Weekday.entries[it.date.weekdayNumber - 1] to it.menuItems.orEmpty() }
+          ?.associate { Weekday.entries[it.date.weekdayNumber - 1] to it.menuItems.orEmpty() }?.toMutableMap()
           ?: return@forEach
       if (mensa.categoryPath != null) {
-        menusByWeekday = menusByWeekday.onEach { pair ->
-          pair.key to pair.value.filter { item ->
+        menusByWeekday.keys.forEach { weekday ->
+          menusByWeekday[weekday] = menusByWeekday[weekday]?.filter { item ->
             item.category?.path?.any { it.contains(mensa.categoryPath) } == true
-          }
+          }.orEmpty()
         }
       }
 
