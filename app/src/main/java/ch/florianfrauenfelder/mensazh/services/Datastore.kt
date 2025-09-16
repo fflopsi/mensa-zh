@@ -6,8 +6,10 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import ch.florianfrauenfelder.mensazh.models.Location
 import ch.florianfrauenfelder.mensazh.models.Mensa
 import kotlinx.coroutines.flow.map
+import java.util.UUID
 
 val Context.dataStore by preferencesDataStore(name = "settings")
 
@@ -17,6 +19,7 @@ object Prefs {
     val SHOW_ONLY_OPEN_MENSAS = booleanPreferencesKey("show_only_open_mensas")
     val SHOW_ONLY_FAVORITE_MENSAS = booleanPreferencesKey("show_only_favorite_mensas")
     val SHOW_MENUS_IN_GERMAN = booleanPreferencesKey("german_menus")
+    val SHOWN_LOCATIONS = stringSetPreferencesKey("shown_locations")
     val SHOW_TOMORROW = booleanPreferencesKey("show_tomorrow")
     val SHOW_THIS_WEEK = booleanPreferencesKey("show_this_week")
     val SHOW_NEXT_WEEK = booleanPreferencesKey("show_next_week")
@@ -29,6 +32,14 @@ object Prefs {
     const val SHOW_ONLY_OPEN_MENSAS = false
     const val SHOW_ONLY_FAVORITE_MENSAS = false
     const val SHOW_MENUS_IN_GERMAN = false
+    val SHOWN_LOCATIONS = listOf(
+      "99120f22-7a65-4b36-8619-9eb318334950", // ETH Zentrum
+      "b5c9bc49-c1e0-4f24-807f-e2212a9933fe", // ETH Höngg
+      "ce04e654-d13b-4733-b878-884514d079b7", // ETH Oerlikon
+      "125c00f8-dfbb-4db6-9683-6113cb78aa68", // UZH Zentrum
+      "99222f55-901f-417a-bcbc-191e38628485", // UZH Irchel
+      "8b4b82af-64ae-45c9-bc43-dc8a4580a019", // UZH Other
+    ).map { UUID.fromString(it) }
     const val SHOW_TOMORROW = false
     const val SHOW_THIS_WEEK = true
     const val SHOW_NEXT_WEEK = true
@@ -73,6 +84,20 @@ suspend fun Context.saveShowMenusInGerman(showMenusInGerman: Boolean) {
 val Context.showMenusInGermanFlow
   get() = dataStore.data.map {
     it[Prefs.Keys.SHOW_MENUS_IN_GERMAN] ?: Prefs.Defaults.SHOW_MENUS_IN_GERMAN
+  }
+
+suspend fun Context.saveShownLocations(shownLocations: List<Location>) {
+  dataStore.edit { pref ->
+    pref[Prefs.Keys.SHOWN_LOCATIONS] = emptySet() // necessary to conserve order
+  }
+  dataStore.edit { pref ->
+    pref[Prefs.Keys.SHOWN_LOCATIONS] = shownLocations.map { it.id.toString() }.toSet()
+  }
+}
+
+val Context.shownLocationsFlow
+  get() = dataStore.data.map { pref ->
+    pref[Prefs.Keys.SHOWN_LOCATIONS]?.map { UUID.fromString(it) } ?: Prefs.Defaults.SHOWN_LOCATIONS
   }
 
 suspend fun Context.saveShowTomorrow(showTomorrow: Boolean) {

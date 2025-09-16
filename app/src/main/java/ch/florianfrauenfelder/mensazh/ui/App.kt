@@ -25,6 +25,7 @@ import ch.florianfrauenfelder.mensazh.services.saveShowOnlyFavoriteMensas
 import ch.florianfrauenfelder.mensazh.services.saveShowOnlyOpenMensas
 import ch.florianfrauenfelder.mensazh.services.saveShowThisWeek
 import ch.florianfrauenfelder.mensazh.services.saveShowTomorrow
+import ch.florianfrauenfelder.mensazh.services.saveShownLocations
 import ch.florianfrauenfelder.mensazh.services.saveTheme
 import ch.florianfrauenfelder.mensazh.services.saveUseDynamicColor
 import ch.florianfrauenfelder.mensazh.services.showNextWeekFlow
@@ -32,6 +33,7 @@ import ch.florianfrauenfelder.mensazh.services.showOnlyFavoriteMensasFlow
 import ch.florianfrauenfelder.mensazh.services.showOnlyOpenMensasFlow
 import ch.florianfrauenfelder.mensazh.services.showThisWeekFlow
 import ch.florianfrauenfelder.mensazh.services.showTomorrowFlow
+import ch.florianfrauenfelder.mensazh.services.shownLocationsFlow
 import ch.florianfrauenfelder.mensazh.services.themeFlow
 import ch.florianfrauenfelder.mensazh.services.useDynamicColorFlow
 import ch.florianfrauenfelder.mensazh.ui.main.MainScreen
@@ -68,6 +70,9 @@ fun App(
   val showOnlyFavoriteMensas by context.showOnlyFavoriteMensasFlow.collectAsStateWithLifecycle(
     initialValue = Prefs.Defaults.SHOW_ONLY_FAVORITE_MENSAS,
   )
+  val shownLocations by context.shownLocationsFlow.collectAsStateWithLifecycle(
+    initialValue = Prefs.Defaults.SHOWN_LOCATIONS,
+  )
   val showTomorrow by context.showTomorrowFlow.collectAsStateWithLifecycle(
     initialValue = Prefs.Defaults.SHOW_TOMORROW,
   )
@@ -101,7 +106,8 @@ fun App(
           setDestination = setDestination,
           weekday = weekday,
           setWeekday = setWeekday,
-          locations = locations,
+          locations = locations.filter { shownLocations.contains(it.id) }
+            .sortedBy { shownLocations.indexOf(it.id) },
           language = language,
           setLanguage = setLanguage,
           isRefreshing = isRefreshing,
@@ -124,6 +130,10 @@ fun App(
           setShowOnlyFavoriteMensas = { scope.launch { context.saveShowOnlyFavoriteMensas(it) } },
           language = language,
           setLanguage = setLanguage,
+          locations = locations,
+          shownLocations = locations.filter { shownLocations.contains(it.id) }
+            .sortedBy { shownLocations.indexOf(it.id) },
+          saveShownLocations = { scope.launch { context.saveShownLocations(it) } },
           showTomorrow = showTomorrow,
           saveShowTomorrow = { scope.launch { context.saveShowTomorrow(it) } },
           showThisWeek = showThisWeek,
