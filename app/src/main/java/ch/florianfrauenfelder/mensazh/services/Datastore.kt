@@ -20,6 +20,7 @@ object Prefs {
     val SHOW_ONLY_FAVORITE_MENSAS = booleanPreferencesKey("show_only_favorite_mensas")
     val SHOW_MENUS_IN_GERMAN = booleanPreferencesKey("german_menus")
     val SHOWN_LOCATIONS = stringSetPreferencesKey("shown_locations")
+    val HIDDEN_MENSAS = stringSetPreferencesKey("hidden_mensas")
     val SHOW_TOMORROW = booleanPreferencesKey("show_tomorrow")
     val SHOW_THIS_WEEK = booleanPreferencesKey("show_this_week")
     val SHOW_NEXT_WEEK = booleanPreferencesKey("show_next_week")
@@ -40,6 +41,7 @@ object Prefs {
       "99222f55-901f-417a-bcbc-191e38628485", // UZH Irchel
       "8b4b82af-64ae-45c9-bc43-dc8a4580a019", // UZH Other
     ).map { UUID.fromString(it) }
+    val HIDDEN_MENSAS = emptyList<UUID>()
     const val SHOW_TOMORROW = false
     const val SHOW_THIS_WEEK = true
     const val SHOW_NEXT_WEEK = true
@@ -98,6 +100,17 @@ suspend fun Context.saveShownLocations(shownLocations: List<Location>) {
 val Context.shownLocationsFlow
   get() = dataStore.data.map { pref ->
     pref[Prefs.Keys.SHOWN_LOCATIONS]?.map { UUID.fromString(it) } ?: Prefs.Defaults.SHOWN_LOCATIONS
+  }
+
+suspend fun Context.saveHiddenMensas(hiddenMensas: List<UUID>) {
+  dataStore.edit { pref ->
+    pref[Prefs.Keys.HIDDEN_MENSAS] = hiddenMensas.map { it.toString() }.toSet()
+  }
+}
+
+val Context.hiddenMensasFlow
+  get() = dataStore.data.map { pref ->
+    pref[Prefs.Keys.HIDDEN_MENSAS]?.map { UUID.fromString(it) } ?: Prefs.Defaults.HIDDEN_MENSAS
   }
 
 suspend fun Context.saveShowTomorrow(showTomorrow: Boolean) {

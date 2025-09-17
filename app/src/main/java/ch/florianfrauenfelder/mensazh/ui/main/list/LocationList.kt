@@ -27,11 +27,13 @@ import ch.florianfrauenfelder.mensazh.models.Location
 import ch.florianfrauenfelder.mensazh.models.Mensa
 import ch.florianfrauenfelder.mensazh.models.Menu
 import ch.florianfrauenfelder.mensazh.ui.components.InfoLinks
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun LocationList(
   locations: List<Location>,
+  hiddenMensas: List<UUID>,
   showOnlyOpenMensas: Boolean,
   showOnlyFavoriteMensas: Boolean,
   saveIsFavoriteMensa: (Mensa, Boolean) -> Unit,
@@ -39,13 +41,19 @@ fun LocationList(
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
-  val showEmptyNotice by remember(locations, showOnlyOpenMensas, showOnlyFavoriteMensas) {
+  val showEmptyNotice by remember(
+    locations,
+    hiddenMensas,
+    showOnlyOpenMensas,
+    showOnlyFavoriteMensas,
+  ) {
     derivedStateOf {
-      locations.isEmpty() || (showOnlyOpenMensas && locations.flatMap { it.mensas }.all {
-        it.state == Mensa.State.Closed
-      }) || (showOnlyFavoriteMensas && locations.flatMap { it.mensas }.none {
-        it.state == Mensa.State.Expanded
-      })
+      locations.isEmpty()
+        || locations.flatMap { it.mensas }.all { hiddenMensas.contains(it.id) }
+        || (showOnlyOpenMensas && locations.flatMap { it.mensas }
+        .filter { !hiddenMensas.contains(it.id) }.all { it.state == Mensa.State.Closed })
+        || (showOnlyFavoriteMensas && locations.flatMap { it.mensas }
+        .filter { !hiddenMensas.contains(it.id) }.none { it.state == Mensa.State.Expanded })
     }
   }
 
@@ -71,13 +79,18 @@ fun LocationList(
       items = locations,
       key = { it.title },
     ) { location ->
-      val showLocation by remember(location, showOnlyOpenMensas, showOnlyFavoriteMensas) {
+      val showLocation by remember(
+        location,
+        hiddenMensas,
+        showOnlyOpenMensas,
+        showOnlyFavoriteMensas
+      ) {
         derivedStateOf {
-          !((showOnlyOpenMensas && location.mensas.all {
-            it.state == Mensa.State.Closed
-          }) || (showOnlyFavoriteMensas && location.mensas.none {
-            it.state == Mensa.State.Expanded
-          }))
+          !(location.mensas.all { hiddenMensas.contains(it.id) }
+            || (showOnlyOpenMensas && location.mensas.filter { !hiddenMensas.contains(it.id) }
+            .all { it.state == Mensa.State.Closed })
+            || (showOnlyFavoriteMensas && location.mensas.filter { !hiddenMensas.contains(it.id) }
+            .none { it.state == Mensa.State.Expanded }))
         }
       }
 
@@ -88,6 +101,7 @@ fun LocationList(
       ) {
         LocationRow(
           location = location,
+          hiddenMensas = hiddenMensas,
           showOnlyOpenMensas = showOnlyOpenMensas,
           showOnlyFavoriteMensas = showOnlyFavoriteMensas,
           saveIsFavoriteMensa = saveIsFavoriteMensa,

@@ -53,4 +53,6 @@
   <string name="remove">Entfernen</string>
   <string name="available_locations">Verfügbare Standorte</string>
   <string name="add">Hinzufügen</string>
+  <string name="hide_mensas">Mensen ausblenden…</string>
+  <string name="available_mensas">Verfügbare Mensen</string>
 </resources>

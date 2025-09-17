@@ -19,7 +19,9 @@ import ch.florianfrauenfelder.mensazh.models.Destination
 import ch.florianfrauenfelder.mensazh.models.Location
 import ch.florianfrauenfelder.mensazh.models.Weekday
 import ch.florianfrauenfelder.mensazh.services.Prefs
+import ch.florianfrauenfelder.mensazh.services.hiddenMensasFlow
 import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
+import ch.florianfrauenfelder.mensazh.services.saveHiddenMensas
 import ch.florianfrauenfelder.mensazh.services.saveShowNextWeek
 import ch.florianfrauenfelder.mensazh.services.saveShowOnlyFavoriteMensas
 import ch.florianfrauenfelder.mensazh.services.saveShowOnlyOpenMensas
@@ -73,6 +75,9 @@ fun App(
   val shownLocations by context.shownLocationsFlow.collectAsStateWithLifecycle(
     initialValue = Prefs.Defaults.SHOWN_LOCATIONS,
   )
+  val hiddenMensas by context.hiddenMensasFlow.collectAsStateWithLifecycle(
+    initialValue = Prefs.Defaults.HIDDEN_MENSAS,
+  )
   val showTomorrow by context.showTomorrowFlow.collectAsStateWithLifecycle(
     initialValue = Prefs.Defaults.SHOW_TOMORROW,
   )
@@ -108,6 +113,7 @@ fun App(
           setWeekday = setWeekday,
           locations = locations.filter { shownLocations.contains(it.id) }
             .sortedBy { shownLocations.indexOf(it.id) },
+          hiddenMensas = hiddenMensas,
           language = language,
           setLanguage = setLanguage,
           isRefreshing = isRefreshing,
@@ -134,6 +140,8 @@ fun App(
           shownLocations = locations.filter { shownLocations.contains(it.id) }
             .sortedBy { shownLocations.indexOf(it.id) },
           saveShownLocations = { scope.launch { context.saveShownLocations(it) } },
+          hiddenMensas = hiddenMensas,
+          saveHiddenMensas = { scope.launch { context.saveHiddenMensas(it) } },
           showTomorrow = showTomorrow,
           saveShowTomorrow = { scope.launch { context.saveShowTomorrow(it) } },
           showThisWeek = showThisWeek,
