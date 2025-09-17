@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -38,7 +39,12 @@ fun SettingsRow(
     ) {
       Text(text = title, style = MaterialTheme.typography.titleLarge)
       subtitles?.map {
-        Text(text = it, style = MaterialTheme.typography.bodyMedium)
+        Text(
+          text = it,
+          maxLines = 2,
+          overflow = TextOverflow.Ellipsis,
+          style = MaterialTheme.typography.bodyMedium,
+        )
       }
     }
     content()
