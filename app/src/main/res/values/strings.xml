@@ -58,4 +58,6 @@
   <string name="remove">Remove</string>
   <string name="available_locations">Available locations</string>
   <string name="add">Add</string>
+  <string name="hide_mensas">Hide mensas…</string>
+  <string name="available_mensas">Available mensas</string>
 </resources>

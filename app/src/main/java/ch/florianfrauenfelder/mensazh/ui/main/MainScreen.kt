@@ -64,6 +64,7 @@ import ch.florianfrauenfelder.mensazh.ui.components.SettingsDropdown
 import ch.florianfrauenfelder.mensazh.ui.main.detail.MenuList
 import ch.florianfrauenfelder.mensazh.ui.main.list.LocationList
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
 @Composable
@@ -73,6 +74,7 @@ fun MainScreen(
   weekday: Weekday,
   setWeekday: (Weekday) -> Unit,
   locations: List<Location>,
+  hiddenMensas: List<UUID>,
   language: MensaProvider.Language,
   setLanguage: (MensaProvider.Language) -> Unit,
   isRefreshing: Boolean,
@@ -187,6 +189,7 @@ fun MainScreen(
               AnimatedPane(modifier = Modifier.preferredWidth(450.dp)) {
                 LocationList(
                   locations = locations,
+                  hiddenMensas = hiddenMensas,
                   showOnlyOpenMensas = showOnlyOpenMensas,
                   showOnlyFavoriteMensas = showOnlyFavoriteMensas,
                   saveIsFavoriteMensa = { mensa, favorite ->

@@ -37,6 +37,7 @@ import ch.florianfrauenfelder.mensazh.R
 import ch.florianfrauenfelder.mensazh.models.Location
 import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
 import ch.florianfrauenfelder.mensazh.ui.components.InfoLinks
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,6 +51,8 @@ fun SettingsScreen(
   locations: List<Location>,
   shownLocations: List<Location>,
   saveShownLocations: (List<Location>) -> Unit,
+  hiddenMensas: List<UUID>,
+  saveHiddenMensas: (List<UUID>) -> Unit,
   showTomorrow: Boolean,
   saveShowTomorrow: (Boolean) -> Unit,
   showThisWeek: Boolean,
@@ -64,6 +67,7 @@ fun SettingsScreen(
   modifier: Modifier = Modifier,
 ) {
   val showLocationSelector = remember { mutableStateOf(false) }
+  val showHiddenMensaSelector = remember { mutableStateOf(false) }
 
   Scaffold(
     topBar = {
@@ -84,6 +88,12 @@ fun SettingsScreen(
       locations = locations,
       shownLocations = shownLocations,
       saveShownLocations = saveShownLocations,
+    )
+    HiddenMensaSelectorDialog(
+      show = showHiddenMensaSelector,
+      mensas = shownLocations.flatMap { it.mensas },
+      hiddenMensas = hiddenMensas,
+      saveHiddenMensas = saveHiddenMensas,
     )
 
     LazyColumn(
@@ -132,6 +142,16 @@ fun SettingsScreen(
           subtitle = shownLocations.map { it.title }
             .ifEmpty { stringResource(R.string.none_selected) }.toString(),
           onClick = { showLocationSelector.value = true },
+        ) {
+          Icon(Icons.AutoMirrored.Filled.NavigateNext, null)
+        }
+      }
+      item {
+        SettingsRow(
+          title = stringResource(R.string.hide_mensas),
+          subtitle = shownLocations.flatMap { it.mensas }.filter { hiddenMensas.contains(it.id) }
+            .map { it.title }.ifEmpty { stringResource(R.string.none_selected) }.toString(),
+          onClick = { showHiddenMensaSelector.value = true },
         ) {
           Icon(Icons.AutoMirrored.Filled.NavigateNext, null)
         }

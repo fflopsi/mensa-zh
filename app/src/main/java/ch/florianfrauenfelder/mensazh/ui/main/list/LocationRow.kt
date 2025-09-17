@@ -14,10 +14,12 @@ import androidx.compose.ui.unit.dp
 import ch.florianfrauenfelder.mensazh.models.Location
 import ch.florianfrauenfelder.mensazh.models.Mensa
 import ch.florianfrauenfelder.mensazh.models.Menu
+import java.util.UUID
 
 @Composable
 fun LocationRow(
   location: Location,
+  hiddenMensas: List<UUID>,
   showOnlyOpenMensas: Boolean,
   showOnlyFavoriteMensas: Boolean,
   saveIsFavoriteMensa: (Mensa, Boolean) -> Unit,
@@ -36,9 +38,11 @@ fun LocationRow(
     )
     Column(modifier = Modifier.fillMaxWidth()) {
       location.mensas.forEach {
-        val showMensa by remember(it, showOnlyOpenMensas, showOnlyFavoriteMensas) {
+        val showMensa by remember(it, hiddenMensas, showOnlyOpenMensas, showOnlyFavoriteMensas) {
           derivedStateOf {
-            !((showOnlyOpenMensas && it.state == Mensa.State.Closed) || (showOnlyFavoriteMensas && it.state != Mensa.State.Expanded))
+            !(hiddenMensas.contains(it.id)
+              || (showOnlyOpenMensas && it.state == Mensa.State.Closed)
+              || (showOnlyFavoriteMensas && it.state != Mensa.State.Expanded))
           }
         }
 
