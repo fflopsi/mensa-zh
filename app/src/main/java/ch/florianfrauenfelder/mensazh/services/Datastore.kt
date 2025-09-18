@@ -102,9 +102,9 @@ val Context.shownLocationsFlow
     pref[Prefs.Keys.SHOWN_LOCATIONS]?.map { UUID.fromString(it) } ?: Prefs.Defaults.SHOWN_LOCATIONS
   }
 
-suspend fun Context.saveHiddenMensas(hiddenMensas: List<UUID>) {
+suspend fun Context.saveHiddenMensas(hiddenMensas: List<Mensa>) {
   dataStore.edit { pref ->
-    pref[Prefs.Keys.HIDDEN_MENSAS] = hiddenMensas.map { it.toString() }.toSet()
+    pref[Prefs.Keys.HIDDEN_MENSAS] = hiddenMensas.map { it.id.toString() }.toSet()
   }
 }
 

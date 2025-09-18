@@ -140,7 +140,9 @@ fun App(
           shownLocations = locations.filter { shownLocations.contains(it.id) }
             .sortedBy { shownLocations.indexOf(it.id) },
           saveShownLocations = { scope.launch { context.saveShownLocations(it) } },
-          hiddenMensas = hiddenMensas,
+          hiddenMensas = locations.filter { shownLocations.contains(it.id) }
+            .sortedBy { shownLocations.indexOf(it.id) }.flatMap { it.mensas }
+            .filter { hiddenMensas.contains(it.id) },
           saveHiddenMensas = { scope.launch { context.saveHiddenMensas(it) } },
           showTomorrow = showTomorrow,
           saveShowTomorrow = { scope.launch { context.saveShowTomorrow(it) } },

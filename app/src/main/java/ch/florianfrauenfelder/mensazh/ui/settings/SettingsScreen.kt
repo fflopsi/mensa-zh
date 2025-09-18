@@ -13,6 +13,8 @@ import androidx.compose.material.icons.automirrored.filled.NavigateNext
 import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.EditLocation
+import androidx.compose.material.icons.filled.FilterListOff
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DropdownMenu
@@ -35,9 +37,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ch.florianfrauenfelder.mensazh.R
 import ch.florianfrauenfelder.mensazh.models.Location
+import ch.florianfrauenfelder.mensazh.models.Mensa
 import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
 import ch.florianfrauenfelder.mensazh.ui.components.InfoLinks
-import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,8 +53,8 @@ fun SettingsScreen(
   locations: List<Location>,
   shownLocations: List<Location>,
   saveShownLocations: (List<Location>) -> Unit,
-  hiddenMensas: List<UUID>,
-  saveHiddenMensas: (List<UUID>) -> Unit,
+  hiddenMensas: List<Mensa>,
+  saveHiddenMensas: (List<Mensa>) -> Unit,
   showTomorrow: Boolean,
   saveShowTomorrow: (Boolean) -> Unit,
   showThisWeek: Boolean,
@@ -83,17 +85,24 @@ fun SettingsScreen(
     contentWindowInsets = WindowInsets.safeDrawing,
     modifier = modifier,
   ) { insets ->
-    LocationSelectorDialog(
+    ListSelectorDialog(
       show = showLocationSelector,
-      locations = locations,
-      shownLocations = shownLocations,
-      saveShownLocations = saveShownLocations,
+      entireList = locations,
+      selectedList = shownLocations,
+      saveList = saveShownLocations,
+      icon = Icons.Default.EditLocation,
+      title = R.string.select_locations,
+      subtitleAvailableItems = R.string.available_locations,
+      showMoveButtons = true,
     )
-    HiddenMensaSelectorDialog(
+    ListSelectorDialog(
       show = showHiddenMensaSelector,
-      mensas = shownLocations.flatMap { it.mensas },
-      hiddenMensas = hiddenMensas,
-      saveHiddenMensas = saveHiddenMensas,
+      entireList = shownLocations.flatMap { it.mensas },
+      selectedList = hiddenMensas,
+      saveList = saveHiddenMensas,
+      icon = Icons.Default.FilterListOff,
+      title = R.string.hide_mensas,
+      subtitleAvailableItems = R.string.available_mensas,
     )
 
     LazyColumn(
@@ -149,8 +158,8 @@ fun SettingsScreen(
       item {
         SettingsRow(
           title = stringResource(R.string.hide_mensas),
-          subtitle = shownLocations.flatMap { it.mensas }.filter { hiddenMensas.contains(it.id) }
-            .map { it.title }.ifEmpty { stringResource(R.string.none_selected) }.toString(),
+          subtitle = hiddenMensas.map { it.title }
+            .ifEmpty { stringResource(R.string.none_selected) }.toString(),
           onClick = { showHiddenMensaSelector.value = true },
         ) {
           Icon(Icons.AutoMirrored.Filled.NavigateNext, null)
