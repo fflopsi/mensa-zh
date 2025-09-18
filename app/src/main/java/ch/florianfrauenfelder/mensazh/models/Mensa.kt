@@ -8,12 +8,12 @@ import java.net.URI
 import java.util.UUID
 
 data class Mensa(
-  val id: UUID,
-  val title: String,
+  override val id: UUID,
+  override val title: String,
   val mealTime: String,
   val url: URI,
   val imagePath: String? = null,
-) {
+) : IdTitleItem {
   enum class State { Initial, Closed, Available, Expanded }
 
   private var _menus = mutableStateListOf<Menu>()
