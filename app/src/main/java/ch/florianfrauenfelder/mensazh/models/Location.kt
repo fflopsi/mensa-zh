@@ -3,10 +3,10 @@ package ch.florianfrauenfelder.mensazh.models
 import java.util.UUID
 
 data class Location(
-  val id: UUID,
-  val title: String,
+  override val id: UUID,
+  override val title: String,
   val mensas: List<Mensa>,
-) {
+) : IdTitleItem {
   override fun toString() = title
 
   companion object {
