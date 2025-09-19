@@ -1,4 +1,4 @@
-package ch.florianfrauenfelder.mensazh.ui.components
+package ch.florianfrauenfelder.mensazh.ui.main
 
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
