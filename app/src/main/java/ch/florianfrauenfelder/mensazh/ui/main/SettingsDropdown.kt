@@ -29,8 +29,8 @@ import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
 fun SettingsDropdown(
   showOnlyOpenMensas: Boolean,
   setShowOnlyOpenMensas: (Boolean) -> Unit,
-  showOnlyFavoriteMensas: Boolean,
-  setShowOnlyFavoriteMensas: (Boolean) -> Unit,
+  showOnlyExpandedMensas: Boolean,
+  setShowOnlyExpandedMensas: (Boolean) -> Unit,
   language: MensaProvider.Language,
   setLanguage: (MensaProvider.Language) -> Unit,
   navigateToSettings: () -> Unit,
@@ -75,12 +75,12 @@ fun SettingsDropdown(
                 .weight(1f),
             )
             Checkbox(
-              checked = showOnlyFavoriteMensas,
-              onCheckedChange = { setShowOnlyFavoriteMensas(!showOnlyFavoriteMensas) },
+              checked = showOnlyExpandedMensas,
+              onCheckedChange = { setShowOnlyExpandedMensas(!showOnlyExpandedMensas) },
             )
           }
         },
-        onClick = { setShowOnlyFavoriteMensas(!showOnlyFavoriteMensas) },
+        onClick = { setShowOnlyExpandedMensas(!showOnlyExpandedMensas) },
       )
       DropdownMenuItem(
         text = {

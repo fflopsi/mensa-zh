@@ -60,4 +60,6 @@
   <string name="add">Add</string>
   <string name="hide_mensas">Hide mensas…</string>
   <string name="available_mensas">Available mensas</string>
+  <string name="favorite_mensas">Favorite mensas…</string>
+  <string name="favorites">Favorites</string>
 </resources>

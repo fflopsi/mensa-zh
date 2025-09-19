@@ -59,7 +59,7 @@ import ch.florianfrauenfelder.mensazh.models.Location
 import ch.florianfrauenfelder.mensazh.models.Menu
 import ch.florianfrauenfelder.mensazh.models.Weekday
 import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
-import ch.florianfrauenfelder.mensazh.services.saveIsFavoriteMensa
+import ch.florianfrauenfelder.mensazh.services.saveIsExpandedMensa
 import ch.florianfrauenfelder.mensazh.ui.main.detail.MenuList
 import ch.florianfrauenfelder.mensazh.ui.main.list.LocationList
 import kotlinx.coroutines.launch
@@ -80,8 +80,8 @@ fun MainScreen(
   onRefresh: () -> Unit,
   showOnlyOpenMensas: Boolean,
   setShowOnlyOpenMensas: (Boolean) -> Unit,
-  showOnlyFavoriteMensas: Boolean,
-  setShowOnlyFavoriteMensas: (Boolean) -> Unit,
+  showOnlyExpandedMensas: Boolean,
+  setShowOnlyExpandedMensas: (Boolean) -> Unit,
   showTomorrow: Boolean,
   showThisWeek: Boolean,
   showNextWeek: Boolean,
@@ -147,8 +147,8 @@ fun MainScreen(
           SettingsDropdown(
             showOnlyOpenMensas = showOnlyOpenMensas,
             setShowOnlyOpenMensas = { setShowOnlyOpenMensas(it) },
-            showOnlyFavoriteMensas = showOnlyFavoriteMensas,
-            setShowOnlyFavoriteMensas = { setShowOnlyFavoriteMensas(it) },
+            showOnlyExpandedMensas = showOnlyExpandedMensas,
+            setShowOnlyExpandedMensas = setShowOnlyExpandedMensas,
             language = language,
             setLanguage = setLanguage,
             navigateToSettings = navigateToSettings,
@@ -190,9 +190,9 @@ fun MainScreen(
                   locations = locations,
                   hiddenMensas = hiddenMensas,
                   showOnlyOpenMensas = showOnlyOpenMensas,
-                  showOnlyFavoriteMensas = showOnlyFavoriteMensas,
-                  saveIsFavoriteMensa = { mensa, favorite ->
-                    scope.launch { context.saveIsFavoriteMensa(mensa, favorite) }
+                  showOnlyExpandedMensas = showOnlyExpandedMensas,
+                  saveIsExpandedMensa = { mensa, expanded ->
+                    scope.launch { context.saveIsExpandedMensa(mensa, expanded) }
                   },
                   onMenuClick = {
                     scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, it) }

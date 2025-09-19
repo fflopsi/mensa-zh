@@ -19,7 +19,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import ch.florianfrauenfelder.mensazh.R
 import ch.florianfrauenfelder.mensazh.services.AssetService
 import ch.florianfrauenfelder.mensazh.services.CacheService
-import ch.florianfrauenfelder.mensazh.services.favoriteMensasFlow
+import ch.florianfrauenfelder.mensazh.services.expandedMensasFlow
 import ch.florianfrauenfelder.mensazh.services.providers.ETHMensaProvider
 import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
 import ch.florianfrauenfelder.mensazh.services.providers.UZHMensaProvider
@@ -207,7 +207,7 @@ class AppViewModel(
         AppViewModel(
           assetService = AssetService(application.assets),
           cacheService = CacheService(application.cacheDir),
-          favoriteMensas = application.favoriteMensasFlow,
+          favoriteMensas = application.expandedMensasFlow,
           initialLanguage = application.showMenusInGermanFlow.map { it.showMenusInGermanToLanguage },
           saveLanguage = { application.saveShowMenusInGerman(it.showMenusInGerman) },
         )

@@ -21,8 +21,8 @@ fun LocationRow(
   location: Location,
   hiddenMensas: List<UUID>,
   showOnlyOpenMensas: Boolean,
-  showOnlyFavoriteMensas: Boolean,
-  saveIsFavoriteMensa: (Mensa, Boolean) -> Unit,
+  showOnlyExpandedMensas: Boolean,
+  saveIsExpandedMensa: (Mensa, Boolean) -> Unit,
   onMenuClick: (Menu) -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -38,18 +38,18 @@ fun LocationRow(
     )
     Column(modifier = Modifier.fillMaxWidth()) {
       location.mensas.forEach {
-        val showMensa by remember(it, hiddenMensas, showOnlyOpenMensas, showOnlyFavoriteMensas) {
+        val showMensa by remember(it, hiddenMensas, showOnlyOpenMensas, showOnlyExpandedMensas) {
           derivedStateOf {
             !(hiddenMensas.contains(it.id)
               || (showOnlyOpenMensas && it.state == Mensa.State.Closed)
-              || (showOnlyFavoriteMensas && it.state != Mensa.State.Expanded))
+              || (showOnlyExpandedMensas && it.state != Mensa.State.Expanded))
           }
         }
 
         AnimatedVisibility(visible = showMensa) {
           MensaRow(
             mensa = it,
-            saveIsFavoriteMensa = saveIsFavoriteMensa,
+            saveIsExpandedMensa = saveIsExpandedMensa,
             onMenuClick = onMenuClick,
             modifier = Modifier.fillMaxWidth(),
           )

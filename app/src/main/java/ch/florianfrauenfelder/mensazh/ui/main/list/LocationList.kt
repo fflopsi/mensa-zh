@@ -35,8 +35,8 @@ fun LocationList(
   locations: List<Location>,
   hiddenMensas: List<UUID>,
   showOnlyOpenMensas: Boolean,
-  showOnlyFavoriteMensas: Boolean,
-  saveIsFavoriteMensa: (Mensa, Boolean) -> Unit,
+  showOnlyExpandedMensas: Boolean,
+  saveIsExpandedMensa: (Mensa, Boolean) -> Unit,
   onMenuClick: (Menu) -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(0.dp),
@@ -45,14 +45,14 @@ fun LocationList(
     locations,
     hiddenMensas,
     showOnlyOpenMensas,
-    showOnlyFavoriteMensas,
+    showOnlyExpandedMensas,
   ) {
     derivedStateOf {
       locations.isEmpty()
         || locations.flatMap { it.mensas }.all { hiddenMensas.contains(it.id) }
         || (showOnlyOpenMensas && locations.flatMap { it.mensas }
         .filter { !hiddenMensas.contains(it.id) }.all { it.state == Mensa.State.Closed })
-        || (showOnlyFavoriteMensas && locations.flatMap { it.mensas }
+        || (showOnlyExpandedMensas && locations.flatMap { it.mensas }
         .filter { !hiddenMensas.contains(it.id) }.none { it.state == Mensa.State.Expanded })
     }
   }
@@ -83,13 +83,13 @@ fun LocationList(
         location,
         hiddenMensas,
         showOnlyOpenMensas,
-        showOnlyFavoriteMensas
+        showOnlyExpandedMensas
       ) {
         derivedStateOf {
           !(location.mensas.all { hiddenMensas.contains(it.id) }
             || (showOnlyOpenMensas && location.mensas.filter { !hiddenMensas.contains(it.id) }
             .all { it.state == Mensa.State.Closed })
-            || (showOnlyFavoriteMensas && location.mensas.filter { !hiddenMensas.contains(it.id) }
+            || (showOnlyExpandedMensas && location.mensas.filter { !hiddenMensas.contains(it.id) }
             .none { it.state == Mensa.State.Expanded }))
         }
       }
@@ -103,8 +103,8 @@ fun LocationList(
           location = location,
           hiddenMensas = hiddenMensas,
           showOnlyOpenMensas = showOnlyOpenMensas,
-          showOnlyFavoriteMensas = showOnlyFavoriteMensas,
-          saveIsFavoriteMensa = saveIsFavoriteMensa,
+          showOnlyExpandedMensas = showOnlyExpandedMensas,
+          saveIsExpandedMensa = saveIsExpandedMensa,
           onMenuClick = onMenuClick,
           modifier = Modifier.fillMaxWidth(),
         )
