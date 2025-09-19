@@ -55,4 +55,6 @@
   <string name="add">Hinzufügen</string>
   <string name="hide_mensas">Mensen ausblenden…</string>
   <string name="available_mensas">Verfügbare Mensen</string>
+  <string name="favorite_mensas">Mensa-Favoriten…</string>
+  <string name="favorites">Favoriten</string>
 </resources>

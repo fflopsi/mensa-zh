@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.EditLocation
 import androidx.compose.material.icons.filled.FilterListOff
+import androidx.compose.material.icons.filled.HotelClass
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DropdownMenu
@@ -46,13 +47,15 @@ import ch.florianfrauenfelder.mensazh.ui.components.InfoLinks
 fun SettingsScreen(
   showOnlyOpenMensas: Boolean,
   setShowOnlyOpenMensas: (Boolean) -> Unit,
-  showOnlyFavoriteMensas: Boolean,
-  setShowOnlyFavoriteMensas: (Boolean) -> Unit,
+  showOnlyExpandedMensas: Boolean,
+  setShowOnlyExpandedMensas: (Boolean) -> Unit,
   language: MensaProvider.Language,
   setLanguage: (MensaProvider.Language) -> Unit,
   locations: List<Location>,
   shownLocations: List<Location>,
   saveShownLocations: (List<Location>) -> Unit,
+  favoriteMensas: List<Mensa>,
+  saveFavoriteMensas: (List<Mensa>) -> Unit,
   hiddenMensas: List<Mensa>,
   saveHiddenMensas: (List<Mensa>) -> Unit,
   showTomorrow: Boolean,
@@ -69,6 +72,7 @@ fun SettingsScreen(
   modifier: Modifier = Modifier,
 ) {
   val showLocationSelector = remember { mutableStateOf(false) }
+  val showFavoriteMensaSelector = remember { mutableStateOf(false) }
   val showHiddenMensaSelector = remember { mutableStateOf(false) }
 
   Scaffold(
@@ -96,8 +100,18 @@ fun SettingsScreen(
       showMoveButtons = true,
     )
     ListSelectorDialog(
+      show = showFavoriteMensaSelector,
+      entireList = locations.flatMap { it.mensas }.filter { !hiddenMensas.contains(it) },
+      selectedList = favoriteMensas,
+      saveList = saveFavoriteMensas,
+      icon = Icons.Default.HotelClass,
+      title = R.string.favorite_mensas,
+      subtitleAvailableItems = R.string.available_mensas,
+      showMoveButtons = true,
+    )
+    ListSelectorDialog(
       show = showHiddenMensaSelector,
-      entireList = shownLocations.flatMap { it.mensas },
+      entireList = shownLocations.flatMap { it.mensas }.filter { !favoriteMensas.contains(it) },
       selectedList = hiddenMensas,
       saveList = saveHiddenMensas,
       icon = Icons.Default.FilterListOff,
@@ -124,11 +138,11 @@ fun SettingsScreen(
         SettingsRow(
           title = stringResource(R.string.show_only_expanded),
           subtitle = stringResource(R.string.show_only_expanded_desc),
-          onClick = { setShowOnlyFavoriteMensas(!showOnlyFavoriteMensas) },
+          onClick = { setShowOnlyExpandedMensas(!showOnlyExpandedMensas) },
         ) {
           Switch(
-            checked = showOnlyFavoriteMensas,
-            onCheckedChange = { setShowOnlyFavoriteMensas(!showOnlyFavoriteMensas) },
+            checked = showOnlyExpandedMensas,
+            onCheckedChange = { setShowOnlyExpandedMensas(!showOnlyExpandedMensas) },
           )
         }
       }
@@ -151,6 +165,16 @@ fun SettingsScreen(
           subtitle = shownLocations.map { it.title }
             .ifEmpty { stringResource(R.string.none_selected) }.toString(),
           onClick = { showLocationSelector.value = true },
+        ) {
+          Icon(Icons.AutoMirrored.Filled.NavigateNext, null)
+        }
+      }
+      item {
+        SettingsRow(
+          title = stringResource(R.string.favorite_mensas),
+          subtitle = favoriteMensas.map { it.title }
+            .ifEmpty { stringResource(R.string.none_selected) }.toString(),
+          onClick = { showFavoriteMensaSelector.value = true },
         ) {
           Icon(Icons.AutoMirrored.Filled.NavigateNext, null)
         }

@@ -33,7 +33,7 @@ import ch.florianfrauenfelder.mensazh.models.Menu
 @Composable
 fun MensaRow(
   mensa: Mensa,
-  saveIsFavoriteMensa: (Mensa, Boolean) -> Unit,
+  saveIsExpandedMensa: (Mensa, Boolean) -> Unit,
   onMenuClick: (Menu) -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -43,10 +43,10 @@ fun MensaRow(
         Modifier.clickable {
           if (mensa.state == Mensa.State.Available) {
             mensa.state = Mensa.State.Expanded
-            saveIsFavoriteMensa(mensa, true)
+            saveIsExpandedMensa(mensa, true)
           } else if (mensa.state == Mensa.State.Expanded) {
             mensa.state = Mensa.State.Available
-            saveIsFavoriteMensa(mensa, false)
+            saveIsExpandedMensa(mensa, false)
           }
         }
       } else Modifier

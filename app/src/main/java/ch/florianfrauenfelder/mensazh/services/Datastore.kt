@@ -15,11 +15,12 @@ val Context.dataStore by preferencesDataStore(name = "settings")
 
 object Prefs {
   object Keys {
-    val FAVORITE_MENSAS = stringSetPreferencesKey("favorite_mensas")
+    val EXPANDED_MENSAS = stringSetPreferencesKey("expanded_mensas")
     val SHOW_ONLY_OPEN_MENSAS = booleanPreferencesKey("show_only_open_mensas")
-    val SHOW_ONLY_FAVORITE_MENSAS = booleanPreferencesKey("show_only_favorite_mensas")
+    val SHOW_ONLY_EXPANDED_MENSAS = booleanPreferencesKey("show_only_expanded_mensas")
     val SHOW_MENUS_IN_GERMAN = booleanPreferencesKey("german_menus")
     val SHOWN_LOCATIONS = stringSetPreferencesKey("shown_locations")
+    val FAVORITE_MENSAS = stringSetPreferencesKey("favorite_mensas")
     val HIDDEN_MENSAS = stringSetPreferencesKey("hidden_mensas")
     val SHOW_TOMORROW = booleanPreferencesKey("show_tomorrow")
     val SHOW_THIS_WEEK = booleanPreferencesKey("show_this_week")
@@ -29,9 +30,9 @@ object Prefs {
   }
 
   object Defaults {
-    val FAVORITE_MENSAS = emptySet<String>()
+    val EXPANDED_MENSAS = emptySet<String>()
     const val SHOW_ONLY_OPEN_MENSAS = false
-    const val SHOW_ONLY_FAVORITE_MENSAS = false
+    const val SHOW_ONLY_EXPANDED_MENSAS = false
     const val SHOW_MENUS_IN_GERMAN = false
     val SHOWN_LOCATIONS = listOf(
       "99120f22-7a65-4b36-8619-9eb318334950", // ETH Zentrum
@@ -41,6 +42,7 @@ object Prefs {
       "99222f55-901f-417a-bcbc-191e38628485", // UZH Irchel
       "8b4b82af-64ae-45c9-bc43-dc8a4580a019", // UZH Other
     ).map { UUID.fromString(it) }
+    val FAVORITE_MENSAS = emptyList<UUID>()
     val HIDDEN_MENSAS = emptyList<UUID>()
     const val SHOW_TOMORROW = false
     const val SHOW_THIS_WEEK = true
@@ -50,16 +52,16 @@ object Prefs {
   }
 }
 
-suspend fun Context.saveIsFavoriteMensa(mensa: Mensa, favorite: Boolean) {
+suspend fun Context.saveIsExpandedMensa(mensa: Mensa, expanded: Boolean) {
   dataStore.edit {
-    it[Prefs.Keys.FAVORITE_MENSAS] = it[Prefs.Keys.FAVORITE_MENSAS].orEmpty().toMutableSet().apply {
-      if (favorite) this.add(mensa.id.toString()) else this.remove(mensa.id.toString())
+    it[Prefs.Keys.EXPANDED_MENSAS] = it[Prefs.Keys.EXPANDED_MENSAS].orEmpty().toMutableSet().apply {
+      if (expanded) this.add(mensa.id.toString()) else this.remove(mensa.id.toString())
     }
   }
 }
 
-val Context.favoriteMensasFlow
-  get() = dataStore.data.map { it[Prefs.Keys.FAVORITE_MENSAS] ?: Prefs.Defaults.FAVORITE_MENSAS }
+val Context.expandedMensasFlow
+  get() = dataStore.data.map { it[Prefs.Keys.EXPANDED_MENSAS] ?: Prefs.Defaults.EXPANDED_MENSAS }
 
 suspend fun Context.saveShowOnlyOpenMensas(showOnlyOpenMensas: Boolean) {
   dataStore.edit { it[Prefs.Keys.SHOW_ONLY_OPEN_MENSAS] = showOnlyOpenMensas }
@@ -70,13 +72,13 @@ val Context.showOnlyOpenMensasFlow
     it[Prefs.Keys.SHOW_ONLY_OPEN_MENSAS] ?: Prefs.Defaults.SHOW_ONLY_OPEN_MENSAS
   }
 
-suspend fun Context.saveShowOnlyFavoriteMensas(showOnlyFavoriteMensas: Boolean) {
-  dataStore.edit { it[Prefs.Keys.SHOW_ONLY_FAVORITE_MENSAS] = showOnlyFavoriteMensas }
+suspend fun Context.saveShowOnlyExpandedMensas(showOnlyExpandedMensas: Boolean) {
+  dataStore.edit { it[Prefs.Keys.SHOW_ONLY_EXPANDED_MENSAS] = showOnlyExpandedMensas }
 }
 
-val Context.showOnlyFavoriteMensasFlow
+val Context.showOnlyExpandedMensasFlow
   get() = dataStore.data.map {
-    it[Prefs.Keys.SHOW_ONLY_FAVORITE_MENSAS] ?: Prefs.Defaults.SHOW_ONLY_FAVORITE_MENSAS
+    it[Prefs.Keys.SHOW_ONLY_EXPANDED_MENSAS] ?: Prefs.Defaults.SHOW_ONLY_EXPANDED_MENSAS
   }
 
 suspend fun Context.saveShowMenusInGerman(showMenusInGerman: Boolean) {
@@ -100,6 +102,17 @@ suspend fun Context.saveShownLocations(shownLocations: List<Location>) {
 val Context.shownLocationsFlow
   get() = dataStore.data.map { pref ->
     pref[Prefs.Keys.SHOWN_LOCATIONS]?.map { UUID.fromString(it) } ?: Prefs.Defaults.SHOWN_LOCATIONS
+  }
+
+suspend fun Context.saveFavoriteMensas(favoriteMensas: List<Mensa>) {
+  dataStore.edit { pref ->
+    pref[Prefs.Keys.FAVORITE_MENSAS] = favoriteMensas.map { it.id.toString() }.toSet()
+  }
+}
+
+val Context.favoriteMensasFlow
+  get() = dataStore.data.map { pref ->
+    pref[Prefs.Keys.FAVORITE_MENSAS]?.map { UUID.fromString(it) } ?: Prefs.Defaults.FAVORITE_MENSAS
   }
 
 suspend fun Context.saveHiddenMensas(hiddenMensas: List<Mensa>) {
