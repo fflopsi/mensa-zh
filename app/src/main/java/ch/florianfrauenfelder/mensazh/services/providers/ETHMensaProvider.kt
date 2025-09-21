@@ -123,9 +123,9 @@ class ETHMensaProvider(
             if (mealTime.lineArray == null) return@forEach
             val time = parseMealTime(mealTime.name) ?: return@forEach
             menuByFacilityIds["${weeklyRotaArray.facilityId}_$time"] =
-              menuByFacilityIds["${weeklyRotaArray.facilityId}_$time"].orEmpty() + mealTime.lineArray.mapNotNull {
-                parseApiLineArray(it.name, it.meal, weekday)
-              }.filter { !isNoMenuNotice(it, language) }
+              menuByFacilityIds["${weeklyRotaArray.facilityId}_$time"].orEmpty() + mealTime.lineArray
+                .mapNotNull { parseApiLineArray(it.name, it.meal, weekday) }
+                .filter { !isNoMenuNotice(it, language) }
           }
         }
       }

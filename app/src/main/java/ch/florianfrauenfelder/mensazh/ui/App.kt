@@ -100,7 +100,8 @@ fun App(
 
   val shownLocations by remember(locations, shownLocationsIds) {
     derivedStateOf {
-      locations.filter { shownLocationsIds.contains(it.id) }
+      locations
+        .filter { shownLocationsIds.contains(it.id) }
         .sortedBy { shownLocationsIds.indexOf(it.id) }
     }
   }
@@ -119,7 +120,9 @@ fun App(
           Location(
             id = UUID.randomUUID(),
             title = context.getString(R.string.favorites),
-            mensas = locations.flatMap { it.mensas }.filter { favoriteMensas.contains(it.id) }
+            mensas = locations
+              .flatMap { it.mensas }
+              .filter { favoriteMensas.contains(it.id) }
               .sortedBy { favoriteMensas.indexOf(it.id) },
           ),
         )
@@ -177,11 +180,13 @@ fun App(
           locations = locations,
           shownLocations = shownLocations,
           saveShownLocations = { scope.launch { context.saveShownLocations(it) } },
-          favoriteMensas = locations.flatMap { it.mensas }
+          favoriteMensas = locations
+            .flatMap { it.mensas }
             .filter { favoriteMensas.contains(it.id) && !hiddenMensas.contains(it.id) }
             .sortedBy { favoriteMensas.indexOf(it.id) },
           saveFavoriteMensas = { scope.launch { context.saveFavoriteMensas(it) } },
-          hiddenMensas = shownLocations.flatMap { it.mensas }
+          hiddenMensas = shownLocations
+            .flatMap { it.mensas }
             .filter { hiddenMensas.contains(it.id) && !favoriteMensas.contains(it.id) },
           saveHiddenMensas = { scope.launch { context.saveHiddenMensas(it) } },
           showTomorrow = showTomorrow,

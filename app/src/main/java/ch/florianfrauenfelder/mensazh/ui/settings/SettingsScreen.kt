@@ -162,8 +162,10 @@ fun SettingsScreen(
       item {
         SettingsRow(
           title = stringResource(R.string.select_locations),
-          subtitle = shownLocations.map { it.title }
-            .ifEmpty { stringResource(R.string.none_selected) }.toString(),
+          subtitle = shownLocations
+            .map { it.title }
+            .ifEmpty { stringResource(R.string.none_selected) }
+            .toString(),
           onClick = { showLocationSelector.value = true },
         ) {
           Icon(Icons.AutoMirrored.Filled.NavigateNext, null)
@@ -172,8 +174,10 @@ fun SettingsScreen(
       item {
         SettingsRow(
           title = stringResource(R.string.favorite_mensas),
-          subtitle = favoriteMensas.map { it.title }
-            .ifEmpty { stringResource(R.string.none_selected) }.toString(),
+          subtitle = favoriteMensas
+            .map { it.title }
+            .ifEmpty { stringResource(R.string.none_selected) }
+            .toString(),
           onClick = { showFavoriteMensaSelector.value = true },
         ) {
           Icon(Icons.AutoMirrored.Filled.NavigateNext, null)
@@ -182,8 +186,10 @@ fun SettingsScreen(
       item {
         SettingsRow(
           title = stringResource(R.string.hide_mensas),
-          subtitle = hiddenMensas.map { it.title }
-            .ifEmpty { stringResource(R.string.none_selected) }.toString(),
+          subtitle = hiddenMensas
+            .map { it.title }
+            .ifEmpty { stringResource(R.string.none_selected) }
+            .toString(),
           onClick = { showHiddenMensaSelector.value = true },
         ) {
           Icon(Icons.AutoMirrored.Filled.NavigateNext, null)
