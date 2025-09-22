@@ -154,11 +154,13 @@ class UZHMensaProvider(
       val parsedMenus = mutableListOf<Menu>()
       menusByWeekday.forEach { weekday, items ->
         items.forEach { relevantMenu ->
-          val deDescription = relevantMenu.dish?.name_i18n?.find { it.locale == "de" }?.label
-          val descriptionRaw = if (language == Language.German && deDescription != null) {
-            deDescription
-          } else {
-            relevantMenu.dish?.name_i18n?.find { it.locale == "en" }?.label
+          val deDescription =
+            relevantMenu.dish?.name_i18n?.find { it.locale == Language.German.toString() }?.label
+          val enDescription =
+            relevantMenu.dish?.name_i18n?.find { it.locale == Language.English.toString() }?.label
+          val descriptionRaw = when (language) {
+            Language.English -> enDescription ?: deDescription
+            Language.German -> deDescription ?: enDescription
           }
 
           Menu(
