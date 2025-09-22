@@ -32,6 +32,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.DayOfWeek.FRIDAY
@@ -84,6 +85,15 @@ enum class Weekday(@param:StringRes val label: Int) {
         SATURDAY -> Saturday
         SUNDAY -> Sunday
       }
+  }
+}
+
+enum class Institution {
+  ETH, UZH;
+
+  override fun toString() = when (this) {
+    ETH -> "ETH"
+    UZH -> "UZH"
   }
 }
 
@@ -161,32 +171,27 @@ class AppViewModel(
     isRefreshing = true
     cacheService.startObserveCacheUsage()
 
-    val updatedMensas = withContext(Dispatchers.IO) {
-      val ethAsync = async {
-        ethMensaProvider.getMenus(language, destination == Destination.NextWeek, ignoreCache)
-      }
-      val uzhAsync = async {
-        uzhMensaProvider.getMenus(language, destination == Destination.NextWeek, ignoreCache)
-      }
-      ethAsync.await() + uzhAsync.await()
-    }.onEach { mensa ->
-      mensa.menus = mensa.menus.filter {
-        when (destination) {
-          Destination.Today -> it.weekday == Weekday.fromNow()
-          Destination.Tomorrow -> it.weekday == Weekday.fromNow().next()
-          else -> it.weekday == weekday
-        }
-      }
+    val ethJob = launch(Dispatchers.IO) {
+      applyUpdatedMenus(
+        updated = ethMensaProvider.getFilteredMenus(ignoreCache),
+        institution = Institution.ETH,
+      )
+    }
+    val uzhJob = launch(Dispatchers.IO) {
+      applyUpdatedMenus(
+        updated = uzhMensaProvider.getFilteredMenus(ignoreCache),
+        institution = Institution.UZH,
+      )
     }
 
+    joinAll(ethJob, uzhJob)
     cacheService.removeAllUntouchedCacheEntries()
-    applyUpdatedMenus(updatedMensas)
     isRefreshing = false
   }
 
-  private suspend fun applyUpdatedMenus(updated: List<Mensa>) {
+  private suspend fun applyUpdatedMenus(updated: List<Mensa>, institution: Institution) {
     val favorites = withContext(Dispatchers.IO) { favoriteMensas.first() }
-    _locations.forEach { location ->
+    _locations.filter { it.title.contains(institution.toString()) }.forEach { location ->
       location.mensas.forEach { mensa ->
         updated.firstOrNull { it.id == mensa.id }.let {
           mensa.menus = it?.menus ?: emptyList()
@@ -199,6 +204,17 @@ class AppViewModel(
       }
     }
   }
+
+  private suspend fun MensaProvider.getFilteredMenus(ignoreCache: Boolean): List<Mensa> =
+    getMenus(language, destination == Destination.NextWeek, ignoreCache).onEach { mensa ->
+      mensa.menus = mensa.menus.filter {
+        when (destination) {
+          Destination.Today -> it.weekday == Weekday.fromNow()
+          Destination.Tomorrow -> it.weekday == Weekday.fromNow().next()
+          else -> it.weekday == weekday
+        }
+      }
+    }
 
   companion object {
     val Factory = viewModelFactory {
