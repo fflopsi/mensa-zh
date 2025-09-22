@@ -188,8 +188,8 @@ class AppViewModel(
     val favorites = withContext(Dispatchers.IO) { favoriteMensas.first() }
     _locations.forEach { location ->
       location.mensas.forEach { mensa ->
-        updated.first { it.id == mensa.id }.let {
-          mensa.menus = it.menus
+        updated.firstOrNull { it.id == mensa.id }.let {
+          mensa.menus = it?.menus ?: emptyList()
           mensa.state = when {
             mensa.menus.isEmpty() -> Mensa.State.Closed
             favorites.contains(mensa.id.toString()) -> Mensa.State.Expanded
