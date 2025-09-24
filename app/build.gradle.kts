@@ -13,10 +13,10 @@ android {
   compileSdk = 36
 
   defaultConfig {
-    applicationId = "ch.florianfrauenfelder.mensazh"
+    applicationId = "ch.famoser.mensa"
     minSdk = 24
     targetSdk = 36
-    versionCode = 1
+    versionCode = 50
     versionName = libs.versions.app.get()
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
