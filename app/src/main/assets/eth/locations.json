@@ -109,40 +109,13 @@
         "infoUrlSlug": "hoenggerberg/bistro-hpi"
       },
       {
-        "id": "c4e2a6fd-5c72-4f1c-8dcd-7d87f662f5f2",
-        "title": "food market | green day",
-        "mealTime": "11:15-13:45",
-        "idSlug": 19,
-        "facilityId": 17,
-        "timeSlug": "lunch",
-        "infoUrlSlug": "hoenggerberg/food-market-green-day"
-      },
-      {
-        "id": "e316e042-a99d-486e-872c-5e90b5092145",
-        "title": "food market | grill bbQ",
-        "mealTime": "11:15-13:45",
-        "idSlug": 20,
-        "facilityId": 18,
-        "timeSlug": "lunch",
-        "infoUrlSlug": "hoenggerberg/food-market-grill-bbq"
-      },
-      {
         "id": "6bad9247-0c79-4423-9b16-33b8f74a87cd",
-        "title": "food market | pizza pasta day",
+        "title": "food market",
         "mealTime": "11:15-13:45",
         "idSlug": 18,
         "facilityId": 19,
         "timeSlug": "lunch",
         "infoUrlSlug": "hoenggerberg/food-market-pizza-pasta"
-      },
-      {
-        "id": "ed6b7c60-4da3-47dd-854a-f1f7c3ca2e1c",
-        "title": "food market - Abendessen",
-        "mealTime": "17:30-19:15",
-        "idSlug": 20,
-        "facilityId": 18,
-        "timeSlug": "dinner",
-        "infoUrlSlug": "hoenggerberg/food-market-grill-bbq"
       },
       {
         "id": "ba70f3c8-073a-4b9c-b394-5576ec3fd834",
@@ -152,15 +125,6 @@
         "facilityId": 20,
         "timeSlug": "lunch",
         "infoUrlSlug": "hoenggerberg/fusion-meal"
-      },
-      {
-        "id": "e01cded9-53aa-47c0-9ea5-3b5c85909e23",
-        "title": "FUSION coffee",
-        "mealTime": "11:00-14:00",
-        "idSlug": 22,
-        "facilityId": 21,
-        "timeSlug": "lunch",
-        "infoUrlSlug": "hoenggerberg/fusion-coffee"
       },
       {
         "id": "e01cded9-53ea-47c0-9a25-2b5c85909e23",
