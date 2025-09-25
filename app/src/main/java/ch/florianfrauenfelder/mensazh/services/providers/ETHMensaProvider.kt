@@ -110,7 +110,7 @@ class ETHMensaProvider(
     val dateSlug =
       getDateTimeStringOfMonday(Date().apply { if (nextWeek) time += 7 * 24 * 60 * 60 * 1000 })
     val url =
-      URL("https://idapps.ethz.ch/cookpit-pub-services/v1/weeklyrotas?client-id=ethz-wcms&lang=$language&rs-first=0&rs-size=50&valid-after=$dateSlug")
+      URL("https://idapps.ethz.ch/cookpit-pub-services/v1/weeklyrotas?client-id=ethz-wcms&lang=$language&rs-first=0&rs-size=150&valid-after=$dateSlug")
     val json = getCachedRequest(url, ignoreCache) ?: throw Exception("Cannot load web content")
     val data: Api.Root = SerializationService.deserialize(json)
 
