@@ -175,6 +175,7 @@ class UZHMensaProvider(
             }?.joinToString(separator = ", "),
             isVegetarian = relevantMenu.dish?.isVegetarian ?: false,
             isVegan = relevantMenu.dish?.isVegan ?: false,
+            imageUrl = relevantMenu.dish?.media?.firstOrNull()?.media?.url,
             weekday = weekday,
           ).run {
             if (isNoMenuNotice(this, language)) return@forEach

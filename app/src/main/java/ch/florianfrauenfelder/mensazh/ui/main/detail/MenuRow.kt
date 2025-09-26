@@ -33,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ch.florianfrauenfelder.mensazh.R
 import ch.florianfrauenfelder.mensazh.models.Menu
+import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
 
 @Composable
@@ -139,6 +140,12 @@ fun MenuRow(
       ) {
         Icon(Icons.Filled.Share, stringResource(R.string.share))
       }
+    }
+    if (menu.imageUrl != null) {
+      AsyncImage(
+        model = menu.imageUrl,
+        contentDescription = null,
+      )
     }
   }
 }

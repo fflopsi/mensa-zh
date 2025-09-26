@@ -164,6 +164,7 @@ class ETHMensaProvider(
       allergens = meal.allergenArray?.joinToString(separator = ", ") { it.desc },
       isVegetarian = meal.mealClassArray?.any { it.desc.contains("vegetari", true) } ?: false,
       isVegan = meal.mealClassArray?.any { it.desc.contains("vegan", true) } ?: false,
+      imageUrl = "${meal.imageUrl}?client-id=ethz-wcms",
       weekday = weekday,
     )
 
@@ -244,6 +245,7 @@ class ETHMensaProvider(
       @SerialName("meal-price-array") val mealPriceArray: List<MealPrice>? = null,
       @SerialName("meal-class-array") val mealClassArray: List<MealClass>? = null,
       @SerialName("allergen-array") val allergenArray: List<Allergen>? = null,
+      @SerialName("image-url") val imageUrl: String? = null,
     )
 
     @Serializable
