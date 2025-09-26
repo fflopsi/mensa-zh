@@ -249,7 +249,13 @@ fun MainScreen(
                 icon = { Icon(it.icon, stringResource(it.label)) },
                 label = { Text(stringResource(it.label)) },
                 selected = it == destination,
-                onClick = { setDestination(it) },
+                onClick = {
+                  if (it != destination) {
+                    setDestination(it)
+                  } else if (navigator.canNavigateBack()) {
+                    scope.launch { navigator.navigateBack() }
+                  }
+                },
               )
             }
           },
