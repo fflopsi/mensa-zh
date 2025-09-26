@@ -101,12 +101,12 @@
       },
       {
         "id": "97699535-5035-42cf-a00e-4f2e3910e5f7",
-        "title": "Bistro HPI",
-        "mealTime": "11:30-13:30",
-        "idSlug": 0,
+        "title": "Mendokoro",
+        "mealTime": "11:15-14:00",
+        "idSlug": 16,
         "facilityId": 16,
         "timeSlug": "lunch",
-        "infoUrlSlug": "hoenggerberg/bistro-hpi"
+        "infoUrlSlug": "hoenggerberg/mendokoro"
       },
       {
         "id": "6bad9247-0c79-4423-9b16-33b8f74a87cd",
