@@ -13,6 +13,7 @@ datastore = "1.1.7"
 navigation = "2.9.5"
 serialization = "1.9.0"
 datetime = "0.7.1"
+coil = "3.3.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -39,6 +40,8 @@ androidx-datastore = { group = "androidx.datastore", name = "datastore-preferenc
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "datetime" }
+coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
+coil-network = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

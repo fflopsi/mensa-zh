@@ -15,6 +15,7 @@ data class Menu(
   val allergens: String?,
   val isVegetarian: Boolean,
   val isVegan: Boolean,
+  val imageUrl: String?,
   val weekday: Weekday,
 ) : Parcelable {
   @IgnoredOnParcel
@@ -31,6 +32,7 @@ data class Menu(
       allergens = "Sellerie, Nüsse, Schweinefleisch",
       isVegetarian = true,
       isVegan = false,
+      imageUrl = null,
       weekday = Weekday.Monday,
     )
   }
