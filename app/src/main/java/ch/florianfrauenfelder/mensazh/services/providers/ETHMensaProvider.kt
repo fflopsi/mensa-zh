@@ -175,7 +175,6 @@ class ETHMensaProvider(
     val id: String,
     val title: String,
     val mealTime: String,
-    val idSlug: Int,
     val facilityId: Int,
     val timeSlug: String,
     val infoUrlSlug: String,
