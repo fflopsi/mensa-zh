@@ -1,6 +1,7 @@
 package ch.florianfrauenfelder.mensazh.models
 
 import android.os.Parcelable
+import ch.florianfrauenfelder.mensazh.ui.Weekday
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable

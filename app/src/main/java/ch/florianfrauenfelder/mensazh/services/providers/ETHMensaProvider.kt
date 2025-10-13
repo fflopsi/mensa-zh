@@ -1,121 +1,115 @@
 package ch.florianfrauenfelder.mensazh.services.providers
 
-import ch.florianfrauenfelder.mensazh.models.Location
 import ch.florianfrauenfelder.mensazh.models.Mensa
 import ch.florianfrauenfelder.mensazh.models.Menu
-import ch.florianfrauenfelder.mensazh.models.Weekday
 import ch.florianfrauenfelder.mensazh.services.AssetService
-import ch.florianfrauenfelder.mensazh.services.CacheService
+import ch.florianfrauenfelder.mensazh.services.FetchInfoDao
+import ch.florianfrauenfelder.mensazh.services.MenuDao
 import ch.florianfrauenfelder.mensazh.services.SerializationService
+import ch.florianfrauenfelder.mensazh.ui.Destination
+import ch.florianfrauenfelder.mensazh.ui.Weekday
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.minus
+import kotlinx.datetime.plus
+import kotlinx.datetime.todayIn
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.net.URI
 import java.net.URL
-import java.util.Date
 import java.util.Locale
 import java.util.UUID
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.ExperimentalTime
 
 class ETHMensaProvider(
-  private val cacheService: CacheService,
-  private val assetService: AssetService,
-) : MensaProvider(cacheService) {
-  override val cacheProviderPrefix = "eth"
+  menuDao: MenuDao,
+  private val fetchInfoDao: FetchInfoDao,
+  assetService: AssetService,
+) : MensaProvider<ETHMensaProvider.EthLocation, ETHMensaProvider.EthMensa>(
+  menuDao = menuDao,
+  fetchInfoDao = fetchInfoDao,
+  assetService = assetService,
+) {
+  override val institution = Institution.ETH
+  override val locationsFile = "eth/locations.json"
+  override val locationSerializer = EthLocation.serializer()
 
-  private val ethMensas = mutableListOf<EthMensa>()
-
-  override suspend fun getLocations(): List<Location> {
-    val json: String = assetService.readStringFile("eth/locations.json") ?: return emptyList()
-    return SerializationService.deserializeList<EthLocation>(json).map { ethLocation ->
-      Location(
-        id = UUID.fromString(ethLocation.id),
-        title = ethLocation.title,
-        mensas = ethLocation.mensas.map {
-          ethMensas += it
-          it.toMensa()
-        },
-      )
-    }
-  }
-
+  @OptIn(ExperimentalTime::class)
   override suspend fun getMenus(
     language: Language,
-    nextWeek: Boolean,
+    destination: Destination,
     ignoreCache: Boolean,
   ): List<Mensa> {
+    val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+    val monday = today.minus(today.dayOfWeek.ordinal, DateTimeUnit.DAY).run {
+      if (destination == Destination.NextWeek) {
+        plus(7, DateTimeUnit.DAY)
+      } else this
+    }
+
     val mensas = mutableListOf<Mensa>()
-    try {
-      val menuByFacilityIds = getMenuByFacilityId(language, nextWeek, ignoreCache)
-      ethMensas.forEach { ethMensa ->
-        mensas += ethMensa.toMensa().apply {
-          menus = menuByFacilityIds[ethMensa.getMapId()].orEmpty()
+    if (!ignoreCache && System.currentTimeMillis() - (fetchInfoDao.getFetchInfo(
+        institution = institution.toString(),
+        destination = destination.toString(),
+        language = language.toString(),
+      )?.fetchDate ?: 0) < 12.hours.inWholeMilliseconds
+    ) {
+      apiMensas.forEach {
+        mensas += it.toMensa().apply {
+          menus = tryGetMenusFromCache(it.id, destination, language).orEmpty()
         }
       }
-    } catch (e: Exception) {
-      e.printStackTrace()
+    } else {
+      try {
+        val menuPerMensa = getMensaMenusFromCookpit(
+          language = language,
+          nextWeek = destination == Destination.NextWeek,
+        )
+        apiMensas.forEach {
+          mensas += it.toMensa().apply {
+            menus = menuPerMensa[it.getMapId()].orEmpty()
+          }
+        }
+        mensas.forEach { mensa ->
+          mensa.menus.forEach {
+            cacheMenu(
+              facilityId = mensa.id.toString(),
+              date = monday.plus(it.weekday.ordinal, DateTimeUnit.DAY),
+              language = language,
+              menu = it,
+            )
+          }
+        }
+        updateFetchInfo(destination, language)
+      } catch (e: Exception) {
+        e.printStackTrace()
+      }
     }
 
     return mensas
   }
 
-  private suspend fun getMenuByFacilityId(
-    language: Language,
-    nextWeek: Boolean,
-    ignoreCache: Boolean,
-  ): Map<String, List<Menu>> {
-    val date = Date().apply { if (nextWeek) time += 7 * 24 * 60 * 60 * 1000 }
-    if (!ignoreCache) {
-      getMenuByMensaIdFromCache(date, language)?.let { return it }
-    }
-
-    val menuByFacilityIds = getMensaMenusFromCookpit(language, nextWeek, ignoreCache)
-
-    cacheService.saveMensaIds(
-      key = getMensaIdCacheKey(date, language),
-      mensaIds = menuByFacilityIds.keys.toList(),
-    )
-
-    for ((facilityId, menus) in menuByFacilityIds) {
-      cacheMenus(cacheProviderPrefix, facilityId, date, language, menus)
-    }
-
-    return menuByFacilityIds
-  }
-
-  private fun getMenuByMensaIdFromCache(date: Date, language: Language): Map<String, List<Menu>>? {
-    val impactedMensas =
-      cacheService.readMensaIds(getMensaIdCacheKey(date, language)) ?: return null
-
-    val menuByMensaId = hashMapOf<String, List<Menu>>()
-    impactedMensas.forEach { mensaId ->
-      tryGetMenusFromCache(
-        providerPrefix = cacheProviderPrefix,
-        mensaId = mensaId,
-        date = date,
-        language = language,
-      )?.let { menuByMensaId[mensaId] = it }
-    }
-
-    return menuByMensaId
-  }
-
-  private fun getMensaIdCacheKey(date: Date, language: Language): String =
-    "$cacheProviderPrefix.${getDateTimeString(date)}.$language"
-
+  @OptIn(ExperimentalTime::class)
   private suspend fun getMensaMenusFromCookpit(
     language: Language,
     nextWeek: Boolean,
-    ignoreCache: Boolean,
   ): Map<String, List<Menu>> {
     // Observation: dateslug is ignored by API; all future entries are returned in any case
-    val dateSlug =
-      getDateTimeStringOfMonday(Date().apply { if (nextWeek) time += 7 * 24 * 60 * 60 * 1000 })
+    val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+    val monday = today.minus(today.dayOfWeek.ordinal, DateTimeUnit.DAY).run {
+      if (nextWeek) {
+        plus(7, DateTimeUnit.DAY)
+      } else this
+    }
     val url =
-      URL("https://idapps.ethz.ch/cookpit-pub-services/v1/weeklyrotas?client-id=ethz-wcms&lang=$language&rs-first=0&rs-size=150&valid-after=$dateSlug")
-    val json = getCachedRequest(url, ignoreCache) ?: throw Exception("Cannot load web content")
+      URL("https://idapps.ethz.ch/cookpit-pub-services/v1/weeklyrotas?client-id=ethz-wcms&lang=$language&rs-first=0&rs-size=150&valid-after=$monday")
+    val json = getCachedRequest(url) ?: throw Exception("Cannot load web content")
     val data: Api.Root = SerializationService.deserialize(json)
 
     val menuByFacilityIds = hashMapOf<String, List<Menu>>()
-    data.weeklyRotaArray.filter { it.validFrom == dateSlug }.forEach { weeklyRotaArray ->
+    data.weeklyRotaArray.filter { it.validFrom == monday.toString() }.forEach { weeklyRotaArray ->
       weeklyRotaArray.dayOfWeekArray.forEach { dayOfWeekArray ->
         val weekday = Weekday.entries[dayOfWeekArray.dayOfWeekCode - 1]
         dayOfWeekArray.openingHourArray?.forEach { openingHour ->
@@ -140,7 +134,7 @@ class ETHMensaProvider(
     else -> null
   }
 
-  private fun isNoMenuNotice(menu: Menu, language: Language): Boolean = when (language) {
+  override fun isNoMenuNotice(menu: Menu, language: Language): Boolean = when (language) {
     Language.English -> listOf(
       "We look forward to serving you this menu again soon!",
       "is closed",
@@ -169,20 +163,24 @@ class ETHMensaProvider(
     )
 
   @Serializable
-  private data class EthLocation(val id: String, val title: String, val mensas: List<EthMensa>)
+  data class EthLocation(
+    override val id: String,
+    override val title: String,
+    override val mensas: List<EthMensa>,
+  ) : ApiLocation<EthMensa>()
 
   @Serializable
-  private data class EthMensa(
-    val id: String,
-    val title: String,
-    val mealTime: String,
+  data class EthMensa(
+    override val id: String,
+    override val title: String,
+    override val mealTime: String,
     val facilityId: Int,
     val timeSlug: String,
     val infoUrlSlug: String,
-  ) {
+  ) : ApiMensa() {
     fun getMapId(): String = facilityId.toString() + "_" + timeSlug
 
-    fun toMensa() = Mensa(
+    override fun toMensa() = Mensa(
       id = UUID.fromString(id),
       title = title,
       mealTime = mealTime,

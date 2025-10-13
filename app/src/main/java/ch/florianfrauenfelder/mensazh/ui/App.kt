@@ -19,9 +19,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import ch.florianfrauenfelder.mensazh.R
-import ch.florianfrauenfelder.mensazh.models.Destination
 import ch.florianfrauenfelder.mensazh.models.Location
-import ch.florianfrauenfelder.mensazh.models.Weekday
 import ch.florianfrauenfelder.mensazh.services.Prefs
 import ch.florianfrauenfelder.mensazh.services.favoriteMensasFlow
 import ch.florianfrauenfelder.mensazh.services.hiddenMensasFlow
