@@ -11,7 +11,7 @@ import ch.florianfrauenfelder.mensazh.models.Menu
 import ch.florianfrauenfelder.mensazh.ui.Weekday
 import kotlinx.datetime.LocalDate
 
-@Entity(tableName = "menus", primaryKeys = ["mensaId", "language", "title", "description", "date"])
+@Entity(tableName = "menus", primaryKeys = ["mensaId", "language", "title", "date"])
 data class RoomMenu(
   val mensaId: String,
   val language: String,
