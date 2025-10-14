@@ -158,7 +158,7 @@ class ETHMensaProvider(
       allergens = meal.allergenArray?.joinToString(separator = ", ") { it.desc },
       isVegetarian = meal.mealClassArray?.any { it.desc.contains("vegetari", true) } ?: false,
       isVegan = meal.mealClassArray?.any { it.desc.contains("vegan", true) } ?: false,
-      imageUrl = "${meal.imageUrl}?client-id=ethz-wcms",
+      imageUrl = meal.imageUrl?.let { "$it?client-id=ethz-wcms" },
       weekday = weekday,
     )
 
