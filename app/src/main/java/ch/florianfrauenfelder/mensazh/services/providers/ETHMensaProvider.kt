@@ -9,6 +9,7 @@ import ch.florianfrauenfelder.mensazh.services.SerializationService
 import ch.florianfrauenfelder.mensazh.ui.Destination
 import ch.florianfrauenfelder.mensazh.ui.Weekday
 import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
@@ -110,21 +111,23 @@ class ETHMensaProvider(
     val data: Api.Root = SerializationService.deserialize(json)
 
     val menuByFacilityIds = hashMapOf<String, List<Menu>>()
-    data.weeklyRotaArray.filter { it.validFrom == monday.toString() }.forEach { weeklyRotaArray ->
-      weeklyRotaArray.dayOfWeekArray.forEach { dayOfWeekArray ->
-        val weekday = Weekday.entries[dayOfWeekArray.dayOfWeekCode - 1]
-        dayOfWeekArray.openingHourArray?.forEach { openingHour ->
-          openingHour.mealTimeArray?.forEach { mealTime ->
-            if (mealTime.lineArray == null) return@forEach
-            val time = parseMealTime(mealTime.name) ?: return@forEach
-            menuByFacilityIds["${weeklyRotaArray.facilityId}_$time"] =
-              menuByFacilityIds["${weeklyRotaArray.facilityId}_$time"].orEmpty() + mealTime.lineArray
-                .mapNotNull { parseApiLineArray(it.name, it.meal, weekday) }
-                .filter { !isNoMenuNotice(it, language) }
+    data.weeklyRotaArray
+      .filter { today in LocalDate.parse(it.validFrom)..LocalDate.parse(it.validTo) }
+      .forEach { weeklyRotaArray ->
+        weeklyRotaArray.dayOfWeekArray.forEach { dayOfWeekArray ->
+          val weekday = Weekday.entries[dayOfWeekArray.dayOfWeekCode - 1]
+          dayOfWeekArray.openingHourArray?.forEach { openingHour ->
+            openingHour.mealTimeArray?.forEach { mealTime ->
+              if (mealTime.lineArray == null) return@forEach
+              val time = parseMealTime(mealTime.name) ?: return@forEach
+              menuByFacilityIds["${weeklyRotaArray.facilityId}_$time"] =
+                menuByFacilityIds["${weeklyRotaArray.facilityId}_$time"].orEmpty() + mealTime.lineArray
+                  .mapNotNull { parseApiLineArray(it.name, it.meal, weekday) }
+                  .filter { !isNoMenuNotice(it, language) }
+            }
           }
         }
       }
-    }
 
     return menuByFacilityIds
   }
@@ -200,7 +203,7 @@ class ETHMensaProvider(
       @SerialName("facility-id") val facilityId: Int,
       @SerialName("valid-from") val validFrom: String,
       @SerialName("day-of-week-array") val dayOfWeekArray: List<DayOfWeek>,
-      @SerialName("valid-to") val validTo: String? = null,
+      @SerialName("valid-to") val validTo: String,
     )
 
     @Serializable
