@@ -93,7 +93,7 @@ abstract class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider
         startDate = monday.plus(7, DateTimeUnit.DAY).toString(),
         endDate = monday.plus(7 + 6, DateTimeUnit.DAY).toString(),
       )
-    }.map { it.toMenu() }
+    }.sortedBy { it.index }.map { it.toMenu() }
   }
 
   protected suspend fun getCachedRequest(url: URL): String? {
@@ -127,15 +127,17 @@ abstract class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider
     facilityId: String,
     date: LocalDate,
     language: Language,
+    index: Int,
     menu: Menu,
-  ) = menuDao.insertMenu(menu.toRoomMenu(facilityId, date, language))
+  ) = menuDao.insertMenu(menu.toRoomMenu(facilityId, date, language, index))
 
   protected suspend fun cacheMenus(
     facilityId: String,
     date: LocalDate,
     language: Language,
+    index: Int,
     menus: List<Menu>,
-  ) = menuDao.insertMenus(menus.map { it.toRoomMenu(facilityId, date, language) })
+  ) = menuDao.insertMenus(menus.map { it.toRoomMenu(facilityId, date, language, index) })
 
   protected suspend fun updateFetchInfo(
     destination: Destination,
@@ -178,8 +180,10 @@ abstract class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider
     facilityId: String,
     date: LocalDate,
     language: Language,
+    index: Int,
   ) = RoomMenu(
     mensaId = facilityId,
+    index = index,
     language = language.toString(),
     title = title,
     description = description,

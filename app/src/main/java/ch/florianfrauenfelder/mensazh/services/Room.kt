@@ -14,6 +14,7 @@ import kotlinx.datetime.LocalDate
 @Entity(tableName = "menus", primaryKeys = ["mensaId", "language", "title", "date"])
 data class RoomMenu(
   val mensaId: String,
+  val index: Int,
   val language: String,
   val title: String,
   val description: String,
