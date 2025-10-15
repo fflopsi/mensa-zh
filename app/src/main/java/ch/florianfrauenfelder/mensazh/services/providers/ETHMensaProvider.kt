@@ -73,11 +73,12 @@ class ETHMensaProvider(
           }
         }
         mensas.forEach { mensa ->
-          mensa.menus.forEach {
+          mensa.menus.forEachIndexed { index, it ->
             cacheMenu(
               facilityId = mensa.id.toString(),
               date = monday.plus(it.weekday.ordinal, DateTimeUnit.DAY),
               language = language,
+              index = index,
               menu = it,
             )
           }
