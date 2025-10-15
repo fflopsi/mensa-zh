@@ -57,4 +57,6 @@
   <string name="available_mensas">Verfügbare Mensen</string>
   <string name="favorite_mensas">Mensa-Favoriten…</string>
   <string name="favorites">Favoriten</string>
+  <string name="copy_menu">Menu kopieren</string>
+  <string name="image_available">Foto verfügbar</string>
 </resources>

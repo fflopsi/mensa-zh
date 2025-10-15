@@ -2,14 +2,23 @@ package ch.florianfrauenfelder.mensazh.ui.main.detail
 
 import android.content.ClipData
 import android.content.Intent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -18,7 +27,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,7 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ch.florianfrauenfelder.mensazh.R
 import ch.florianfrauenfelder.mensazh.models.Menu
-import coil3.compose.AsyncImage
+import coil3.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.launch
 
 @Composable
@@ -48,103 +61,134 @@ fun MenuRow(
   val haptics = LocalHapticFeedback.current
   val scope = rememberCoroutineScope()
 
-  ElevatedCard(
-    colors = if (selected) {
-      CardDefaults.elevatedCardColors(
-        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-      )
-    } else {
-      CardDefaults.elevatedCardColors()
-    },
+  var showMore by remember { mutableStateOf(selected) }
+  val painter = rememberAsyncImagePainter(model = menu.imageUrl)
+
+  Box(
     modifier = modifier
       .padding(horizontal = 8.dp, vertical = 4.dp)
-      .clip(CardDefaults.shape)
-      .combinedClickable(
-        onClick = {
-          scope.launch {
-            clipboard.setClipEntry(
-              ClipEntry(
-                ClipData.newPlainText("meals content", "${menu.title}: ${menu.description}"),
+      .clip(CardDefaults.shape),
+  ) {
+    ElevatedCard(
+      colors = if (selected) {
+        CardDefaults.elevatedCardColors(
+          containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+        )
+      } else {
+        CardDefaults.elevatedCardColors()
+      },
+      modifier = Modifier
+        .combinedClickable(
+          onClick = { showMore = !showMore },
+          onLongClick = {
+            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+            select(menu)
+          },
+          onLongClickLabel = stringResource(R.string.select_menu),
+        )
+        .animateContentSize(),
+    ) {
+      Row(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(8.dp),
+      ) {
+        Column(modifier = Modifier.weight(1f)) {
+          Row {
+            if (menu.title.isNotBlank()) {
+              Text(
+                text = menu.title,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.bodyLarge,
               )
+              if (menu.isVegan || menu.isVegetarian) {
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                  text = stringResource(if (menu.isVegan) R.string.vegan else R.string.vegetarian),
+                  color = Color(0xFF22AA22),
+                  fontWeight = FontWeight.Bold,
+                )
+              }
+            }
+          }
+          if (menu.price.isNotEmpty()) {
+            Text(
+              text = menu.price.joinToString(" / "),
+              style = MaterialTheme.typography.bodyMedium,
             )
           }
-        },
-        onLongClick = {
-          haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-          select(menu)
-        },
-        onLongClickLabel = stringResource(R.string.select_menu),
-      ),
-  ) {
-    Row(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(8.dp),
-    ) {
-      Column(modifier = Modifier.weight(1f)) {
-        Row {
-          if (menu.title.isNotBlank()) {
+          if (menu.description.isNotBlank()) {
             Text(
-              text = menu.title,
-              fontWeight = FontWeight.Bold,
-              style = MaterialTheme.typography.bodyLarge,
+              text = menu.description,
+              style = MaterialTheme.typography.bodyMedium,
+              modifier = Modifier
+                .padding(top = 8.dp)
+                .fillMaxWidth(),
             )
-            if (menu.isVegan || menu.isVegetarian) {
-              Spacer(modifier = Modifier.width(8.dp))
-              Text(
-                text = stringResource(if (menu.isVegan) R.string.vegan else R.string.vegetarian),
-                color = Color(0xFF22AA22),
-                fontWeight = FontWeight.Bold,
-              )
+          }
+          if (!menu.allergens.isNullOrBlank()) {
+            Text(
+              text = menu.allergens,
+              style = MaterialTheme.typography.bodySmall,
+              modifier = Modifier
+                .padding(top = 8.dp)
+                .fillMaxWidth(),
+            )
+          }
+        }
+        AnimatedVisibility(showMore) {
+          Column(verticalArrangement = Arrangement.Bottom) {
+            FilledIconButton(
+              onClick = {
+                scope.launch {
+                  clipboard.setClipEntry(
+                    ClipEntry(
+                      ClipData.newPlainText("meals content", "${menu.title}: ${menu.description}"),
+                    )
+                  )
+                }
+              }
+            ) {
+              Icon(Icons.Default.ContentCopy, stringResource(R.string.copy_menu))
+            }
+            FilledIconButton(
+              onClick = {
+                context.startActivity(
+                  Intent.createChooser(
+                    Intent(Intent.ACTION_SEND).apply {
+                      putExtra(Intent.EXTRA_TEXT, "${menu.title}: ${menu.description}")
+                      type = "text/plain"
+                    },
+                    null,
+                  )
+                )
+              },
+            ) {
+              Icon(Icons.Default.Share, stringResource(R.string.share))
             }
           }
         }
-        if (menu.price.isNotEmpty()) {
-          Text(
-            text = menu.price.joinToString(" / "),
-            style = MaterialTheme.typography.bodyMedium,
-          )
-        }
-        if (menu.description.isNotBlank()) {
-          Text(
-            text = menu.description,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier
-              .padding(top = 8.dp)
-              .fillMaxWidth(),
-          )
-        }
-        if (!menu.allergens.isNullOrBlank()) {
-          Text(
-            text = menu.allergens,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier
-              .padding(top = 8.dp)
-              .fillMaxWidth(),
-          )
-        }
       }
-      FilledIconButton(
-        onClick = {
-          context.startActivity(
-            Intent.createChooser(
-              Intent(Intent.ACTION_SEND).apply {
-                putExtra(Intent.EXTRA_TEXT, "${menu.title}: ${menu.description}")
-                type = "text/plain"
-              },
-              null,
-            )
+      if (!menu.imageUrl.isNullOrEmpty()) {
+        AnimatedVisibility(showMore) {
+          Image(
+            painter = painter,
+            contentDescription = null,
+            modifier = Modifier.fillMaxWidth(),
           )
-        },
-        modifier = Modifier.align(Alignment.Bottom),
-      ) {
-        Icon(Icons.Filled.Share, stringResource(R.string.share))
+        }
       }
     }
-    if (menu.imageUrl != null) {
-      AsyncImage(
-        model = menu.imageUrl,
-        contentDescription = null,
+
+    if (!menu.imageUrl.isNullOrEmpty()) {
+      Icon(
+        imageVector = Icons.Default.Image,
+        contentDescription = stringResource(R.string.image_available),
+        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+        modifier = Modifier
+          .size(18.dp)
+          .align(Alignment.TopEnd)
+          .offset(x = (-3).dp, y = (-3).dp),
       )
     }
   }
