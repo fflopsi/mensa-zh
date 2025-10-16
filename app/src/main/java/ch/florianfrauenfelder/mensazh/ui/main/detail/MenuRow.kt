@@ -12,13 +12,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -147,8 +145,7 @@ fun MenuRow(
                     )
                   )
                 }
-              }
-            ) {
+              }) {
               Icon(Icons.Default.ContentCopy, stringResource(R.string.copy_menu))
             }
             FilledIconButton(
@@ -181,15 +178,18 @@ fun MenuRow(
     }
 
     if (!menu.imageUrl.isNullOrEmpty()) {
-      Icon(
-        imageVector = Icons.Default.Image,
-        contentDescription = stringResource(R.string.image_available),
-        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+      AnimatedVisibility(
+        visible = !showMore,
         modifier = Modifier
-          .size(18.dp)
-          .align(Alignment.TopEnd)
-          .offset(x = (-3).dp, y = (-3).dp),
-      )
+          .size(48.dp)
+          .align(Alignment.TopEnd),
+      ) {
+        Image(
+          painter = painter,
+          contentDescription = stringResource(R.string.image_available),
+          alignment = Alignment.TopEnd,
+        )
+      }
     }
   }
 }
