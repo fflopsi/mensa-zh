@@ -31,9 +31,8 @@ For UZH, look at [uzh/locations_zfv.json](./app/src/main/assets/uzh/locations_zf
 `infoUrlSlug` must match the homepage slug (e.g. `raemi59` for
 `https://www.mensa.uzh.ch/de/menueplaene/raemi59.html`). The `slug` must match the slug used in the
 GraphQL endpoint of [ZFV](https://api.zfv.ch/graphql) (do a query on location and kitchen using
-these values). Note that this API needs an API key. There are other APIs (
-e.g. [food2050](https://api.app.food2050.ch/)); the chosen ZFV API needs just a single request,
-which is why it was chosen.
+these values). Note that this API needs a key. There are other APIs (e.g.
+[food2050](https://api.app.food2050.ch/)), but ZFV only needs one request.
 
 For implementation details on how the links are constructed (to try it out yourself), check
 out [ETHMensaProvider.kt](./app/src/main/java/ch/florianfrauenfelder/mensazh/services/providers/ETHMensaProvider.kt)
@@ -52,9 +51,7 @@ out and/or submit a [pull request](https://github.com/fflopsi/mensa-zh/compare).
 
 ## Release checklist
 
-Release checklist:
-
-- [ ] Update `versionCode` and `versionName` in `app/build.gradle`.
-- [ ] Upload the signed abb to the play store
+- [ ] Update `versionCode` and `versionName` in `app/build.gradle`
+- [ ] Upload the signed abb to the Play Store
 - [ ] Generate a signed apk
 - [ ] Create a new release on GitHub with the `versionName` and attach the signed apk
