@@ -17,7 +17,7 @@ android {
     applicationId = "ch.famoser.mensa"
     minSdk = 24
     targetSdk = 36
-    versionCode = 50
+    versionCode = 51
     versionName = libs.versions.app.get()
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
