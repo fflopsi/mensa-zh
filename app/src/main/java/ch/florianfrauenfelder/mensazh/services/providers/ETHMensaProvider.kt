@@ -112,7 +112,7 @@ class ETHMensaProvider(
 
     val menuByFacilityIds = hashMapOf<String, List<Menu>>()
     data.weeklyRotaArray
-      .filter { today in LocalDate.parse(it.validFrom)..LocalDate.parse(it.validTo) }
+      .filter { monday in LocalDate.parse(it.validFrom)..LocalDate.parse(it.validTo) }
       .forEach { weeklyRotaArray ->
         weeklyRotaArray.dayOfWeekArray.forEach { dayOfWeekArray ->
           val weekday = Weekday.entries[dayOfWeekArray.dayOfWeekCode - 1]
