@@ -66,7 +66,7 @@ abstract class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider
     mensaId: String,
     destination: Destination,
     language: Language,
-  ): List<Menu>? {
+  ): List<Menu> {
     val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
     val monday = today.minus(today.dayOfWeek.ordinal, DateTimeUnit.DAY)
 

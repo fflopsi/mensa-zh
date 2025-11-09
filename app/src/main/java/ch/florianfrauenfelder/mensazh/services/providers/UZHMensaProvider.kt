@@ -62,7 +62,7 @@ class UZHMensaProvider(
     ) {
       apiMensas.forEach {
         mensas += it.toMensa().apply {
-          menus = tryGetMenusFromCache(it.id, destination, language).orEmpty()
+          menus = tryGetMenusFromCache(it.id, destination, language)
         }
       }
     } else {
