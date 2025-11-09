@@ -69,9 +69,9 @@ class UZHMensaProvider(
       val json = loadLocationFromApi(destination) ?: return emptyList()
       val menuPerMensa =
         parseApiRoot(SerializationService.deserialize<Api.Root>(json), apiMensas, language)
-      apiMensas.forEach { uzhMensa ->
-        mensas += uzhMensa.toMensa().apply {
-          menus = menuPerMensa[uzhMensa].orEmpty()
+      apiMensas.forEach {
+        mensas += it.toMensa().apply {
+          menus = menuPerMensa[it].orEmpty()
         }
       }
       mensas.forEach { mensa ->
@@ -186,7 +186,7 @@ class UZHMensaProvider(
       }
 
       val parsedMenus = mutableListOf<Menu>()
-      menusByWeekday.forEach { weekday, items ->
+      menusByWeekday.forEach { (weekday, items) ->
         items.forEach { relevantMenu ->
           val deDescription =
             relevantMenu.dish?.nameI18n?.find { it.locale == Language.German.toString() }?.label
