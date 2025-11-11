@@ -113,7 +113,7 @@ fun MainScreen(
         title = {
           Text(
             text = "${stringResource(R.string.app_name)}${
-              navigator.currentDestination?.contentKey?.let { ": ${it.mensa!!.title}" } ?: ""
+              navigator.currentDestination?.contentKey?.mensa?.title ?: ""
             }",
           )
         },
@@ -133,7 +133,7 @@ fun MainScreen(
             IconButton(
               onClick = {
                 Intent(Intent.ACTION_VIEW).apply {
-                  data = navigator.currentDestination?.contentKey?.mensa!!.url.toString().toUri()
+                  data = navigator.currentDestination?.contentKey?.mensa?.url.toString().toUri()
                   context.startActivity(this)
                 }
               },
@@ -205,7 +205,7 @@ fun MainScreen(
               AnimatedPane {
                 navigator.currentDestination?.contentKey?.let {
                   MenuList(
-                    menus = it.mensa!!.menus,
+                    menus = it.mensa?.menus ?: emptyList(),
                     selectedMenu = it,
                     selectMenu = { menu ->
                       scope.launch {
