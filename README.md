@@ -7,12 +7,12 @@ the [Play Store](https://play.google.com/store/apps/details?id=ch.famoser.mensa)
 his [Mensa app](https://github.com/famoser/Mensa). I modernized and rewrote the app using Jetpack
 Compose.*
 
-| Light mode                                                        | Dark mode                                                      |
-|-------------------------------------------------------------------|----------------------------------------------------------------|
-| ![Phone list view in light mode](./.img/phone-list-light.png)     | ![Phone list view in dark mode](./.img/phone-list-dark.png)    |
-| ![Phone detail view in light mode](./.img/phone-detail-light.png) | ![Phone list view in dark mode](./.img/phone-detail-dark.png)  |
-| ![Phone settings in light mode](./.img/phone-settings-light.png)  | ![Phone settings in dark mode](./.img/phone-settings-dark.png) |
-| ![Tablet in light mode](./.img/tablet-light.jpg)                  | ![Tablet in dark mode](./.img/tablet-dark.jpg)                 |
+| Light mode                                                                                    | Dark mode                                                                                  |
+|-----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
+| ![Phone list view in light mode](./metadata/en-US/images/phoneScreenshots/list-light.png)     | ![Phone list view in dark mode](./metadata/en-US/images/phoneScreenshots/list-dark.png)    |
+| ![Phone detail view in light mode](./metadata/en-US/images/phoneScreenshots/detail-light.png) | ![Phone list view in dark mode](./metadata/en-US/images/phoneScreenshots/detail-dark.png)  |
+| ![Phone settings in light mode](./metadata/en-US/images/phoneScreenshots/settings-light.png)  | ![Phone settings in dark mode](./metadata/en-US/images/phoneScreenshots/settings-dark.png) |
+| ![Tablet in light mode](./metadata/en-US/images/tenInchScreenshots/light.jpg)                 | ![Tablet in dark mode](./metadata/en-US/images/tenInchScreenshots/dark.jpg)                |
 
 ## Update mensa details
 
