@@ -1,0 +1,11 @@
+Patch: Menus für nächste Woche werden jetzt korrekt angezeigt für ETH-Mensen. Letzte Minor-Version:
+
+Die Mensa-App mit dem bekannten Aussehen, neuen Funktionen und besserer Performance!
+
+Was ist neu:
+* Menus von morgen, dieser Woche oder nächster Woche verfügbar
+* Bilder von Menus sichtbar
+* Orte können sortiert oder ausgeblendet werden
+* Mensen können favorisiert (zuoberst angezeigt) oder ausgeblendet werden
+* All das und mehr kann in der neuen Einstellungs-Seite konfiguriert werden
+* Schnelleres Anzeigen der Menus von heute, andere Verbesserungen und Fehlerbehebungen
