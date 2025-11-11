@@ -43,6 +43,6 @@ enum class Weekday(@param:StringRes val label: Int) {
   companion object {
     @OptIn(ExperimentalTime::class)
     fun fromNow() =
-      entries[Clock.System.todayIn(TimeZone.Companion.currentSystemDefault()).dayOfWeek.ordinal]
+      entries[Clock.System.todayIn(TimeZone.currentSystemDefault()).dayOfWeek.ordinal]
   }
 }

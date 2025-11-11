@@ -15,7 +15,7 @@ android {
 
   defaultConfig {
     applicationId = "ch.famoser.mensa"
-    minSdk = 24
+    minSdk = 26
     targetSdk = 36
     versionCode = 52
     versionName = libs.versions.app.get()
