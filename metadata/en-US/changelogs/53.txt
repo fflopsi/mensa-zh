@@ -1,0 +1,12 @@
+Patch: Bugfixes. Last minor:
+
+The Mensa app with the familiar look, new features and improved performance!
+
+What's new:
+
+* Menus for tomorrow, this week or next week available
+* Images of menus visible
+* Locations can be sorted or hidden
+* Mensas can be favourited (displayed at the top) or hidden
+* All this and more can be configured in the new settings page
+* Faster display of today's menus, other improvements and bug fixes
