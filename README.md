@@ -3,12 +3,8 @@
 The menus of all mensas of ETHZ and UZH in Zürich in one app.
 
 <p align="center">
-  <a href="https://play.google.com/store/apps/details?id=ch.famoser.mensa">
-    <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="80">
-  </a>
-  <a href="https://f-droid.org/packages/ch.famoser.mensa/">
-    <img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="80">
-  </a>
+  <a href="https://play.google.com/store/apps/details?id=ch.famoser.mensa"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="80"></a>
+  <a href="https://f-droid.org/packages/ch.famoser.mensa/"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="80"></a>
 </p>
 
 *This app is heavily based on [@famoser's](https://github.com/famoser) work on
