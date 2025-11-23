@@ -112,9 +112,7 @@ fun MainScreen(
       TopAppBar(
         title = {
           Text(
-            text = "${stringResource(R.string.app_name)}${
-              navigator.currentDestination?.contentKey?.mensa?.title ?: ""
-            }",
+            text = navigator.currentDestination?.contentKey?.mensa?.title ?: stringResource(R.string.app_name),
           )
         },
         navigationIcon = {
