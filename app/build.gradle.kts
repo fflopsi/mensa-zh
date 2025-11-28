@@ -11,7 +11,9 @@ plugins {
 
 android {
   namespace = "ch.florianfrauenfelder.mensazh"
-  compileSdk = 36
+  compileSdk {
+    version = release(36)
+  }
 
   defaultConfig {
     applicationId = "ch.famoser.mensa"
@@ -50,9 +52,6 @@ android {
 kotlin {
   compilerOptions {
     jvmTarget = JvmTarget.JVM_17
-  }
-  jvmToolchain {
-    languageVersion = JavaLanguageVersion.of(17)
   }
 }
 
