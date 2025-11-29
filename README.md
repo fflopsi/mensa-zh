@@ -49,13 +49,20 @@ from [@famoser](https://github.com/famoser). I will continue to provide updates 
 version of this app in the next few years. If you are interested in helping with the development or
 even adding a iOS version
 using [Compose Multiplatform](https://www.jetbrains.com/compose-multiplatform/), feel free to reach
-out and/or submit a [pull request](https://github.com/fflopsi/mensa-zh/compare).
+out, create an [issue](https://github.com/fflopsi/mensa-zh/issues/new/choose) or submit
+a [pull request](https://github.com/fflopsi/mensa-zh/compare).
 
 ---
 
 ## Release checklist
 
-- [ ] Update `versionCode` and `versionName` in `app/build.gradle`
-- [ ] Upload the signed abb to the Play Store
-- [ ] Generate a signed apk
-- [ ] Create a new release on GitHub with the `versionName` and attach the signed apk
+- [ ] Update version in code
+  - [ ] Verify that the [GitHub build](https://github.com/fflopsi/mensa-zh/actions/workflows/android.yml) passes
+  - [ ] Update `versionCode` and `versionName` in `app/build.gradle.kts`
+  - [ ] Summarize changes in `metadata/[lang]/changelogs`
+- [ ] Play Store update
+  - [ ] Generate signed `abb` app bundle
+  - [ ] Create a new release on Play Console  and attach the signed app bundle
+- [ ] F-Droid/GitHub update
+  - [ ] Generate signed `apk`
+  - [ ] Create a new release on GitHub with the `versionName` (tag and title) and attach the signed `apk`
