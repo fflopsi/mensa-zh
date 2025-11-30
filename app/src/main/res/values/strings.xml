@@ -66,4 +66,6 @@
   <string name="image_available">Image available</string>
   <string name="short_description_overview">Short description in overview</string>
   <string name="short_description_overview_desc">Show two lines of menu title and ingredients</string>
+  <string name="show_allergens_overview">Show allergens in overview</string>
+  <string name="show_allergens_overview_desc">Show the list of allergens for each menu</string>
 </resources>

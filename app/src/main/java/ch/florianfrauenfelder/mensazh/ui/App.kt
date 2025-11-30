@@ -23,10 +23,12 @@ import ch.florianfrauenfelder.mensazh.models.Location
 import ch.florianfrauenfelder.mensazh.services.Prefs
 import ch.florianfrauenfelder.mensazh.services.favoriteMensasFlow
 import ch.florianfrauenfelder.mensazh.services.hiddenMensasFlow
+import ch.florianfrauenfelder.mensazh.services.listShowAllergensFlow
 import ch.florianfrauenfelder.mensazh.services.listUseShortDescriptionFlow
 import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
 import ch.florianfrauenfelder.mensazh.services.saveFavoriteMensas
 import ch.florianfrauenfelder.mensazh.services.saveHiddenMensas
+import ch.florianfrauenfelder.mensazh.services.saveListShowAllergens
 import ch.florianfrauenfelder.mensazh.services.saveListUseShortDescription
 import ch.florianfrauenfelder.mensazh.services.saveShowNextWeek
 import ch.florianfrauenfelder.mensazh.services.saveShowOnlyExpandedMensas
@@ -100,6 +102,9 @@ fun App(
   val listUseShortDescription by context.listUseShortDescriptionFlow.collectAsStateWithLifecycle(
     initialValue = Prefs.Defaults.LIST_USE_SHORT_DESCRIPTION,
   )
+  val listShowAllergens by context.listShowAllergensFlow.collectAsStateWithLifecycle(
+    initialValue = Prefs.Defaults.LIST_SHOW_ALLERGENS,
+  )
 
   val shownLocations by remember(locations, shownLocationsIds) {
     derivedStateOf {
@@ -170,6 +175,7 @@ fun App(
           showThisWeek = showThisWeek,
           showNextWeek = showNextWeek,
           listUseShortDescription = listUseShortDescription,
+          listShowAllergens = listShowAllergens,
           navigateToSettings = { navController.navigate(Route.Settings) },
         )
       }
@@ -205,6 +211,8 @@ fun App(
           saveDynamicColor = { scope.launch { context.saveUseDynamicColor(it) } },
           listUseShortDescription = listUseShortDescription,
           saveListUseShortDescription = { scope.launch { context.saveListUseShortDescription(it) } },
+          listShowAllergens = listShowAllergens,
+          saveListShowAllergens = { scope.launch { context.saveListShowAllergens(it) } },
           navigateUp = { navController.navigateUp() },
         )
       }

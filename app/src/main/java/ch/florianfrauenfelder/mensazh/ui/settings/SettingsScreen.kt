@@ -66,6 +66,8 @@ fun SettingsScreen(
   saveShowNextWeek: (Boolean) -> Unit,
   listUseShortDescription: Boolean,
   saveListUseShortDescription: (Boolean) -> Unit,
+  listShowAllergens: Boolean,
+  saveListShowAllergens: (Boolean) -> Unit,
   theme: Int,
   saveTheme: (Int) -> Unit,
   dynamicColor: Boolean,
@@ -244,6 +246,18 @@ fun SettingsScreen(
           Switch(
             checked = listUseShortDescription,
             onCheckedChange = { saveListUseShortDescription(!listUseShortDescription) },
+          )
+        }
+      }
+      item {
+        SettingsRow(
+          title = stringResource(R.string.show_allergens_overview),
+          subtitle = stringResource(R.string.show_allergens_overview_desc),
+          onClick = { saveListShowAllergens(!listShowAllergens) },
+        ) {
+          Switch(
+            checked = listShowAllergens,
+            onCheckedChange = { saveListShowAllergens(!listShowAllergens) },
           )
         }
       }

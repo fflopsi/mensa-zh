@@ -24,6 +24,7 @@ fun LocationRow(
   showOnlyExpandedMensas: Boolean,
   saveIsExpandedMensa: (Mensa, Boolean) -> Unit,
   listUseShortDescription: Boolean,
+  listShowAllergens: Boolean,
   onMenuClick: (Menu) -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -52,6 +53,7 @@ fun LocationRow(
             mensa = it,
             saveIsExpandedMensa = saveIsExpandedMensa,
             listUseShortDescription = listUseShortDescription,
+            listShowAllergens = listShowAllergens,
             onMenuClick = onMenuClick,
             modifier = Modifier.fillMaxWidth(),
           )

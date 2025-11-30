@@ -61,4 +61,6 @@
   <string name="image_available">Foto verfügbar</string>
   <string name="short_description_overview">Kurze Beschreibung in Übersicht</string>
   <string name="short_description_overview_desc">Zeige zwei Zeilen aus Menutitel und Zutaten</string>
+  <string name="show_allergens_overview">Allergene in Übersicht anzeigen</string>
+  <string name="show_allergens_overview_desc">Liste aller Allergene jedes Menus anzeigen</string>
 </resources>

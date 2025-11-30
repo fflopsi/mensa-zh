@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -24,6 +25,7 @@ import ch.florianfrauenfelder.mensazh.models.Menu
 fun MenuRow(
   menu: Menu,
   listUseShortDescription: Boolean,
+  listShowAllergens: Boolean,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -32,21 +34,24 @@ fun MenuRow(
       .clickable(onClick = onClick)
       .focusable(),
   ) {
-    Text(
-      text = menu.description,
-      style = MaterialTheme.typography.bodyMedium,
-      maxLines = 3,
     Column(
       modifier = Modifier
         .padding(8.dp)
         .weight(1f),
-    )
     ) {
       Text(
         text = menu.description,
         style = MaterialTheme.typography.bodyMedium,
         maxLines = if (listUseShortDescription) 2 else 3,
       )
+      if (listShowAllergens && menu.allergens?.isNotBlank() == true) {
+        Text(
+          text = menu.allergens,
+          style = MaterialTheme.typography.bodySmall,
+          fontStyle = FontStyle.Italic,
+          maxLines = 1,
+        )
+      }
     }
     Column(
       horizontalAlignment = Alignment.End,

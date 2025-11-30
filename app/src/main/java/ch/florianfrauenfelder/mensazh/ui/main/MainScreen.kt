@@ -86,6 +86,7 @@ fun MainScreen(
   showThisWeek: Boolean,
   showNextWeek: Boolean,
   listUseShortDescription: Boolean,
+  listShowAllergens: Boolean,
   navigateToSettings: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -194,6 +195,7 @@ fun MainScreen(
                     scope.launch { context.saveIsExpandedMensa(mensa, expanded) }
                   },
                   listUseShortDescription = listUseShortDescription,
+                  listShowAllergens = listShowAllergens,
                   onMenuClick = {
                     scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, it) }
                   },

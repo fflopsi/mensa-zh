@@ -35,6 +35,7 @@ fun MensaRow(
   mensa: Mensa,
   saveIsExpandedMensa: (Mensa, Boolean) -> Unit,
   listUseShortDescription: Boolean,
+  listShowAllergens: Boolean,
   onMenuClick: (Menu) -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -112,6 +113,7 @@ fun MensaRow(
               MenuRow(
                 menu = it,
                 listUseShortDescription = listUseShortDescription,
+                listShowAllergens = listShowAllergens,
                 onClick = { onMenuClick(it) },
                 modifier = Modifier.fillMaxWidth(),
               )

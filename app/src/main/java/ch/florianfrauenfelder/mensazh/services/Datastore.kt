@@ -26,6 +26,7 @@ object Prefs {
     val SHOW_THIS_WEEK = booleanPreferencesKey("show_this_week")
     val SHOW_NEXT_WEEK = booleanPreferencesKey("show_next_week")
     val LIST_USE_SHORT_DESCRIPTION = booleanPreferencesKey("list_use_short_description")
+    val LIST_SHOW_ALLERGENS = booleanPreferencesKey("list_show_allergens")
     val THEME = intPreferencesKey("theme")
     val USE_DYNAMIC_COLOR = booleanPreferencesKey("dyanmic_color")
   }
@@ -49,6 +50,7 @@ object Prefs {
     const val SHOW_THIS_WEEK = true
     const val SHOW_NEXT_WEEK = true
     const val LIST_USE_SHORT_DESCRIPTION = true
+    const val LIST_SHOW_ALLERGENS = false
     const val THEME = 0
     const val USE_DYNAMIC_COLOR = true
   }
@@ -162,6 +164,15 @@ suspend fun Context.saveListUseShortDescription(listUseShortDescription: Boolean
 val Context.listUseShortDescriptionFlow
   get() = dataStore.data.map {
     it[Prefs.Keys.LIST_USE_SHORT_DESCRIPTION] ?: Prefs.Defaults.LIST_USE_SHORT_DESCRIPTION
+  }
+
+suspend fun Context.saveListShowAllergens(listShowAllergens: Boolean) {
+  dataStore.edit { it[Prefs.Keys.LIST_SHOW_ALLERGENS] = listShowAllergens }
+}
+
+val Context.listShowAllergensFlow
+  get() = dataStore.data.map {
+    it[Prefs.Keys.LIST_SHOW_ALLERGENS] ?: Prefs.Defaults.LIST_SHOW_ALLERGENS
   }
 
 suspend fun Context.saveTheme(theme: Int) {
