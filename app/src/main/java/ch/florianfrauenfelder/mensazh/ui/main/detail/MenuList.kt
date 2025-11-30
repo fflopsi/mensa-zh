@@ -14,6 +14,7 @@ fun MenuList(
   menus: List<Menu>,
   selectedMenu: Menu,
   selectMenu: (Menu) -> Unit,
+  autoShowImage: Boolean,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
@@ -29,6 +30,7 @@ fun MenuList(
         menu = it,
         selected = it.title == selectedMenu.title,
         select = selectMenu,
+        autoShowImage = autoShowImage,
         modifier = Modifier.fillMaxWidth(),
       )
     }

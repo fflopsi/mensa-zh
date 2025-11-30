@@ -21,11 +21,13 @@ import androidx.navigation.compose.rememberNavController
 import ch.florianfrauenfelder.mensazh.R
 import ch.florianfrauenfelder.mensazh.models.Location
 import ch.florianfrauenfelder.mensazh.services.Prefs
+import ch.florianfrauenfelder.mensazh.services.autoShowImageFlow
 import ch.florianfrauenfelder.mensazh.services.favoriteMensasFlow
 import ch.florianfrauenfelder.mensazh.services.hiddenMensasFlow
 import ch.florianfrauenfelder.mensazh.services.listShowAllergensFlow
 import ch.florianfrauenfelder.mensazh.services.listUseShortDescriptionFlow
 import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
+import ch.florianfrauenfelder.mensazh.services.saveAutoShowImage
 import ch.florianfrauenfelder.mensazh.services.saveFavoriteMensas
 import ch.florianfrauenfelder.mensazh.services.saveHiddenMensas
 import ch.florianfrauenfelder.mensazh.services.saveListShowAllergens
@@ -105,6 +107,9 @@ fun App(
   val listShowAllergens by context.listShowAllergensFlow.collectAsStateWithLifecycle(
     initialValue = Prefs.Defaults.LIST_SHOW_ALLERGENS,
   )
+  val autoShowImage by context.autoShowImageFlow.collectAsStateWithLifecycle(
+    initialValue = Prefs.Defaults.AUTO_SHOW_IMAGE,
+  )
 
   val shownLocations by remember(locations, shownLocationsIds) {
     derivedStateOf {
@@ -176,6 +181,7 @@ fun App(
           showNextWeek = showNextWeek,
           listUseShortDescription = listUseShortDescription,
           listShowAllergens = listShowAllergens,
+          autoShowImage = autoShowImage,
           navigateToSettings = { navController.navigate(Route.Settings) },
         )
       }
@@ -213,6 +219,8 @@ fun App(
           saveListUseShortDescription = { scope.launch { context.saveListUseShortDescription(it) } },
           listShowAllergens = listShowAllergens,
           saveListShowAllergens = { scope.launch { context.saveListShowAllergens(it) } },
+          autoShowImage = autoShowImage,
+          saveAutoShowImage = { scope.launch { context.saveAutoShowImage(it) } },
           navigateUp = { navController.navigateUp() },
         )
       }

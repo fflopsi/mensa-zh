@@ -52,6 +52,7 @@ fun MenuRow(
   menu: Menu,
   selected: Boolean,
   select: (Menu) -> Unit,
+  autoShowImage: Boolean,
   modifier: Modifier = Modifier,
 ) {
   val context = LocalContext.current
@@ -59,7 +60,7 @@ fun MenuRow(
   val haptics = LocalHapticFeedback.current
   val scope = rememberCoroutineScope()
 
-  var showMore by rememberSaveable { mutableStateOf(selected) }
+  var showMore by rememberSaveable { mutableStateOf(if (autoShowImage) selected else false) }
   val painter = rememberAsyncImagePainter(model = menu.imageUrl)
 
   Box(

@@ -63,4 +63,6 @@
   <string name="short_description_overview_desc">Zeige zwei Zeilen aus Menutitel und Zutaten</string>
   <string name="show_allergens_overview">Allergene in Übersicht anzeigen</string>
   <string name="show_allergens_overview_desc">Liste aller Allergene jedes Menus anzeigen</string>
+  <string name="auto_show_image">Bild in Detailansicht automatisch anzeigen</string>
+  <string name="auto_show_image_desc">Bild für ausgewähltes Menu automatisch anzeigen</string>
 </resources>

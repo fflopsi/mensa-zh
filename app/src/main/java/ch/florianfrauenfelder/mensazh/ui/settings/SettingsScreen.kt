@@ -68,6 +68,8 @@ fun SettingsScreen(
   saveListUseShortDescription: (Boolean) -> Unit,
   listShowAllergens: Boolean,
   saveListShowAllergens: (Boolean) -> Unit,
+  autoShowImage: Boolean,
+  saveAutoShowImage: (Boolean) -> Unit,
   theme: Int,
   saveTheme: (Int) -> Unit,
   dynamicColor: Boolean,
@@ -258,6 +260,18 @@ fun SettingsScreen(
           Switch(
             checked = listShowAllergens,
             onCheckedChange = { saveListShowAllergens(!listShowAllergens) },
+          )
+        }
+      }
+      item {
+        SettingsRow(
+          title = stringResource(R.string.auto_show_image),
+          subtitle = stringResource(R.string.auto_show_image_desc),
+          onClick = { saveAutoShowImage(!autoShowImage) },
+        ) {
+          Switch(
+            checked = autoShowImage,
+            onCheckedChange = { saveAutoShowImage(!autoShowImage) },
           )
         }
       }

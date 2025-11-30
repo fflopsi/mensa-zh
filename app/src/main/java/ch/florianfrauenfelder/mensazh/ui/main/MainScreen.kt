@@ -87,6 +87,7 @@ fun MainScreen(
   showNextWeek: Boolean,
   listUseShortDescription: Boolean,
   listShowAllergens: Boolean,
+  autoShowImage: Boolean,
   navigateToSettings: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -214,6 +215,7 @@ fun MainScreen(
                         navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, menu)
                       }
                     },
+                    autoShowImage = autoShowImage,
                     modifier = Modifier.fillMaxWidth(),
                   )
                 }
