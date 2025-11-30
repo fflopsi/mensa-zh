@@ -143,10 +143,11 @@ fun MenuRow(
                   clipboard.setClipEntry(
                     ClipEntry(
                       ClipData.newPlainText("meals content", "${menu.title}: ${menu.description}"),
-                    )
+                    ),
                   )
                 }
-              }) {
+              },
+            ) {
               Icon(Icons.Default.ContentCopy, stringResource(R.string.copy_menu))
             }
             FilledIconButton(
@@ -158,7 +159,7 @@ fun MenuRow(
                       type = "text/plain"
                     },
                     null,
-                  )
+                  ),
                 )
               },
             ) {

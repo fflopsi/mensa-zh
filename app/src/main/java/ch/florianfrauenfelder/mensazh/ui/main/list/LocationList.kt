@@ -82,7 +82,7 @@ fun LocationList(
       key = { it.title },
     ) { location ->
       val showLocation by remember(
-        location, hiddenMensas, showOnlyOpenMensas, showOnlyExpandedMensas
+        location, hiddenMensas, showOnlyOpenMensas, showOnlyExpandedMensas,
       ) {
         derivedStateOf {
           !(location.mensas.all { hiddenMensas.contains(it.id) }

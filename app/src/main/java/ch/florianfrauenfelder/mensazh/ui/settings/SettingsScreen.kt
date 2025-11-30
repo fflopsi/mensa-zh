@@ -285,7 +285,7 @@ fun SettingsScreen(
               1 -> R.string.light
               2 -> R.string.dark
               else -> R.string.auto
-            }
+            },
           ),
           onClick = { themeSelectorExpanded = true },
         ) {
