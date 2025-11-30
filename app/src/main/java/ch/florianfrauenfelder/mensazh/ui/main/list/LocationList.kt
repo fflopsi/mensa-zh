@@ -37,6 +37,7 @@ fun LocationList(
   showOnlyOpenMensas: Boolean,
   showOnlyExpandedMensas: Boolean,
   saveIsExpandedMensa: (Mensa, Boolean) -> Unit,
+  listUseShortDescription: Boolean,
   onMenuClick: (Menu) -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(0.dp),
@@ -102,6 +103,7 @@ fun LocationList(
           showOnlyOpenMensas = showOnlyOpenMensas,
           showOnlyExpandedMensas = showOnlyExpandedMensas,
           saveIsExpandedMensa = saveIsExpandedMensa,
+          listUseShortDescription = listUseShortDescription,
           onMenuClick = onMenuClick,
           modifier = Modifier.fillMaxWidth(),
         )

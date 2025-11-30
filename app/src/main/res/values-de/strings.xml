@@ -59,4 +59,6 @@
   <string name="favorites">Favoriten</string>
   <string name="copy_menu">Menu kopieren</string>
   <string name="image_available">Foto verfügbar</string>
+  <string name="short_description_overview">Kurze Beschreibung in Übersicht</string>
+  <string name="short_description_overview_desc">Zeige zwei Zeilen aus Menutitel und Zutaten</string>
 </resources>

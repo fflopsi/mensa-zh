@@ -23,9 +23,11 @@ import ch.florianfrauenfelder.mensazh.models.Location
 import ch.florianfrauenfelder.mensazh.services.Prefs
 import ch.florianfrauenfelder.mensazh.services.favoriteMensasFlow
 import ch.florianfrauenfelder.mensazh.services.hiddenMensasFlow
+import ch.florianfrauenfelder.mensazh.services.listUseShortDescriptionFlow
 import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
 import ch.florianfrauenfelder.mensazh.services.saveFavoriteMensas
 import ch.florianfrauenfelder.mensazh.services.saveHiddenMensas
+import ch.florianfrauenfelder.mensazh.services.saveListUseShortDescription
 import ch.florianfrauenfelder.mensazh.services.saveShowNextWeek
 import ch.florianfrauenfelder.mensazh.services.saveShowOnlyExpandedMensas
 import ch.florianfrauenfelder.mensazh.services.saveShowOnlyOpenMensas
@@ -94,6 +96,9 @@ fun App(
   )
   val showNextWeek by context.showNextWeekFlow.collectAsStateWithLifecycle(
     initialValue = Prefs.Defaults.SHOW_NEXT_WEEK,
+  )
+  val listUseShortDescription by context.listUseShortDescriptionFlow.collectAsStateWithLifecycle(
+    initialValue = Prefs.Defaults.LIST_USE_SHORT_DESCRIPTION,
   )
 
   val shownLocations by remember(locations, shownLocationsIds) {
@@ -164,6 +169,7 @@ fun App(
           showTomorrow = showTomorrow,
           showThisWeek = showThisWeek,
           showNextWeek = showNextWeek,
+          listUseShortDescription = listUseShortDescription,
           navigateToSettings = { navController.navigate(Route.Settings) },
         )
       }
@@ -197,6 +203,8 @@ fun App(
           saveTheme = { scope.launch { context.saveTheme(it) } },
           dynamicColor = dynamicColor,
           saveDynamicColor = { scope.launch { context.saveUseDynamicColor(it) } },
+          listUseShortDescription = listUseShortDescription,
+          saveListUseShortDescription = { scope.launch { context.saveListUseShortDescription(it) } },
           navigateUp = { navController.navigateUp() },
         )
       }

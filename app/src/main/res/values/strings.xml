@@ -64,4 +64,6 @@
   <string name="favorites">Favorites</string>
   <string name="copy_menu">Copy menu</string>
   <string name="image_available">Image available</string>
+  <string name="short_description_overview">Short description in overview</string>
+  <string name="short_description_overview_desc">Show two lines of menu title and ingredients</string>
 </resources>

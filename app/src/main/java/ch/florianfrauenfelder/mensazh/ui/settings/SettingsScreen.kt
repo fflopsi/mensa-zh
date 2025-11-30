@@ -64,6 +64,8 @@ fun SettingsScreen(
   saveShowThisWeek: (Boolean) -> Unit,
   showNextWeek: Boolean,
   saveShowNextWeek: (Boolean) -> Unit,
+  listUseShortDescription: Boolean,
+  saveListUseShortDescription: (Boolean) -> Unit,
   theme: Int,
   saveTheme: (Int) -> Unit,
   dynamicColor: Boolean,
@@ -229,6 +231,19 @@ fun SettingsScreen(
           Switch(
             checked = showNextWeek,
             onCheckedChange = { saveShowNextWeek(!showNextWeek) },
+          )
+        }
+      }
+      item { HorizontalDivider() }
+      item {
+        SettingsRow(
+          title = stringResource(R.string.short_description_overview),
+          subtitle = stringResource(R.string.short_description_overview_desc),
+          onClick = { saveListUseShortDescription(!listUseShortDescription) },
+        ) {
+          Switch(
+            checked = listUseShortDescription,
+            onCheckedChange = { saveListUseShortDescription(!listUseShortDescription) },
           )
         }
       }

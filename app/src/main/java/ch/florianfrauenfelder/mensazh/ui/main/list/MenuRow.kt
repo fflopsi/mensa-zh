@@ -23,6 +23,7 @@ import ch.florianfrauenfelder.mensazh.models.Menu
 @Composable
 fun MenuRow(
   menu: Menu,
+  listUseShortDescription: Boolean,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -35,10 +36,18 @@ fun MenuRow(
       text = menu.description,
       style = MaterialTheme.typography.bodyMedium,
       maxLines = 3,
+    Column(
       modifier = Modifier
         .padding(8.dp)
         .weight(1f),
     )
+    ) {
+      Text(
+        text = menu.description,
+        style = MaterialTheme.typography.bodyMedium,
+        maxLines = if (listUseShortDescription) 2 else 3,
+      )
+    }
     Column(
       horizontalAlignment = Alignment.End,
       modifier = Modifier.padding(8.dp),

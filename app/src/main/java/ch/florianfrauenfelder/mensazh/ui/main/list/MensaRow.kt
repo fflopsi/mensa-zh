@@ -34,6 +34,7 @@ import ch.florianfrauenfelder.mensazh.models.Menu
 fun MensaRow(
   mensa: Mensa,
   saveIsExpandedMensa: (Mensa, Boolean) -> Unit,
+  listUseShortDescription: Boolean,
   onMenuClick: (Menu) -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -110,6 +111,7 @@ fun MensaRow(
             ) {
               MenuRow(
                 menu = it,
+                listUseShortDescription = listUseShortDescription,
                 onClick = { onMenuClick(it) },
                 modifier = Modifier.fillMaxWidth(),
               )
