@@ -239,7 +239,7 @@ class UZHMensaProvider(
       "Wir sind ab Vollsemester",
       "Betriebsferien",
     )
-  }.any { menu.description.contains(it) }
+  }.any { menu.description.contains(it) } || menu.description.isBlank()
 
   @Serializable
   data class UzhLocation(
