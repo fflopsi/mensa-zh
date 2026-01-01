@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import ch.florianfrauenfelder.mensazh.R
 import ch.florianfrauenfelder.mensazh.models.Location
+import ch.florianfrauenfelder.mensazh.models.Mensa
 import ch.florianfrauenfelder.mensazh.models.Menu
 import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
 import ch.florianfrauenfelder.mensazh.services.saveIsExpandedMensa
@@ -74,6 +75,7 @@ fun MainScreen(
   setWeekday: (Weekday) -> Unit,
   locations: List<Location>,
   hiddenMensas: List<UUID>,
+  saveFavoriteMensas: (List<Mensa>) -> Unit,
   language: MensaProvider.Language,
   setLanguage: (MensaProvider.Language) -> Unit,
   isRefreshing: Boolean,
@@ -191,6 +193,7 @@ fun MainScreen(
                 LocationList(
                   locations = locations,
                   hiddenMensas = hiddenMensas,
+                  saveFavoriteMensas = saveFavoriteMensas,
                   showOnlyOpenMensas = showOnlyOpenMensas,
                   showOnlyExpandedMensas = showOnlyExpandedMensas,
                   saveIsExpandedMensa = { mensa, expanded ->

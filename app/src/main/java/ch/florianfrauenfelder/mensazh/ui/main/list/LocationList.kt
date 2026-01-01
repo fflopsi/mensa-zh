@@ -34,6 +34,7 @@ import java.util.UUID
 fun LocationList(
   locations: List<Location>,
   hiddenMensas: List<UUID>,
+  saveFavoriteMensas: (List<Mensa>) -> Unit,
   showOnlyOpenMensas: Boolean,
   showOnlyExpandedMensas: Boolean,
   saveIsExpandedMensa: (Mensa, Boolean) -> Unit,
@@ -107,6 +108,8 @@ fun LocationList(
           listUseShortDescription = listUseShortDescription,
           listShowAllergens = listShowAllergens,
           onMenuClick = onMenuClick,
+          favoriteMensas = locations.first().mensas,
+          saveFavoriteMensas = saveFavoriteMensas,
           modifier = Modifier.fillMaxWidth(),
         )
       }

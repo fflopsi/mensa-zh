@@ -171,6 +171,7 @@ fun App(
           setWeekday = setWeekday,
           locations = listedLocations,
           hiddenMensas = hiddenMensas,
+          saveFavoriteMensas = { scope.launch { context.saveFavoriteMensas(it) } },
           language = language,
           setLanguage = setLanguage,
           isRefreshing = isRefreshing,

@@ -26,6 +26,8 @@ fun LocationRow(
   listUseShortDescription: Boolean,
   listShowAllergens: Boolean,
   onMenuClick: (Menu) -> Unit,
+  favoriteMensas: List<Mensa>,
+  saveFavoriteMensas: (List<Mensa>) -> Unit,
   modifier: Modifier = Modifier,
 ) {
   Column(modifier = modifier) {
@@ -55,6 +57,13 @@ fun LocationRow(
             listUseShortDescription = listUseShortDescription,
             listShowAllergens = listShowAllergens,
             onMenuClick = onMenuClick,
+            isFavoriteMensa = favoriteMensas.contains(it),
+            changeIsFavoriteMensa = {
+              saveFavoriteMensas(
+                if (favoriteMensas.contains(it)) favoriteMensas - it
+                else favoriteMensas + it,
+              )
+            },
             modifier = Modifier.fillMaxWidth(),
           )
         }

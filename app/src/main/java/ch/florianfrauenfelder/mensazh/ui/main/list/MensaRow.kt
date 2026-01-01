@@ -4,28 +4,41 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import ch.florianfrauenfelder.mensazh.R
 import ch.florianfrauenfelder.mensazh.models.Mensa
 import ch.florianfrauenfelder.mensazh.models.Menu
@@ -37,6 +50,8 @@ fun MensaRow(
   listUseShortDescription: Boolean,
   listShowAllergens: Boolean,
   onMenuClick: (Menu) -> Unit,
+  isFavoriteMensa: Boolean,
+  changeIsFavoriteMensa: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   val rowModifier by remember(mensa.state) {
@@ -55,15 +70,40 @@ fun MensaRow(
     }
   }
 
-  ElevatedCard(
-    modifier = modifier
-      .padding(
-        horizontal = 8.dp,
-        vertical = 4.dp,
-      )
-      .focusable(),
-  ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+  Box {
+    AnimatedVisibility(
+      visible = mensa.state == Mensa.State.Expanded,
+      enter = scaleIn(),
+      exit = scaleOut(),
+      modifier = Modifier
+        .align(Alignment.TopCenter)
+        .offset(y = 16.dp)
+        .zIndex(1f),
+    ) {
+      val containerColor = MaterialTheme.colorScheme.secondaryContainer
+      val contentColor = MaterialTheme.colorScheme.contentColorFor(containerColor)
+      IconButton(
+        onClick = changeIsFavoriteMensa,
+        colors = IconButtonColors(
+          containerColor = containerColor,
+          contentColor = contentColor,
+          disabledContainerColor = containerColor,
+          disabledContentColor = contentColor,
+        ),
+      ) {
+        AnimatedContent(targetState = isFavoriteMensa) {
+          Icon(if (it) Icons.Default.Favorite else Icons.Default.FavoriteBorder, null)
+        }
+      }
+    }
+    ElevatedCard(
+      modifier = modifier
+        .padding(
+          horizontal = 8.dp,
+          vertical = 4.dp,
+        )
+        .focusable(),
+    ) {
       Row(
         modifier = rowModifier
           .background(
