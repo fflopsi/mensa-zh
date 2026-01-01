@@ -151,7 +151,9 @@ class ETHMensaProvider(
       "geschlossen",
       "Geschlossen",
     )
-  }.any { menu.description.contains(it) || menu.title == it }
+  }
+    .onEach { it.lowercase() }
+    .any { menu.description.lowercase().contains(it) || menu.title.lowercase() == it }
 
   private fun parseApiLineArray(name: String, meal: Api.Meal?, weekday: Weekday): Menu? =
     if (meal == null) null
