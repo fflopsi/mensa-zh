@@ -70,4 +70,5 @@
   <string name="show_allergens_overview_desc">Show the list of allergens for each menu</string>
   <string name="auto_show_image">Auto show image in detail view</string>
   <string name="auto_show_image_desc">Automatically show image for selected menu</string>
+  <string name="more_settings_desc">System settings for this app: storage, cache, app language, …</string>
 </resources>

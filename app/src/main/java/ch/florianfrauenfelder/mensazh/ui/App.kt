@@ -1,5 +1,8 @@
 package ch.florianfrauenfelder.mensazh.ui
 
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -221,6 +224,12 @@ fun App(
           saveListShowAllergens = { scope.launch { context.saveListShowAllergens(it) } },
           autoShowImage = autoShowImage,
           saveAutoShowImage = { scope.launch { context.saveAutoShowImage(it) } },
+          openSystemSettings = {
+            Intent(
+              Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+              Uri.fromParts("package", context.packageName, null),
+            ).apply { context.startActivity(this) }
+          },
           navigateUp = { navController.navigateUp() },
         )
       }

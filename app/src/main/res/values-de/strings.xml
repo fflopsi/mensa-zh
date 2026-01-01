@@ -65,4 +65,5 @@
   <string name="show_allergens_overview_desc">Liste aller Allergene jedes Menus anzeigen</string>
   <string name="auto_show_image">Bild in Detailansicht automatisch anzeigen</string>
   <string name="auto_show_image_desc">Bild für ausgewähltes Menu automatisch anzeigen</string>
+  <string name="more_settings_desc">Systemeinstellungen für diese App: Speicher, Cache, App-Sprache, …</string>
 </resources>

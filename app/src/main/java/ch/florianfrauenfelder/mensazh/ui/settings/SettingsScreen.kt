@@ -74,6 +74,7 @@ fun SettingsScreen(
   saveTheme: (Int) -> Unit,
   dynamicColor: Boolean,
   saveDynamicColor: (Boolean) -> Unit,
+  openSystemSettings: () -> Unit,
   navigateUp: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -332,6 +333,16 @@ fun SettingsScreen(
           ) {
             Switch(checked = dynamicColor, onCheckedChange = null)
           }
+        }
+      }
+      item { HorizontalDivider() }
+      item {
+        SettingsRow(
+          title = stringResource(R.string.more_settings),
+          subtitle = stringResource(R.string.more_settings_desc),
+          onClick = openSystemSettings,
+        ) {
+          Icon(Icons.AutoMirrored.Default.NavigateNext, null)
         }
       }
       item { HorizontalDivider() }
