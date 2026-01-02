@@ -16,6 +16,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
@@ -122,6 +123,7 @@ fun App(
     }
   }
 
+  val favoriteLocationTitle = stringResource(R.string.favorites)
   val listedLocations by remember(locations, shownLocationsIds, favoriteMensas) {
     derivedStateOf {
       shownLocations.map { location ->
@@ -135,7 +137,7 @@ fun App(
           0,
           Location(
             id = UUID.randomUUID(),
-            title = context.getString(R.string.favorites),
+            title = favoriteLocationTitle,
             mensas = locations
               .flatMap { it.mensas }
               .filter { favoriteMensas.contains(it.id) }

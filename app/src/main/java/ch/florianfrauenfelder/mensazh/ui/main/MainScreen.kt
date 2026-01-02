@@ -103,10 +103,11 @@ fun MainScreen(
 
   var tabRowSize by remember { mutableStateOf(IntSize.Zero) }
 
+  val snackbarMessage = stringResource(R.string.no_internet_or_menus)
   LaunchedEffect(isRefreshing) {
     if (!isRefreshing && locations.flatMap { it.mensas }.flatMap { it.menus }.isEmpty()) {
       snackbarState.showSnackbar(
-        message = context.getString(R.string.no_internet_or_menus),
+        message = snackbarMessage,
         withDismissAction = true,
       )
     }
