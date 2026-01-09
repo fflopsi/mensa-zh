@@ -80,6 +80,8 @@ dependencies {
   implementation(libs.androidx.navigation.compose)
   implementation(libs.kotlinx.serialization.json)
   implementation(libs.kotlinx.datetime)
+  implementation(platform(libs.okhttp.bom))
+  implementation(libs.okhttp)
   implementation(libs.coil.compose)
   implementation(libs.coil.network)
 

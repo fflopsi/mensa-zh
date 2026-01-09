@@ -35,12 +35,12 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge(
           statusBarStyle = SystemBarStyle.auto(
             Color.TRANSPARENT,
-            Color.TRANSPARENT
+            Color.TRANSPARENT,
           ) { dark },
           navigationBarStyle = SystemBarStyle.auto(
             Color.TRANSPARENT,
-            Color.TRANSPARENT
-          ) { dark }
+            Color.TRANSPARENT,
+          ) { dark },
         )
       }
     }
@@ -58,19 +58,19 @@ class MainActivity : ComponentActivity() {
         withContext(Dispatchers.IO) {
           menuDao.deleteExpired(System.currentTimeMillis() - 1.days.inWholeMilliseconds)
         }
-        viewModel.refresh()
+        viewModel.refreshIfNeeded()
       }
 
       App(
         destination = viewModel.destination,
-        setDestination = viewModel::setDestination,
+        setDestination = viewModel::setNew,
         weekday = viewModel.weekday,
-        setWeekday = viewModel::setWeekday,
+        setWeekday = viewModel::setNew,
         locations = viewModel.locations,
         language = viewModel.language,
-        setLanguage = viewModel::setLanguage,
+        setLanguage = viewModel::setNew,
         isRefreshing = viewModel.isRefreshing,
-        onRefresh = { viewModel.refresh(ignoreCache = true) },
+        onRefresh = viewModel::forceRefresh,
       )
     }
   }

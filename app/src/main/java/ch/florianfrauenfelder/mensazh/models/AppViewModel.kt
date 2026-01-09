@@ -24,12 +24,24 @@ import ch.florianfrauenfelder.mensazh.ui.Weekday
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.minus
+import kotlinx.datetime.plus
+import kotlinx.datetime.todayIn
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.hours
 
 class AppViewModel(
   assetService: AssetService,
@@ -39,13 +51,17 @@ class AppViewModel(
   initialLanguage: Flow<MensaProvider.Language>,
   private val saveLanguage: suspend (MensaProvider.Language) -> Unit,
 ) : ViewModel() {
-  var destination by mutableStateOf(Destination.Today)
+  private val params = MutableStateFlow(
+    MenuParams(Destination.Today, Weekday.fromNow(), MensaProvider.Language.default),
+  )
+
+  var destination by mutableStateOf(params.value.destination)
     private set
 
-  var weekday by mutableStateOf(Weekday.fromNow())
+  var weekday by mutableStateOf(params.value.weekday)
     private set
 
-  var language by mutableStateOf(MensaProvider.Language.default)
+  var language by mutableStateOf(params.value.language)
     private set
 
   private val _locations = mutableStateListOf<Location>()
@@ -61,94 +77,135 @@ class AppViewModel(
 
   init {
     viewModelScope.launch {
-      language = withContext(Dispatchers.IO) { initialLanguage.first() }
+      val firstLanguage = withContext(Dispatchers.IO) { initialLanguage.first() }
+      updateParams { it.copy(language = firstLanguage) }
       val locations = withContext(Dispatchers.IO) {
-        val ethAsync = async { ethMensaProvider.getLocations() }
-        val uzhAsync = async { uzhMensaProvider.getLocations() }
-        ethAsync.await() + uzhAsync.await()
+        val eth = async { ethMensaProvider.getLocations() }
+        val uzh = async { uzhMensaProvider.getLocations() }
+        eth.await() + uzh.await()
       }
       _locations.clear()
       _locations.addAll(locations)
       initCompleted.complete(Unit)
+      observeMenus()
     }
   }
 
-  fun setDestination(
-    newDestination: Destination,
-    refresh: Boolean = true,
-    ignoreCache: Boolean = false,
-  ) {
-    destination = newDestination
-    if (refresh) refresh(ignoreCache = ignoreCache)
+  private fun updateParams(transform: (MenuParams) -> MenuParams) {
+    val new = transform(params.value)
+    params.value = new
+
+    destination = new.destination
+    weekday = new.weekday
+    language = new.language
   }
 
-  fun setWeekday(
-    newWeekday: Weekday,
-    refresh: Boolean = true,
-    ignoreCache: Boolean = false,
-  ) {
-    weekday = newWeekday
-    if (refresh) refresh(ignoreCache = ignoreCache)
-  }
+  fun setNew(newDestination: Destination) =
+    updateParams { it.copy(destination = newDestination) }
 
-  fun setLanguage(
-    newLanguage: MensaProvider.Language,
-    refresh: Boolean = true,
-    ignoreCache: Boolean = false,
-  ) {
+  fun setNew(newWeekday: Weekday) = updateParams { it.copy(weekday = newWeekday) }
+
+  fun setNew(newLanguage: MensaProvider.Language) {
     viewModelScope.launch { withContext(Dispatchers.IO) { saveLanguage(newLanguage) } }
-    language = newLanguage
-    if (refresh) refresh(ignoreCache = ignoreCache)
+    updateParams { it.copy(language = newLanguage) }
   }
 
-  fun refresh(ignoreCache: Boolean = false) = viewModelScope.launch {
+  fun forceRefresh() = viewModelScope.launch {
     initCompleted.await()
-    isRefreshing = true
-
-    val ethJob = launch(Dispatchers.IO) {
-      applyUpdatedMenus(ethMensaProvider, ignoreCache)
-    }
-    val uzhJob = launch(Dispatchers.IO) {
-      applyUpdatedMenus(uzhMensaProvider, ignoreCache)
-    }
-
-    joinAll(ethJob, uzhJob)
-    isRefreshing = false
+    refresh(params.value)
   }
 
-  private suspend fun <
-    L : MensaProvider.ApiLocation<M>,
-    M : MensaProvider.ApiMensa,
-    > applyUpdatedMenus(provider: MensaProvider<L, M>, ignoreCache: Boolean) {
-    val updated = provider.getFilteredMenus(ignoreCache)
-    val favorites = withContext(Dispatchers.IO) { favoriteMensas.first() }
-    _locations.filter { it.title.contains(provider.institution.toString()) }.forEach { location ->
+  fun refreshIfNeeded() = viewModelScope.launch {
+    initCompleted.await()
+    val p = params.value
+    if (shouldRefresh(p)) refresh(p)
+  }
+
+  private fun observeMenus() = viewModelScope.launch {
+    params.collectLatest {
+      coroutineScope {
+        launch { if (shouldRefresh(it)) refresh(it) }
+        launch { observeForParams(it) }
+      }
+    }
+  }
+
+  private suspend fun shouldRefresh(p: MenuParams): Boolean {
+    val now = System.currentTimeMillis()
+
+    MensaProvider.Institution.entries.forEach {
+      val fetchInfo = withContext(Dispatchers.IO) {
+        fetchInfoDao.getFetchInfo(
+          institution = it.toString(),
+          destination = p.destination.toString(),
+          language = p.language.toString(),
+        )
+      }
+
+      if (now - (fetchInfo?.fetchDate ?: 0) > 12.hours.inWholeMilliseconds) {
+        return true
+      }
+    }
+    return false
+  }
+
+  private suspend fun observeForParams(p: MenuParams) = coroutineScope {
+    val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+    val monday = today.minus(today.dayOfWeek.ordinal, DateTimeUnit.DAY).run {
+      if (p.destination == Destination.NextWeek) plus(7, DateTimeUnit.DAY) else this
+    }
+    val date = when (p.destination) {
+      Destination.Today -> today.toString()
+      Destination.Tomorrow -> today.plus(1, DateTimeUnit.DAY).toString()
+      Destination.ThisWeek, Destination.NextWeek -> monday
+        .plus(p.weekday.ordinal, DateTimeUnit.DAY)
+        .toString()
+    }
+
+    _locations.forEach { location ->
       location.mensas.forEach { mensa ->
-        updated.firstOrNull { it.id == mensa.id }.let {
-          mensa.menus = it?.menus ?: emptyList()
-          mensa.state = when {
-            mensa.menus.isEmpty() -> Mensa.State.Closed
-            favorites.contains(mensa.id.toString()) -> Mensa.State.Expanded
-            else -> Mensa.State.Available
+        launch {
+          combine(
+            favoriteMensas,
+            menuDao.getMenus2(
+              mensaId = mensa.id.toString(),
+              language = p.language.toString(),
+              date = date,
+            ),
+          ) { favorites, roomMenus ->
+            favorites to roomMenus
+          }.collectLatest { (favorites, roomMenus) ->
+            withContext(Dispatchers.Main) {
+              mensa.menus = roomMenus.map { it.toMenu() }
+              // ?? THIS IS BAD AND NEEDS TO BE CHANGED, POSSIBLY COMPOSE STATE TO PROPERLY OBSERVE CHANGES ??
+              mensa.state = when {
+                mensa.menus.isEmpty() -> Mensa.State.Closed
+                favorites.contains(mensa.id.toString()) -> Mensa.State.Expanded
+                else -> Mensa.State.Available
+              }
+            }
           }
         }
       }
     }
   }
 
-  private suspend fun <
-    L : MensaProvider.ApiLocation<M>,
-    M : MensaProvider.ApiMensa,
-    > MensaProvider<L, M>.getFilteredMenus(ignoreCache: Boolean): List<Mensa> =
-    getMenus(language, destination, ignoreCache).onEach { mensa ->
-      mensa.menus = mensa.menus.filter {
-        when (destination) {
-          Destination.Today -> it.weekday == Weekday.fromNow()
-          Destination.Tomorrow -> it.weekday == Weekday.fromNow().next()
-          else -> it.weekday == weekday
-        }
-      }
+  private val refreshMutex = Mutex()
+
+  private suspend fun refresh(p: MenuParams) = refreshMutex.withLock {
+    isRefreshing = true
+    coroutineScope {
+      launch(Dispatchers.IO) { ethMensaProvider.getMenus(p.language, p.destination) }
+      launch(Dispatchers.IO) { uzhMensaProvider.getMenus(p.language, p.destination) }
     }
+    isRefreshing = false
+  }
+
+  private data class MenuParams(
+    val destination: Destination,
+    val weekday: Weekday,
+    val language: MensaProvider.Language,
+  )
 
   companion object {
     fun Factory(menuDao: MenuDao, fetchInfoDao: FetchInfoDao) = viewModelFactory {

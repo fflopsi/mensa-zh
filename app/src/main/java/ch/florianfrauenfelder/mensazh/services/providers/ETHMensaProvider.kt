@@ -8,6 +8,8 @@ import ch.florianfrauenfelder.mensazh.services.MenuDao
 import ch.florianfrauenfelder.mensazh.services.SerializationService
 import ch.florianfrauenfelder.mensazh.ui.Destination
 import ch.florianfrauenfelder.mensazh.ui.Weekday
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -16,17 +18,16 @@ import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import okhttp3.Request
 import java.net.URI
-import java.net.URL
 import java.util.Locale
 import java.util.UUID
 import kotlin.time.Clock
-import kotlin.time.Duration.Companion.hours
 import kotlin.time.ExperimentalTime
 
 class ETHMensaProvider(
   menuDao: MenuDao,
-  private val fetchInfoDao: FetchInfoDao,
+  fetchInfoDao: FetchInfoDao,
   assetService: AssetService,
 ) : MensaProvider<ETHMensaProvider.EthLocation, ETHMensaProvider.EthMensa>(
   menuDao = menuDao,
@@ -41,8 +42,7 @@ class ETHMensaProvider(
   override suspend fun getMenus(
     language: Language,
     destination: Destination,
-    ignoreCache: Boolean,
-  ): List<Mensa> {
+  ) {
     val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
     val monday = today.minus(today.dayOfWeek.ordinal, DateTimeUnit.DAY).run {
       if (destination == Destination.NextWeek) {
@@ -50,64 +50,71 @@ class ETHMensaProvider(
       } else this
     }
 
-    val mensas = mutableListOf<Mensa>()
-    if (!ignoreCache && System.currentTimeMillis() - (fetchInfoDao.getFetchInfo(
-        institution = institution.toString(),
-        destination = destination.toString(),
-        language = language.toString(),
-      )?.fetchDate ?: 0) < 12.hours.inWholeMilliseconds
-    ) {
-      apiMensas.forEach {
-        mensas += it.toMensa().apply {
-          menus = tryGetMenusFromCache(it.id, destination, language)
+    try {
+      val menuPerMensa = getMensaMenusFromCookpit(
+        language = language,
+        destination = destination,
+      )
+      apiMensas.forEach { apiMensa ->
+        menuPerMensa[apiMensa.getMapId()].orEmpty().forEachIndexed { index, it ->
+          cacheMenu(
+            facilityId = apiMensa.id,
+            date = monday.plus(it.weekday.ordinal, DateTimeUnit.DAY),
+            language = language,
+            index = index,
+            menu = it,
+          )
         }
       }
-    } else {
-      try {
-        val menuPerMensa = getMensaMenusFromCookpit(
-          language = language,
-          nextWeek = destination == Destination.NextWeek,
-        )
-        apiMensas.forEach {
-          mensas += it.toMensa().apply {
-            menus = menuPerMensa[it.getMapId()].orEmpty()
-          }
-        }
-        mensas.forEach { mensa ->
-          mensa.menus.forEachIndexed { index, it ->
-            cacheMenu(
-              facilityId = mensa.id.toString(),
-              date = monday.plus(it.weekday.ordinal, DateTimeUnit.DAY),
-              language = language,
-              index = index,
-              menu = it,
-            )
-          }
-        }
-        updateFetchInfo(destination, language)
-      } catch (e: Exception) {
-        e.printStackTrace()
-      }
+      updateFetchInfo(destination, language)
+    } catch (e: Exception) {
+      e.printStackTrace()
+    }
+  }
+
+  @OptIn(ExperimentalTime::class)
+  override suspend fun fetchJson(language: Language, destination: Destination): String? {
+    val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+    val monday = today.minus(today.dayOfWeek.ordinal, DateTimeUnit.DAY).run {
+      if (destination == Destination.NextWeek) {
+        plus(7, DateTimeUnit.DAY)
+      } else this
     }
 
-    return mensas
+    val request = Request
+      .Builder()
+      .url(
+        "https://idapps.ethz.ch/cookpit-pub-services/v1/weeklyrotas" +
+          "?client-id=ethz-wcms&lang=$language&rs-first=0&rs-size=150&valid-after=$monday",
+      )
+      .get()
+      .build()
+
+    return try {
+      withContext(Dispatchers.IO) {
+        client.newCall(request).execute().use {
+          if (it.isSuccessful) {
+            it.body.string()
+          } else null
+        }
+      }
+    } catch (_: Exception) {
+      null
+    }
   }
 
   @OptIn(ExperimentalTime::class)
   private suspend fun getMensaMenusFromCookpit(
     language: Language,
-    nextWeek: Boolean,
+    destination: Destination,
   ): Map<String, List<Menu>> {
-    // Observation: dateslug is ignored by API; all future entries are returned in any case
     val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
     val monday = today.minus(today.dayOfWeek.ordinal, DateTimeUnit.DAY).run {
-      if (nextWeek) {
+      if (destination == Destination.NextWeek) {
         plus(7, DateTimeUnit.DAY)
       } else this
     }
-    val url =
-      URL("https://idapps.ethz.ch/cookpit-pub-services/v1/weeklyrotas?client-id=ethz-wcms&lang=$language&rs-first=0&rs-size=150&valid-after=$monday")
-    val json = getCachedRequest(url) ?: throw Exception("Cannot load web content")
+    val json = fetchJson(language, destination) ?: throw Exception("Cannot load web content")
     val data: Api.Root = SerializationService.deserialize(json)
 
     val menuByFacilityIds = hashMapOf<String, List<Menu>>()

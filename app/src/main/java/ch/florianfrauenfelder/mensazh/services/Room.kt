@@ -9,6 +9,7 @@ import androidx.room.Query
 import androidx.room.RoomDatabase
 import ch.florianfrauenfelder.mensazh.models.Menu
 import ch.florianfrauenfelder.mensazh.ui.Weekday
+import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.LocalDate
 
 @Entity(tableName = "menus", primaryKeys = ["mensaId", "language", "title", "date"])
@@ -53,6 +54,17 @@ interface MenuDao {
 
   @Insert(onConflict = OnConflictStrategy.REPLACE)
   suspend fun insertMenus(menus: List<RoomMenu>)
+
+  @Query("SELECT * FROM menus WHERE mensaId = :mensaId AND language = :language AND date = :date")
+  fun getMenus2(mensaId: String, language: String, date: String): Flow<List<RoomMenu>>
+
+  @Query("SELECT * FROM menus WHERE mensaId = :mensaId AND language = :language AND date BETWEEN :startDate AND :endDate")
+  fun getMenus2(
+    mensaId: String,
+    language: String,
+    startDate: String,
+    endDate: String,
+  ): Flow<List<RoomMenu>>
 
   @Query("SELECT * FROM menus WHERE date = :date")
   suspend fun getMenus(date: String): List<RoomMenu>

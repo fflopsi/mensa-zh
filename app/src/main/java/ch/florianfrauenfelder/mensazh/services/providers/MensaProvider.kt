@@ -1,6 +1,5 @@
 package ch.florianfrauenfelder.mensazh.services.providers
 
-import android.util.Log
 import ch.florianfrauenfelder.mensazh.models.Location
 import ch.florianfrauenfelder.mensazh.models.Mensa
 import ch.florianfrauenfelder.mensazh.models.Menu
@@ -13,21 +12,12 @@ import ch.florianfrauenfelder.mensazh.services.SerializationService
 import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider.Language.English
 import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider.Language.German
 import ch.florianfrauenfelder.mensazh.ui.Destination
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.minus
-import kotlinx.datetime.plus
-import kotlinx.datetime.todayIn
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
-import java.net.HttpURLConnection
-import java.net.URL
+import okhttp3.OkHttpClient
 import java.util.UUID
-import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
+import java.util.concurrent.TimeUnit
 
 abstract class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.ApiMensa>(
   private val menuDao: MenuDao,
@@ -38,6 +28,11 @@ abstract class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider
   protected abstract val locationsFile: String
   protected abstract val locationSerializer: KSerializer<L>
   protected val apiMensas = mutableListOf<M>()
+  protected val client = OkHttpClient
+    .Builder()
+    .connectTimeout(5, TimeUnit.SECONDS)
+    .readTimeout(5, TimeUnit.SECONDS)
+    .build()
 
   suspend fun getLocations(): List<Location> {
     val json: String = assetService.readStringFile(locationsFile) ?: return emptyList()
@@ -58,70 +53,9 @@ abstract class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider
   abstract suspend fun getMenus(
     language: Language,
     destination: Destination,
-    ignoreCache: Boolean,
-  ): List<Mensa>
+  )
 
-  @OptIn(ExperimentalTime::class)
-  protected suspend fun tryGetMenusFromCache(
-    mensaId: String,
-    destination: Destination,
-    language: Language,
-  ): List<Menu> {
-    val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
-    val monday = today.minus(today.dayOfWeek.ordinal, DateTimeUnit.DAY)
-
-    return when (destination) {
-      Destination.Today -> menuDao.getMenus(
-        mensaId = mensaId,
-        language = language.toString(),
-        date = today.toString(),
-      )
-      Destination.Tomorrow -> menuDao.getMenus(
-        mensaId = mensaId,
-        language = language.toString(),
-        date = today.plus(1, DateTimeUnit.DAY).toString(),
-      )
-      Destination.ThisWeek -> menuDao.getMenus(
-        mensaId = mensaId,
-        language = language.toString(),
-        startDate = monday.toString(),
-        endDate = monday.plus(6, DateTimeUnit.DAY).toString(),
-      )
-      Destination.NextWeek -> menuDao.getMenus(
-        mensaId = mensaId,
-        language = language.toString(),
-        startDate = monday.plus(7, DateTimeUnit.DAY).toString(),
-        endDate = monday.plus(7 + 6, DateTimeUnit.DAY).toString(),
-      )
-    }.sortedBy { it.index }.map { it.toMenu() }
-  }
-
-  protected suspend fun getCachedRequest(url: URL): String? {
-    return try {
-      fetchJsonFromUrl(url)
-    } catch (e: Exception) {
-      Log.e("AbstractMensaProvider", "cached request failed: $url", e)
-      null
-    }
-  }
-
-  private suspend fun fetchJsonFromUrl(url: URL): String = withContext(Dispatchers.IO) {
-    val connection = (url.openConnection() as HttpURLConnection).apply {
-      connectTimeout = 5000
-      readTimeout = 5000
-      requestMethod = "GET"
-      setRequestProperty("Accept", "application/json")
-    }
-    try {
-      if (connection.responseCode in 200..299) {
-        connection.inputStream.bufferedReader().use { it.readText() }
-      } else {
-        throw Exception("HTTP ${connection.responseCode}: ${connection.responseMessage}")
-      }
-    } finally {
-      connection.disconnect()
-    }
-  }
+  protected abstract suspend fun fetchJson(language: Language, destination: Destination): String?
 
   protected suspend fun cacheMenu(
     facilityId: String,
@@ -149,8 +83,8 @@ abstract class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider
           FetchInfo(
             institution = institution.toString(),
             destination = it.toString(),
-            language = language.toString()
-          )
+            language = language.toString(),
+          ),
         )
       }
     } else {
@@ -158,8 +92,8 @@ abstract class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider
         FetchInfo(
           institution = institution.toString(),
           destination = destination.toString(),
-          language = language.toString()
-        )
+          language = language.toString(),
+        ),
       )
     }
   }
@@ -241,3 +175,10 @@ abstract class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider
 }
 
 val Boolean.showMenusInGermanToLanguage get() = if (this) German else English
+
+val String.toLanguage
+  get() = when (this) {
+    "en" -> English
+    "de" -> German
+    else -> throw IllegalArgumentException("$this is not a language")
+  }
