@@ -40,9 +40,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import ch.florianfrauenfelder.mensazh.R
-import ch.florianfrauenfelder.mensazh.models.Mensa
-import ch.florianfrauenfelder.mensazh.models.MensaState
-import ch.florianfrauenfelder.mensazh.models.Menu
+import ch.florianfrauenfelder.mensazh.domain.model.Mensa
+import ch.florianfrauenfelder.mensazh.domain.model.MensaState
+import ch.florianfrauenfelder.mensazh.domain.model.Menu
 
 @Composable
 fun MensaRow(
@@ -62,7 +62,6 @@ fun MensaRow(
           when (mensa.state) {
             MensaState.State.Available -> saveIsExpandedMensa(mensa.mensa, true)
             MensaState.State.Expanded -> saveIsExpandedMensa(mensa.mensa, false)
-            else -> {}
           }
         }
       } else Modifier

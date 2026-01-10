@@ -1,4 +1,4 @@
-package ch.florianfrauenfelder.mensazh.models
+package ch.florianfrauenfelder.mensazh.domain.model
 
 import java.net.URI
 import java.util.UUID
@@ -11,6 +11,8 @@ data class Mensa(
   val imagePath: String? = null,
 ) : IdTitleItem {
   override fun toString() = title
+
+  fun toMensaState() = MensaState(mensa = this)
 
   companion object {
     val dummy = Mensa(

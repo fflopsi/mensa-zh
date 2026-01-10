@@ -30,7 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import ch.florianfrauenfelder.mensazh.R
-import ch.florianfrauenfelder.mensazh.models.IdTitleItem
+import ch.florianfrauenfelder.mensazh.domain.model.IdTitleItem
 
 @Composable
 fun <T : IdTitleItem> ListSelectorDialog(

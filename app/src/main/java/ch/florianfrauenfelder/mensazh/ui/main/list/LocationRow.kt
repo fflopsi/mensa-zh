@@ -11,10 +11,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import ch.florianfrauenfelder.mensazh.models.Location
-import ch.florianfrauenfelder.mensazh.models.Mensa
-import ch.florianfrauenfelder.mensazh.models.MensaState
-import ch.florianfrauenfelder.mensazh.models.Menu
+import ch.florianfrauenfelder.mensazh.domain.model.Location
+import ch.florianfrauenfelder.mensazh.domain.model.Mensa
+import ch.florianfrauenfelder.mensazh.domain.model.MensaState
+import ch.florianfrauenfelder.mensazh.domain.model.Menu
 import java.util.UUID
 
 @Composable

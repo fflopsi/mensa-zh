@@ -1,4 +1,4 @@
-package ch.florianfrauenfelder.mensazh.ui.components
+package ch.florianfrauenfelder.mensazh.ui.shared
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row

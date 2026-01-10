@@ -54,12 +54,12 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import ch.florianfrauenfelder.mensazh.R
-import ch.florianfrauenfelder.mensazh.models.Location
-import ch.florianfrauenfelder.mensazh.models.Mensa
-import ch.florianfrauenfelder.mensazh.models.MensaState
-import ch.florianfrauenfelder.mensazh.models.Menu
-import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
-import ch.florianfrauenfelder.mensazh.services.saveIsExpandedMensa
+import ch.florianfrauenfelder.mensazh.data.local.datastore.saveIsExpandedMensa
+import ch.florianfrauenfelder.mensazh.domain.model.Location
+import ch.florianfrauenfelder.mensazh.domain.model.Mensa
+import ch.florianfrauenfelder.mensazh.domain.model.MensaState
+import ch.florianfrauenfelder.mensazh.domain.model.Menu
+import ch.florianfrauenfelder.mensazh.domain.value.Language
 import ch.florianfrauenfelder.mensazh.ui.Destination
 import ch.florianfrauenfelder.mensazh.ui.Weekday
 import ch.florianfrauenfelder.mensazh.ui.main.detail.MenuList
@@ -77,8 +77,8 @@ fun MainScreen(
   locations: List<Location>,
   hiddenMensas: List<UUID>,
   saveFavoriteMensas: (List<Mensa>) -> Unit,
-  language: MensaProvider.Language,
-  setLanguage: (MensaProvider.Language) -> Unit,
+  language: Language,
+  setLanguage: (Language) -> Unit,
   isRefreshing: Boolean,
   onRefresh: () -> Unit,
   showOnlyOpenMensas: Boolean,

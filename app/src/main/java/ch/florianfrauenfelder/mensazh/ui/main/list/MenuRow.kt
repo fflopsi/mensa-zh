@@ -19,7 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import ch.florianfrauenfelder.mensazh.R
-import ch.florianfrauenfelder.mensazh.models.Menu
+import ch.florianfrauenfelder.mensazh.domain.model.Menu
 
 @Composable
 fun MenuRow(

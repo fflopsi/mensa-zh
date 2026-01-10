@@ -23,35 +23,35 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import ch.florianfrauenfelder.mensazh.R
-import ch.florianfrauenfelder.mensazh.models.Location
-import ch.florianfrauenfelder.mensazh.services.Prefs
-import ch.florianfrauenfelder.mensazh.services.autoShowImageFlow
-import ch.florianfrauenfelder.mensazh.services.favoriteMensasFlow
-import ch.florianfrauenfelder.mensazh.services.hiddenMensasFlow
-import ch.florianfrauenfelder.mensazh.services.listShowAllergensFlow
-import ch.florianfrauenfelder.mensazh.services.listUseShortDescriptionFlow
-import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
-import ch.florianfrauenfelder.mensazh.services.saveAutoShowImage
-import ch.florianfrauenfelder.mensazh.services.saveFavoriteMensas
-import ch.florianfrauenfelder.mensazh.services.saveHiddenMensas
-import ch.florianfrauenfelder.mensazh.services.saveListShowAllergens
-import ch.florianfrauenfelder.mensazh.services.saveListUseShortDescription
-import ch.florianfrauenfelder.mensazh.services.saveShowNextWeek
-import ch.florianfrauenfelder.mensazh.services.saveShowOnlyExpandedMensas
-import ch.florianfrauenfelder.mensazh.services.saveShowOnlyOpenMensas
-import ch.florianfrauenfelder.mensazh.services.saveShowThisWeek
-import ch.florianfrauenfelder.mensazh.services.saveShowTomorrow
-import ch.florianfrauenfelder.mensazh.services.saveShownLocations
-import ch.florianfrauenfelder.mensazh.services.saveTheme
-import ch.florianfrauenfelder.mensazh.services.saveUseDynamicColor
-import ch.florianfrauenfelder.mensazh.services.showNextWeekFlow
-import ch.florianfrauenfelder.mensazh.services.showOnlyExpandedMensasFlow
-import ch.florianfrauenfelder.mensazh.services.showOnlyOpenMensasFlow
-import ch.florianfrauenfelder.mensazh.services.showThisWeekFlow
-import ch.florianfrauenfelder.mensazh.services.showTomorrowFlow
-import ch.florianfrauenfelder.mensazh.services.shownLocationsFlow
-import ch.florianfrauenfelder.mensazh.services.themeFlow
-import ch.florianfrauenfelder.mensazh.services.useDynamicColorFlow
+import ch.florianfrauenfelder.mensazh.data.local.datastore.Prefs
+import ch.florianfrauenfelder.mensazh.data.local.datastore.autoShowImageFlow
+import ch.florianfrauenfelder.mensazh.data.local.datastore.favoriteMensasFlow
+import ch.florianfrauenfelder.mensazh.data.local.datastore.hiddenMensasFlow
+import ch.florianfrauenfelder.mensazh.data.local.datastore.listShowAllergensFlow
+import ch.florianfrauenfelder.mensazh.data.local.datastore.listUseShortDescriptionFlow
+import ch.florianfrauenfelder.mensazh.data.local.datastore.saveAutoShowImage
+import ch.florianfrauenfelder.mensazh.data.local.datastore.saveFavoriteMensas
+import ch.florianfrauenfelder.mensazh.data.local.datastore.saveHiddenMensas
+import ch.florianfrauenfelder.mensazh.data.local.datastore.saveListShowAllergens
+import ch.florianfrauenfelder.mensazh.data.local.datastore.saveListUseShortDescription
+import ch.florianfrauenfelder.mensazh.data.local.datastore.saveShowNextWeek
+import ch.florianfrauenfelder.mensazh.data.local.datastore.saveShowOnlyExpandedMensas
+import ch.florianfrauenfelder.mensazh.data.local.datastore.saveShowOnlyOpenMensas
+import ch.florianfrauenfelder.mensazh.data.local.datastore.saveShowThisWeek
+import ch.florianfrauenfelder.mensazh.data.local.datastore.saveShowTomorrow
+import ch.florianfrauenfelder.mensazh.data.local.datastore.saveShownLocations
+import ch.florianfrauenfelder.mensazh.data.local.datastore.saveTheme
+import ch.florianfrauenfelder.mensazh.data.local.datastore.saveUseDynamicColor
+import ch.florianfrauenfelder.mensazh.data.local.datastore.showNextWeekFlow
+import ch.florianfrauenfelder.mensazh.data.local.datastore.showOnlyExpandedMensasFlow
+import ch.florianfrauenfelder.mensazh.data.local.datastore.showOnlyOpenMensasFlow
+import ch.florianfrauenfelder.mensazh.data.local.datastore.showThisWeekFlow
+import ch.florianfrauenfelder.mensazh.data.local.datastore.showTomorrowFlow
+import ch.florianfrauenfelder.mensazh.data.local.datastore.shownLocationsFlow
+import ch.florianfrauenfelder.mensazh.data.local.datastore.themeFlow
+import ch.florianfrauenfelder.mensazh.data.local.datastore.useDynamicColorFlow
+import ch.florianfrauenfelder.mensazh.domain.model.Location
+import ch.florianfrauenfelder.mensazh.domain.value.Language
 import ch.florianfrauenfelder.mensazh.ui.main.MainScreen
 import ch.florianfrauenfelder.mensazh.ui.settings.SettingsScreen
 import ch.florianfrauenfelder.mensazh.ui.theme.MensaZHTheme
@@ -66,8 +66,8 @@ fun App(
   weekday: Weekday,
   setWeekday: (Weekday) -> Unit,
   locations: List<Location>,
-  language: MensaProvider.Language,
-  setLanguage: (MensaProvider.Language) -> Unit,
+  language: Language,
+  setLanguage: (Language) -> Unit,
   isRefreshing: Boolean,
   onRefresh: () -> Unit,
   modifier: Modifier = Modifier,

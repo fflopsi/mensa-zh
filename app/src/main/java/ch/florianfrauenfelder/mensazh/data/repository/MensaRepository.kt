@@ -1,9 +1,13 @@
-package ch.florianfrauenfelder.mensazh.services
+package ch.florianfrauenfelder.mensazh.data.repository
 
-import ch.florianfrauenfelder.mensazh.models.Params
-import ch.florianfrauenfelder.mensazh.models.Location
-import ch.florianfrauenfelder.mensazh.models.Menu
-import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
+import ch.florianfrauenfelder.mensazh.data.local.room.FetchInfoDao
+import ch.florianfrauenfelder.mensazh.data.local.room.MenuDao
+import ch.florianfrauenfelder.mensazh.data.providers.MensaProvider
+import ch.florianfrauenfelder.mensazh.domain.model.Location
+import ch.florianfrauenfelder.mensazh.domain.model.Menu
+import ch.florianfrauenfelder.mensazh.domain.navigation.Params
+import ch.florianfrauenfelder.mensazh.domain.value.Institution
+import ch.florianfrauenfelder.mensazh.domain.value.Language
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -24,7 +28,7 @@ import kotlin.time.Duration.Companion.hours
 class MensaRepository(
   private val menuDao: MenuDao,
   private val fetchInfoDao: FetchInfoDao,
-  private val providers: Map<MensaProvider.Institution, MensaProvider<*, *>>,
+  private val providers: Map<Institution, MensaProvider<*, *>>,
 ) {
   private val _isRefreshing = providers.keys.associateWith { MutableStateFlow(false) }
   val isRefreshing = combine(_isRefreshing.values) { refreshes -> refreshes.any { it } }
@@ -35,7 +39,7 @@ class MensaRepository(
 
   fun observeMenus(
     mensaId: UUID,
-    language: MensaProvider.Language,
+    language: Language,
     date: LocalDate,
   ): Flow<List<Menu>> = menuDao.getMenus2(
     mensaId = mensaId.toString(),
@@ -57,7 +61,7 @@ class MensaRepository(
 
   private val refreshMutexes = providers.keys.associateWith { Mutex() }
 
-  private suspend fun refresh(params: Params, institution: MensaProvider.Institution) {
+  private suspend fun refresh(params: Params, institution: Institution) {
     refreshMutexes[institution]?.withLock {
       _isRefreshing[institution]?.value = true
       try {
@@ -75,7 +79,7 @@ class MensaRepository(
 
   private suspend fun shouldRefresh(
     params: Params,
-    institution: MensaProvider.Institution,
+    institution: Institution,
   ): Boolean {
     val now = System.currentTimeMillis()
 

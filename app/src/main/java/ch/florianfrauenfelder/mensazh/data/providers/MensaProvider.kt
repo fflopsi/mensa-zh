@@ -1,17 +1,16 @@
-package ch.florianfrauenfelder.mensazh.services.providers
+package ch.florianfrauenfelder.mensazh.data.providers
 
-import ch.florianfrauenfelder.mensazh.models.Location
-import ch.florianfrauenfelder.mensazh.models.Mensa
-import ch.florianfrauenfelder.mensazh.models.MensaState
-import ch.florianfrauenfelder.mensazh.models.Menu
-import ch.florianfrauenfelder.mensazh.services.AssetService
-import ch.florianfrauenfelder.mensazh.services.FetchInfo
-import ch.florianfrauenfelder.mensazh.services.FetchInfoDao
-import ch.florianfrauenfelder.mensazh.services.MenuDao
-import ch.florianfrauenfelder.mensazh.services.RoomMenu
-import ch.florianfrauenfelder.mensazh.services.SerializationService
-import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider.Language.English
-import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider.Language.German
+import ch.florianfrauenfelder.mensazh.data.local.room.FetchInfo
+import ch.florianfrauenfelder.mensazh.data.local.room.FetchInfoDao
+import ch.florianfrauenfelder.mensazh.data.local.room.MenuDao
+import ch.florianfrauenfelder.mensazh.data.local.room.RoomMenu
+import ch.florianfrauenfelder.mensazh.data.util.AssetService
+import ch.florianfrauenfelder.mensazh.data.util.SerializationService
+import ch.florianfrauenfelder.mensazh.domain.model.Location
+import ch.florianfrauenfelder.mensazh.domain.model.Mensa
+import ch.florianfrauenfelder.mensazh.domain.model.Menu
+import ch.florianfrauenfelder.mensazh.domain.value.Institution
+import ch.florianfrauenfelder.mensazh.domain.value.Language
 import ch.florianfrauenfelder.mensazh.ui.Destination
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.KSerializer
@@ -45,7 +44,7 @@ abstract class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider
           title = apiLocation.title,
           mensas = apiLocation.mensas.map {
             apiMensas += it
-            MensaState(it.toMensa())
+            it.toMensa().toMensaState()
           },
         )
       }
@@ -130,15 +129,6 @@ abstract class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider
     date = date.toString(),
   )
 
-  enum class Institution {
-    ETH, UZH;
-
-    override fun toString() = when (this) {
-      ETH -> "ETH"
-      UZH -> "UZH"
-    }
-  }
-
   @Serializable
   sealed class ApiLocation<M : ApiMensa> {
     abstract val id: String
@@ -153,33 +143,4 @@ abstract class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider
     abstract val mealTime: String
     abstract fun toMensa(): Mensa
   }
-
-  enum class Language {
-    German, English;
-
-    override fun toString() = when (this) {
-      German -> "de"
-      English -> "en"
-    }
-
-    operator fun not(): Language {
-      if (this == German) return English
-      return German
-    }
-
-    val showMenusInGerman get() = this == German
-
-    companion object {
-      val default get() = English
-    }
-  }
 }
-
-val Boolean.showMenusInGermanToLanguage get() = if (this) German else English
-
-val String.toLanguage
-  get() = when (this) {
-    "en" -> English
-    "de" -> German
-    else -> throw IllegalArgumentException("$this is not a language")
-  }

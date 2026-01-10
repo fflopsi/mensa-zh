@@ -1,23 +1,25 @@
-package ch.florianfrauenfelder.mensazh.models
+package ch.florianfrauenfelder.mensazh.ui
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import ch.florianfrauenfelder.mensazh.services.AssetService
-import ch.florianfrauenfelder.mensazh.services.FetchInfoDao
-import ch.florianfrauenfelder.mensazh.services.MensaRepository
-import ch.florianfrauenfelder.mensazh.services.MenuDao
-import ch.florianfrauenfelder.mensazh.services.expandedMensasFlow
-import ch.florianfrauenfelder.mensazh.services.providers.ETHMensaProvider
-import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
-import ch.florianfrauenfelder.mensazh.services.providers.UZHMensaProvider
-import ch.florianfrauenfelder.mensazh.services.providers.showMenusInGermanToLanguage
-import ch.florianfrauenfelder.mensazh.services.saveShowMenusInGerman
-import ch.florianfrauenfelder.mensazh.services.showMenusInGermanFlow
-import ch.florianfrauenfelder.mensazh.ui.Destination
-import ch.florianfrauenfelder.mensazh.ui.Weekday
+import ch.florianfrauenfelder.mensazh.data.local.datastore.expandedMensasFlow
+import ch.florianfrauenfelder.mensazh.data.local.datastore.saveShowMenusInGerman
+import ch.florianfrauenfelder.mensazh.data.local.datastore.showMenusInGermanFlow
+import ch.florianfrauenfelder.mensazh.data.local.room.FetchInfoDao
+import ch.florianfrauenfelder.mensazh.data.local.room.MenuDao
+import ch.florianfrauenfelder.mensazh.data.providers.ETHMensaProvider
+import ch.florianfrauenfelder.mensazh.data.providers.UZHMensaProvider
+import ch.florianfrauenfelder.mensazh.data.repository.MensaRepository
+import ch.florianfrauenfelder.mensazh.data.util.AssetService
+import ch.florianfrauenfelder.mensazh.domain.model.Location
+import ch.florianfrauenfelder.mensazh.domain.model.Mensa
+import ch.florianfrauenfelder.mensazh.domain.model.MensaState
+import ch.florianfrauenfelder.mensazh.domain.navigation.Params
+import ch.florianfrauenfelder.mensazh.domain.value.Institution
+import ch.florianfrauenfelder.mensazh.domain.value.Language
+import ch.florianfrauenfelder.mensazh.domain.value.showMenusInGermanToLanguage
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -41,17 +43,17 @@ import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
 import kotlin.time.Clock
 
-class AppViewModel(
+class ViewModel(
   private val mensaRepository: MensaRepository,
   private val favoriteMensas: Flow<Set<String>>,
-  initialLanguage: Flow<MensaProvider.Language>,
-  private val saveLanguage: suspend (MensaProvider.Language) -> Unit,
-) : ViewModel() {
+  initialLanguage: Flow<Language>,
+  private val saveLanguage: suspend (Language) -> Unit,
+) : androidx.lifecycle.ViewModel() {
   private val _params = MutableStateFlow(
     Params(
       destination = Destination.Today,
       weekday = Weekday.fromNow(),
-      language = MensaProvider.Language.default,
+      language = Language.default,
     ),
   )
   val params = _params.asStateFlow()
@@ -89,7 +91,7 @@ class AppViewModel(
 
   fun setNew(newWeekday: Weekday) = _params.update { it.copy(weekday = newWeekday) }
 
-  fun setNew(newLanguage: MensaProvider.Language) {
+  fun setNew(newLanguage: Language) {
     viewModelScope.launch { withContext(Dispatchers.IO) { saveLanguage(newLanguage) } }
     _params.update { it.copy(language = newLanguage) }
   }
@@ -155,17 +157,18 @@ class AppViewModel(
   companion object {
     fun Factory(menuDao: MenuDao, fetchInfoDao: FetchInfoDao) = viewModelFactory {
       initializer {
-        val application = checkNotNull(this[APPLICATION_KEY])
+        val application =
+          checkNotNull(this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
         val assetService = AssetService(application.assets)
-        AppViewModel(
+        ViewModel(
           mensaRepository = MensaRepository(
             menuDao = menuDao,
             fetchInfoDao = fetchInfoDao,
             providers = mapOf(
-              MensaProvider.Institution.ETH to ETHMensaProvider(
+              Institution.ETH to ETHMensaProvider(
                 menuDao, fetchInfoDao, assetService
               ),
-              MensaProvider.Institution.UZH to UZHMensaProvider(
+              Institution.UZH to UZHMensaProvider(
                 menuDao, fetchInfoDao, assetService
               ),
             ),

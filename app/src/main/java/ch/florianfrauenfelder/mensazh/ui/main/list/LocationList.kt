@@ -23,11 +23,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ch.florianfrauenfelder.mensazh.R
-import ch.florianfrauenfelder.mensazh.models.Location
-import ch.florianfrauenfelder.mensazh.models.Mensa
-import ch.florianfrauenfelder.mensazh.models.MensaState
-import ch.florianfrauenfelder.mensazh.models.Menu
-import ch.florianfrauenfelder.mensazh.ui.components.InfoLinks
+import ch.florianfrauenfelder.mensazh.domain.model.Location
+import ch.florianfrauenfelder.mensazh.domain.model.Mensa
+import ch.florianfrauenfelder.mensazh.domain.model.MensaState
+import ch.florianfrauenfelder.mensazh.domain.model.Menu
+import ch.florianfrauenfelder.mensazh.ui.shared.InfoLinks
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)

@@ -13,10 +13,10 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.room.Room
-import ch.florianfrauenfelder.mensazh.models.AppViewModel
-import ch.florianfrauenfelder.mensazh.services.CacheDatabase
-import ch.florianfrauenfelder.mensazh.services.themeFlow
+import ch.florianfrauenfelder.mensazh.data.local.datastore.themeFlow
+import ch.florianfrauenfelder.mensazh.data.local.room.CacheDatabase
 import ch.florianfrauenfelder.mensazh.ui.App
+import ch.florianfrauenfelder.mensazh.ui.ViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -54,7 +54,7 @@ class MainActivity : ComponentActivity() {
     val fetchInfoDao = db.fetchInfoDao()
 
     setContent {
-      val viewModel: AppViewModel by viewModels { AppViewModel.Factory(menuDao, fetchInfoDao) }
+      val viewModel: ViewModel by viewModels { ViewModel.Factory(menuDao, fetchInfoDao) }
 
       LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {

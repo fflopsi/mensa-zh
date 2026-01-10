@@ -1,4 +1,4 @@
-package ch.florianfrauenfelder.mensazh.models
+package ch.florianfrauenfelder.mensazh.domain.model
 
 data class MensaState(
   val mensa: Mensa,

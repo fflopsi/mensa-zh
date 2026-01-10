@@ -1,4 +1,4 @@
-package ch.florianfrauenfelder.mensazh.models
+package ch.florianfrauenfelder.mensazh.domain.model
 
 import android.os.Parcelable
 import ch.florianfrauenfelder.mensazh.ui.Weekday

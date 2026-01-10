@@ -1,6 +1,6 @@
-package ch.florianfrauenfelder.mensazh.services
+package ch.florianfrauenfelder.mensazh.data.util
 
-import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
+import ch.florianfrauenfelder.mensazh.data.providers.MensaProvider
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
