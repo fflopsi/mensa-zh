@@ -27,6 +27,7 @@ android {
 
   androidResources {
     generateLocaleConfig = true
+    localeFilters += setOf("en", "de")
   }
 
   buildTypes {
