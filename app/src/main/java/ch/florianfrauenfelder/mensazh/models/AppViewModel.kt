@@ -1,9 +1,5 @@
 package ch.florianfrauenfelder.mensazh.models
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
@@ -11,6 +7,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import ch.florianfrauenfelder.mensazh.services.AssetService
 import ch.florianfrauenfelder.mensazh.services.FetchInfoDao
+import ch.florianfrauenfelder.mensazh.services.MensaRepository
 import ch.florianfrauenfelder.mensazh.services.MenuDao
 import ch.florianfrauenfelder.mensazh.services.expandedMensasFlow
 import ch.florianfrauenfelder.mensazh.services.providers.ETHMensaProvider
@@ -23,198 +20,156 @@ import ch.florianfrauenfelder.mensazh.ui.Destination
 import ch.florianfrauenfelder.mensazh.ui.Weekday
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
 import kotlin.time.Clock
-import kotlin.time.Duration.Companion.hours
 
 class AppViewModel(
-  assetService: AssetService,
-  private val menuDao: MenuDao,
-  private val fetchInfoDao: FetchInfoDao,
+  private val mensaRepository: MensaRepository,
   private val favoriteMensas: Flow<Set<String>>,
   initialLanguage: Flow<MensaProvider.Language>,
   private val saveLanguage: suspend (MensaProvider.Language) -> Unit,
 ) : ViewModel() {
-  private val params = MutableStateFlow(
-    MenuParams(Destination.Today, Weekday.fromNow(), MensaProvider.Language.default),
+  private val _params = MutableStateFlow(
+    Params(
+      destination = Destination.Today,
+      weekday = Weekday.fromNow(),
+      language = MensaProvider.Language.default,
+    ),
+  )
+  val params = _params.asStateFlow()
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  val locations = params.flatMapLatest {
+    viewModelScope.launch { mensaRepository.refreshIfNeeded(it) }
+    locationListFlow(it)
+  }.stateIn(
+    scope = viewModelScope,
+    started = SharingStarted.WhileSubscribed(5000),
+    initialValue = emptyList(),
   )
 
-  var destination by mutableStateOf(params.value.destination)
-    private set
+  private val baseLocations = MutableStateFlow<List<Location>>(emptyList())
 
-  var weekday by mutableStateOf(params.value.weekday)
-    private set
-
-  var language by mutableStateOf(params.value.language)
-    private set
-
-  private val _locations = mutableStateListOf<Location>()
-  val locations: List<Location> = _locations
-
-  var isRefreshing by mutableStateOf(false)
-    private set
-
-  private val ethMensaProvider = ETHMensaProvider(menuDao, fetchInfoDao, assetService)
-  private val uzhMensaProvider = UZHMensaProvider(menuDao, fetchInfoDao, assetService)
+  val isRefreshing = mensaRepository.isRefreshing.stateIn(
+    scope = viewModelScope,
+    started = SharingStarted.WhileSubscribed(5000),
+    initialValue = false,
+  )
 
   private val initCompleted = CompletableDeferred<Unit>()
 
   init {
     viewModelScope.launch {
       val firstLanguage = withContext(Dispatchers.IO) { initialLanguage.first() }
-      updateParams { it.copy(language = firstLanguage) }
-      val locations = withContext(Dispatchers.IO) {
-        val eth = async { ethMensaProvider.getLocations() }
-        val uzh = async { uzhMensaProvider.getLocations() }
-        eth.await() + uzh.await()
-      }
-      _locations.clear()
-      _locations.addAll(locations)
+      _params.update { it.copy(language = firstLanguage) }
+      baseLocations.value = withContext(Dispatchers.IO) { mensaRepository.getLocations() }
       initCompleted.complete(Unit)
-      observeMenus()
     }
   }
 
-  private fun updateParams(transform: (MenuParams) -> MenuParams) {
-    val new = transform(params.value)
-    params.value = new
+  fun setNew(newDestination: Destination) = _params.update { it.copy(destination = newDestination) }
 
-    destination = new.destination
-    weekday = new.weekday
-    language = new.language
-  }
-
-  fun setNew(newDestination: Destination) =
-    updateParams { it.copy(destination = newDestination) }
-
-  fun setNew(newWeekday: Weekday) = updateParams { it.copy(weekday = newWeekday) }
+  fun setNew(newWeekday: Weekday) = _params.update { it.copy(weekday = newWeekday) }
 
   fun setNew(newLanguage: MensaProvider.Language) {
     viewModelScope.launch { withContext(Dispatchers.IO) { saveLanguage(newLanguage) } }
-    updateParams { it.copy(language = newLanguage) }
+    _params.update { it.copy(language = newLanguage) }
   }
 
   fun forceRefresh() = viewModelScope.launch {
     initCompleted.await()
-    refresh(params.value)
+    mensaRepository.forceRefresh(_params.value)
   }
 
   fun refreshIfNeeded() = viewModelScope.launch {
     initCompleted.await()
-    val p = params.value
-    if (shouldRefresh(p)) refresh(p)
+    mensaRepository.refreshIfNeeded(_params.value)
   }
 
-  private fun observeMenus() = viewModelScope.launch {
-    params.collectLatest {
-      coroutineScope {
-        launch { if (shouldRefresh(it)) refresh(it) }
-        launch { observeForParams(it) }
-      }
-    }
-  }
-
-  private suspend fun shouldRefresh(p: MenuParams): Boolean {
-    val now = System.currentTimeMillis()
-
-    MensaProvider.Institution.entries.forEach {
-      val fetchInfo = withContext(Dispatchers.IO) {
-        fetchInfoDao.getFetchInfo(
-          institution = it.toString(),
-          destination = p.destination.toString(),
-          language = p.language.toString(),
-        )
-      }
-
-      if (now - (fetchInfo?.fetchDate ?: 0) > 12.hours.inWholeMilliseconds) {
-        return true
-      }
-    }
-    return false
-  }
-
-  private suspend fun observeForParams(p: MenuParams) = coroutineScope {
-    val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
-    val monday = today.minus(today.dayOfWeek.ordinal, DateTimeUnit.DAY).run {
-      if (p.destination == Destination.NextWeek) plus(7, DateTimeUnit.DAY) else this
-    }
-    val date = when (p.destination) {
-      Destination.Today -> today.toString()
-      Destination.Tomorrow -> today.plus(1, DateTimeUnit.DAY).toString()
-      Destination.ThisWeek, Destination.NextWeek -> monday
-        .plus(p.weekday.ordinal, DateTimeUnit.DAY)
-        .toString()
-    }
-
-    _locations.forEach { location ->
-      location.mensas.forEach { mensa ->
-        launch {
-          combine(
-            favoriteMensas,
-            menuDao.getMenus2(
-              mensaId = mensa.id.toString(),
-              language = p.language.toString(),
-              date = date,
-            ),
-          ) { favorites, roomMenus ->
-            favorites to roomMenus
-          }.collectLatest { (favorites, roomMenus) ->
-            withContext(Dispatchers.Main) {
-              mensa.menus = roomMenus.map { it.toMenu() }
-              // ?? THIS IS BAD AND NEEDS TO BE CHANGED, POSSIBLY COMPOSE STATE TO PROPERLY OBSERVE CHANGES ??
-              mensa.state = when {
-                mensa.menus.isEmpty() -> Mensa.State.Closed
-                favorites.contains(mensa.id.toString()) -> Mensa.State.Expanded
-                else -> Mensa.State.Available
-              }
-            }
-          }
+  @OptIn(ExperimentalCoroutinesApi::class)
+  private fun locationListFlow(params: Params): Flow<List<Location>> =
+    baseLocations.flatMapLatest { baseLocations ->
+      val date = computeDate(params)
+      val locationFlows = baseLocations.map { location ->
+        val mensaFlows = location.mensas.map {
+          mensaStateFlow(mensa = it.mensa, params = params, date = date)
+        }
+        combine(mensaFlows) {
+          Location(id = location.id, title = location.title, mensas = it.toList())
         }
       }
+      combine(locationFlows) { it.toList() }
     }
+
+  private fun mensaStateFlow(
+    mensa: Mensa,
+    params: Params,
+    date: LocalDate,
+  ): Flow<MensaState> = combine(
+    favoriteMensas,
+    mensaRepository.observeMenus(mensaId = mensa.id, language = params.language, date = date),
+  ) { favorites, menus ->
+    MensaState(
+      mensa = mensa,
+      menus = menus,
+      state = when {
+        menus.isEmpty() -> MensaState.State.Closed
+        favorites.contains(mensa.id.toString()) -> MensaState.State.Expanded
+        else -> MensaState.State.Available
+      },
+    )
   }
 
-  private val refreshMutex = Mutex()
-
-  private suspend fun refresh(p: MenuParams) = refreshMutex.withLock {
-    isRefreshing = true
-    coroutineScope {
-      launch(Dispatchers.IO) { ethMensaProvider.getMenus(p.language, p.destination) }
-      launch(Dispatchers.IO) { uzhMensaProvider.getMenus(p.language, p.destination) }
+  private fun computeDate(params: Params): LocalDate {
+    val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+    val monday = today.minus(today.dayOfWeek.ordinal, DateTimeUnit.DAY).run {
+      if (params.destination == Destination.NextWeek) plus(7, DateTimeUnit.DAY) else this
     }
-    isRefreshing = false
+    return when (params.destination) {
+      Destination.Today -> today
+      Destination.Tomorrow -> today.plus(1, DateTimeUnit.DAY)
+      Destination.ThisWeek, Destination.NextWeek -> {
+        monday.plus(params.weekday.ordinal, DateTimeUnit.DAY)
+      }
+    }
   }
-
-  private data class MenuParams(
-    val destination: Destination,
-    val weekday: Weekday,
-    val language: MensaProvider.Language,
-  )
 
   companion object {
     fun Factory(menuDao: MenuDao, fetchInfoDao: FetchInfoDao) = viewModelFactory {
       initializer {
         val application = checkNotNull(this[APPLICATION_KEY])
+        val assetService = AssetService(application.assets)
         AppViewModel(
-          assetService = AssetService(application.assets),
-          menuDao = menuDao,
-          fetchInfoDao = fetchInfoDao,
+          mensaRepository = MensaRepository(
+            menuDao = menuDao,
+            fetchInfoDao = fetchInfoDao,
+            providers = mapOf(
+              MensaProvider.Institution.ETH to ETHMensaProvider(
+                menuDao, fetchInfoDao, assetService
+              ),
+              MensaProvider.Institution.UZH to UZHMensaProvider(
+                menuDao, fetchInfoDao, assetService
+              ),
+            ),
+          ),
           favoriteMensas = application.expandedMensasFlow,
           initialLanguage = application.showMenusInGermanFlow.map { it.showMenusInGermanToLanguage },
           saveLanguage = { application.saveShowMenusInGerman(it.showMenusInGerman) },

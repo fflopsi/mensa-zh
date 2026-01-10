@@ -56,6 +56,7 @@ import androidx.core.net.toUri
 import ch.florianfrauenfelder.mensazh.R
 import ch.florianfrauenfelder.mensazh.models.Location
 import ch.florianfrauenfelder.mensazh.models.Mensa
+import ch.florianfrauenfelder.mensazh.models.MensaState
 import ch.florianfrauenfelder.mensazh.models.Menu
 import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
 import ch.florianfrauenfelder.mensazh.services.saveIsExpandedMensa
@@ -98,13 +99,13 @@ fun MainScreen(
   val scope = rememberCoroutineScope()
 
   val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
-  val navigator = rememberListDetailPaneScaffoldNavigator<Menu>()
+  val navigator = rememberListDetailPaneScaffoldNavigator<Pair<MensaState, Menu>>()
   val snackbarState = remember { SnackbarHostState() }
 
   var tabRowSize by remember { mutableStateOf(IntSize.Zero) }
 
   val snackbarMessage = stringResource(R.string.no_internet_or_menus)
-  LaunchedEffect(isRefreshing) {
+  LaunchedEffect(isRefreshing, locations, destination, weekday) {
     if (!isRefreshing && locations.flatMap { it.mensas }.flatMap { it.menus }.isEmpty()) {
       snackbarState.showSnackbar(
         message = snackbarMessage,
@@ -118,7 +119,7 @@ fun MainScreen(
       TopAppBar(
         title = {
           Text(
-            text = navigator.currentDestination?.contentKey?.mensa?.title
+            text = navigator.currentDestination?.contentKey?.first?.mensa?.title
               ?: stringResource(R.string.app_name),
           )
         },
@@ -138,7 +139,8 @@ fun MainScreen(
             IconButton(
               onClick = {
                 Intent(Intent.ACTION_VIEW).apply {
-                  data = navigator.currentDestination?.contentKey?.mensa?.url.toString().toUri()
+                  data =
+                    navigator.currentDestination?.contentKey?.first?.mensa?.url.toString().toUri()
                   context.startActivity(this)
                 }
               },
@@ -202,8 +204,10 @@ fun MainScreen(
                   },
                   listUseShortDescription = listUseShortDescription,
                   listShowAllergens = listShowAllergens,
-                  onMenuClick = {
-                    scope.launch { navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, it) }
+                  onMenuClick = { mensa, menu ->
+                    scope.launch {
+                      navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, mensa to menu)
+                    }
                   },
                   modifier = Modifier.fillMaxWidth(),
                 )
@@ -213,11 +217,11 @@ fun MainScreen(
               AnimatedPane {
                 navigator.currentDestination?.contentKey?.let {
                   MenuList(
-                    menus = it.mensa?.menus ?: emptyList(),
-                    selectedMenu = it,
+                    menus = it.first.menus,
+                    selectedMenu = it.second,
                     selectMenu = { menu ->
                       scope.launch {
-                        navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, menu)
+                        navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, it.first to menu)
                       }
                     },
                     autoShowImage = autoShowImage,

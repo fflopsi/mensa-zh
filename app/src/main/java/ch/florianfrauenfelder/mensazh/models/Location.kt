@@ -5,7 +5,7 @@ import java.util.UUID
 data class Location(
   override val id: UUID,
   override val title: String,
-  val mensas: List<Mensa>,
+  val mensas: List<MensaState>,
 ) : IdTitleItem {
   override fun toString() = title
 
@@ -13,7 +13,7 @@ data class Location(
     val dummy = Location(
       id = UUID.randomUUID(),
       title = "Zentrum",
-      mensas = List(3) { Mensa.dummy },
+      mensas = List(3) { MensaState.dummy },
     )
   }
 }

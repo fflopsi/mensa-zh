@@ -39,7 +39,7 @@ class ETHMensaProvider(
   override val locationSerializer = EthLocation.serializer()
 
   @OptIn(ExperimentalTime::class)
-  override suspend fun getMenus(
+  override suspend fun fetchMenus(
     language: Language,
     destination: Destination,
   ) {
@@ -51,6 +51,7 @@ class ETHMensaProvider(
     }
 
     try {
+      updateFetchInfo(destination, language)
       val menuPerMensa = getMensaMenusFromCookpit(
         language = language,
         destination = destination,
@@ -66,7 +67,6 @@ class ETHMensaProvider(
           )
         }
       }
-      updateFetchInfo(destination, language)
     } catch (e: Exception) {
       e.printStackTrace()
     }

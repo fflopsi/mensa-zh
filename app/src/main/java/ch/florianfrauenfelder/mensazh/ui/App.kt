@@ -130,7 +130,7 @@ fun App(
         location.copy(
           id = location.id,
           title = location.title,
-          mensas = location.mensas.filter { !favoriteMensas.contains(it.id) },
+          mensas = location.mensas.filter { !favoriteMensas.contains(it.mensa.id) },
         )
       }.toMutableStateList().apply {
         add(
@@ -140,8 +140,8 @@ fun App(
             title = favoriteLocationTitle,
             mensas = locations
               .flatMap { it.mensas }
-              .filter { favoriteMensas.contains(it.id) }
-              .sortedBy { favoriteMensas.indexOf(it.id) },
+              .filter { favoriteMensas.contains(it.mensa.id) }
+              .sortedBy { favoriteMensas.indexOf(it.mensa.id) },
           ),
         )
       }
@@ -203,12 +203,12 @@ fun App(
           shownLocations = shownLocations,
           saveShownLocations = { scope.launch { context.saveShownLocations(it) } },
           favoriteMensas = locations
-            .flatMap { it.mensas }
+            .flatMap { location -> location.mensas.map { it.mensa } }
             .filter { favoriteMensas.contains(it.id) && !hiddenMensas.contains(it.id) }
             .sortedBy { favoriteMensas.indexOf(it.id) },
           saveFavoriteMensas = { scope.launch { context.saveFavoriteMensas(it) } },
           hiddenMensas = shownLocations
-            .flatMap { it.mensas }
+            .flatMap { location -> location.mensas.map { it.mensa } }
             .filter { hiddenMensas.contains(it.id) && !favoriteMensas.contains(it.id) },
           saveHiddenMensas = { scope.launch { context.saveHiddenMensas(it) } },
           showTomorrow = showTomorrow,

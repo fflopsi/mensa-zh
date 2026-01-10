@@ -2,10 +2,8 @@ package ch.florianfrauenfelder.mensazh.models
 
 import android.os.Parcelable
 import ch.florianfrauenfelder.mensazh.ui.Weekday
-import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 
 @Parcelize
 @Serializable
@@ -19,10 +17,6 @@ data class Menu(
   val imageUrl: String?,
   val weekday: Weekday,
 ) : Parcelable {
-  @IgnoredOnParcel
-  @Transient
-  var mensa: Mensa? = null
-
   override fun toString() = title + description
 
   companion object {

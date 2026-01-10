@@ -41,7 +41,7 @@ class UZHMensaProvider(
   override val locationSerializer = UzhLocation.serializer()
 
   @OptIn(ExperimentalTime::class)
-  override suspend fun getMenus(
+  override suspend fun fetchMenus(
     language: Language,
     destination: Destination,
   ) {
@@ -52,6 +52,7 @@ class UZHMensaProvider(
       } else this
     }
 
+    updateFetchInfo(destination, language)
     val json = fetchJson(language, destination) ?: return
     val root = SerializationService.deserialize<Api.Root>(json)
 
@@ -107,7 +108,6 @@ class UZHMensaProvider(
         }
       }
     }
-    updateFetchInfo(destination, language)
   }
 
   @OptIn(ExperimentalTime::class)

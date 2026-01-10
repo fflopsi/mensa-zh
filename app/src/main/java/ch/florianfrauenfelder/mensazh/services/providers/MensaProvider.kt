@@ -2,6 +2,7 @@ package ch.florianfrauenfelder.mensazh.services.providers
 
 import ch.florianfrauenfelder.mensazh.models.Location
 import ch.florianfrauenfelder.mensazh.models.Mensa
+import ch.florianfrauenfelder.mensazh.models.MensaState
 import ch.florianfrauenfelder.mensazh.models.Menu
 import ch.florianfrauenfelder.mensazh.services.AssetService
 import ch.florianfrauenfelder.mensazh.services.FetchInfo
@@ -44,13 +45,13 @@ abstract class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider
           title = apiLocation.title,
           mensas = apiLocation.mensas.map {
             apiMensas += it
-            it.toMensa()
+            MensaState(it.toMensa())
           },
         )
       }
   }
 
-  abstract suspend fun getMenus(
+  abstract suspend fun fetchMenus(
     language: Language,
     destination: Destination,
   )

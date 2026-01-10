@@ -108,7 +108,8 @@ fun SettingsScreen(
     )
     ListSelectorDialog(
       show = showFavoriteMensaSelector,
-      entireList = locations.flatMap { it.mensas }.filter { !hiddenMensas.contains(it) },
+      entireList = locations.flatMap { location -> location.mensas.map { it.mensa } }
+        .filter { !hiddenMensas.contains(it) },
       selectedList = favoriteMensas,
       saveList = saveFavoriteMensas,
       icon = Icons.Default.HotelClass,
@@ -118,7 +119,8 @@ fun SettingsScreen(
     )
     ListSelectorDialog(
       show = showHiddenMensaSelector,
-      entireList = shownLocations.flatMap { it.mensas }.filter { !favoriteMensas.contains(it) },
+      entireList = shownLocations.flatMap { location -> location.mensas.map { it.mensa } }
+        .filter { !favoriteMensas.contains(it) },
       selectedList = hiddenMensas,
       saveList = saveHiddenMensas,
       icon = Icons.Default.FilterListOff,

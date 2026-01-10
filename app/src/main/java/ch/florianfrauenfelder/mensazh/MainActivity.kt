@@ -9,6 +9,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.room.Room
 import ch.florianfrauenfelder.mensazh.models.AppViewModel
@@ -61,15 +63,18 @@ class MainActivity : ComponentActivity() {
         viewModel.refreshIfNeeded()
       }
 
+      val params by viewModel.params.collectAsStateWithLifecycle()
+      val locations by viewModel.locations.collectAsStateWithLifecycle()
+
       App(
-        destination = viewModel.destination,
+        destination = params.destination,
         setDestination = viewModel::setNew,
-        weekday = viewModel.weekday,
+        weekday = params.weekday,
         setWeekday = viewModel::setNew,
-        locations = viewModel.locations,
-        language = viewModel.language,
+        locations = locations,
+        language = params.language,
         setLanguage = viewModel::setNew,
-        isRefreshing = viewModel.isRefreshing,
+        isRefreshing = viewModel.isRefreshing.collectAsStateWithLifecycle().value,
         onRefresh = viewModel::forceRefresh,
       )
     }

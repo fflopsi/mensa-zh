@@ -41,11 +41,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import ch.florianfrauenfelder.mensazh.R
 import ch.florianfrauenfelder.mensazh.models.Mensa
+import ch.florianfrauenfelder.mensazh.models.MensaState
 import ch.florianfrauenfelder.mensazh.models.Menu
 
 @Composable
 fun MensaRow(
-  mensa: Mensa,
+  mensa: MensaState,
   saveIsExpandedMensa: (Mensa, Boolean) -> Unit,
   listUseShortDescription: Boolean,
   listShowAllergens: Boolean,
@@ -56,14 +57,12 @@ fun MensaRow(
 ) {
   val rowModifier by remember(mensa.state) {
     derivedStateOf {
-      if (mensa.state == Mensa.State.Available || mensa.state == Mensa.State.Expanded) {
+      if (mensa.state == MensaState.State.Available || mensa.state == MensaState.State.Expanded) {
         Modifier.clickable {
-          if (mensa.state == Mensa.State.Available) {
-            mensa.state = Mensa.State.Expanded
-            saveIsExpandedMensa(mensa, true)
-          } else if (mensa.state == Mensa.State.Expanded) {
-            mensa.state = Mensa.State.Available
-            saveIsExpandedMensa(mensa, false)
+          when (mensa.state) {
+            MensaState.State.Available -> saveIsExpandedMensa(mensa.mensa, true)
+            MensaState.State.Expanded -> saveIsExpandedMensa(mensa.mensa, false)
+            else -> {}
           }
         }
       } else Modifier
@@ -72,7 +71,7 @@ fun MensaRow(
 
   Box {
     AnimatedVisibility(
-      visible = mensa.state == Mensa.State.Expanded,
+      visible = mensa.state == MensaState.State.Expanded,
       enter = scaleIn(),
       exit = scaleOut(),
       modifier = Modifier
@@ -108,20 +107,20 @@ fun MensaRow(
         modifier = rowModifier
           .background(
             color = when (mensa.state) {
-              Mensa.State.Closed, Mensa.State.Initial -> MaterialTheme.colorScheme.primaryContainer
-              Mensa.State.Available, Mensa.State.Expanded -> MaterialTheme.colorScheme.primary
+              MensaState.State.Closed, MensaState.State.Initial -> MaterialTheme.colorScheme.primaryContainer
+              MensaState.State.Available, MensaState.State.Expanded -> MaterialTheme.colorScheme.primary
             },
           )
           .fillMaxWidth(),
       ) {
         Text(
-          text = mensa.title,
+          text = mensa.mensa.title,
           fontWeight = FontWeight.Bold,
           overflow = TextOverflow.Ellipsis,
           maxLines = 1,
           color = when (mensa.state) {
-            Mensa.State.Closed, Mensa.State.Initial -> MaterialTheme.colorScheme.onPrimaryContainer
-            Mensa.State.Available, Mensa.State.Expanded -> MaterialTheme.colorScheme.onPrimary
+            MensaState.State.Closed, MensaState.State.Initial -> MaterialTheme.colorScheme.onPrimaryContainer
+            MensaState.State.Available, MensaState.State.Expanded -> MaterialTheme.colorScheme.onPrimary
           },
           modifier = Modifier
             .weight(1f)
@@ -129,21 +128,21 @@ fun MensaRow(
         )
         Text(
           text = when (mensa.state) {
-            Mensa.State.Closed -> stringResource(R.string.closed)
-            else -> mensa.mealTime
+            MensaState.State.Closed -> stringResource(R.string.closed)
+            else -> mensa.mensa.mealTime
           },
           color = when (mensa.state) {
-            Mensa.State.Closed, Mensa.State.Initial -> MaterialTheme.colorScheme.onPrimaryContainer
-            Mensa.State.Available, Mensa.State.Expanded -> MaterialTheme.colorScheme.onPrimary
+            MensaState.State.Closed, MensaState.State.Initial -> MaterialTheme.colorScheme.onPrimaryContainer
+            MensaState.State.Available, MensaState.State.Expanded -> MaterialTheme.colorScheme.onPrimary
           },
           fontStyle = when (mensa.state) {
-            Mensa.State.Closed -> FontStyle.Italic
+            MensaState.State.Closed -> FontStyle.Italic
             else -> null
           },
           modifier = Modifier.padding(8.dp),
         )
       }
-      AnimatedVisibility(mensa.state == Mensa.State.Expanded) {
+      AnimatedVisibility(mensa.state == MensaState.State.Expanded) {
         Column(modifier = Modifier.fillMaxWidth()) {
           mensa.menus.forEach { menu ->
             AnimatedContent(
