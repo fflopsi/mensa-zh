@@ -51,8 +51,11 @@ import ch.florianfrauenfelder.mensazh.data.local.datastore.shownLocationsFlow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.themeFlow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.useDynamicColorFlow
 import ch.florianfrauenfelder.mensazh.domain.model.Location
+import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
+import ch.florianfrauenfelder.mensazh.domain.navigation.Weekday
 import ch.florianfrauenfelder.mensazh.domain.value.Language
 import ch.florianfrauenfelder.mensazh.ui.main.MainScreen
+import ch.florianfrauenfelder.mensazh.ui.navigation.Route
 import ch.florianfrauenfelder.mensazh.ui.settings.SettingsScreen
 import ch.florianfrauenfelder.mensazh.ui.theme.MensaZHTheme
 import kotlinx.coroutines.launch

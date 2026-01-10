@@ -1,7 +1,7 @@
 package ch.florianfrauenfelder.mensazh.domain.model
 
 import android.os.Parcelable
-import ch.florianfrauenfelder.mensazh.ui.Weekday
+import ch.florianfrauenfelder.mensazh.domain.navigation.Weekday
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 

@@ -3,7 +3,7 @@ package ch.florianfrauenfelder.mensazh.data.local.room
 import androidx.room.Entity
 import ch.florianfrauenfelder.mensazh.data.util.SerializationService
 import ch.florianfrauenfelder.mensazh.domain.model.Menu
-import ch.florianfrauenfelder.mensazh.ui.Weekday
+import ch.florianfrauenfelder.mensazh.domain.navigation.Weekday
 import kotlinx.datetime.LocalDate
 
 @Entity(tableName = "menus", primaryKeys = ["mensaId", "language", "title", "date"])

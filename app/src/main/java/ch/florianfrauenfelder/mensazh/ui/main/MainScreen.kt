@@ -60,10 +60,12 @@ import ch.florianfrauenfelder.mensazh.domain.model.Mensa
 import ch.florianfrauenfelder.mensazh.domain.model.MensaState
 import ch.florianfrauenfelder.mensazh.domain.model.Menu
 import ch.florianfrauenfelder.mensazh.domain.value.Language
-import ch.florianfrauenfelder.mensazh.ui.Destination
-import ch.florianfrauenfelder.mensazh.ui.Weekday
+import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
+import ch.florianfrauenfelder.mensazh.domain.navigation.Weekday
 import ch.florianfrauenfelder.mensazh.ui.main.detail.MenuList
 import ch.florianfrauenfelder.mensazh.ui.main.list.LocationList
+import ch.florianfrauenfelder.mensazh.ui.navigation.label
+import ch.florianfrauenfelder.mensazh.ui.navigation.ui
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -259,8 +261,8 @@ fun MainScreen(
               if (showNextWeek) add(Destination.NextWeek)
             }.forEach {
               item(
-                icon = { Icon(it.icon, stringResource(it.label)) },
-                label = { Text(stringResource(it.label)) },
+                icon = { Icon(it.ui.icon, stringResource(it.ui.label)) },
+                label = { Text(stringResource(it.ui.label)) },
                 selected = it == destination,
                 onClick = {
                   if (it != destination) {

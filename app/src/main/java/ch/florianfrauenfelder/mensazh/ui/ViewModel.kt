@@ -13,10 +13,13 @@ import ch.florianfrauenfelder.mensazh.data.providers.ETHMensaProvider
 import ch.florianfrauenfelder.mensazh.data.providers.UZHMensaProvider
 import ch.florianfrauenfelder.mensazh.data.repository.MensaRepository
 import ch.florianfrauenfelder.mensazh.data.util.AssetService
+import ch.florianfrauenfelder.mensazh.data.util.currentWeekday
 import ch.florianfrauenfelder.mensazh.domain.model.Location
 import ch.florianfrauenfelder.mensazh.domain.model.Mensa
 import ch.florianfrauenfelder.mensazh.domain.model.MensaState
+import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
 import ch.florianfrauenfelder.mensazh.domain.navigation.Params
+import ch.florianfrauenfelder.mensazh.domain.navigation.Weekday
 import ch.florianfrauenfelder.mensazh.domain.value.Institution
 import ch.florianfrauenfelder.mensazh.domain.value.Language
 import ch.florianfrauenfelder.mensazh.domain.value.showMenusInGermanToLanguage
@@ -52,7 +55,7 @@ class ViewModel(
   private val _params = MutableStateFlow(
     Params(
       destination = Destination.Today,
-      weekday = Weekday.fromNow(),
+      weekday = currentWeekday(),
       language = Language.default,
     ),
   )
