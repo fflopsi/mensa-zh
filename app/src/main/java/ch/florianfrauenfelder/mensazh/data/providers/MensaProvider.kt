@@ -9,9 +9,9 @@ import ch.florianfrauenfelder.mensazh.data.util.SerializationService
 import ch.florianfrauenfelder.mensazh.domain.model.Location
 import ch.florianfrauenfelder.mensazh.domain.model.Mensa
 import ch.florianfrauenfelder.mensazh.domain.model.Menu
+import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
 import ch.florianfrauenfelder.mensazh.domain.value.Institution
 import ch.florianfrauenfelder.mensazh.domain.value.Language
-import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable

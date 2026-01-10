@@ -59,9 +59,9 @@ import ch.florianfrauenfelder.mensazh.domain.model.Location
 import ch.florianfrauenfelder.mensazh.domain.model.Mensa
 import ch.florianfrauenfelder.mensazh.domain.model.MensaState
 import ch.florianfrauenfelder.mensazh.domain.model.Menu
-import ch.florianfrauenfelder.mensazh.domain.value.Language
 import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
 import ch.florianfrauenfelder.mensazh.domain.navigation.Weekday
+import ch.florianfrauenfelder.mensazh.domain.value.Language
 import ch.florianfrauenfelder.mensazh.ui.main.detail.MenuList
 import ch.florianfrauenfelder.mensazh.ui.main.list.LocationList
 import ch.florianfrauenfelder.mensazh.ui.navigation.label
