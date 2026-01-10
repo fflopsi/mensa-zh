@@ -40,8 +40,8 @@ class ETHMensaProvider(
   override val locationSerializer = EthLocation.serializer()
 
   override suspend fun fetchMenus(
-    language: Language,
     destination: Destination,
+    language: Language,
   ) {
     val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
     val monday = today.minus(today.dayOfWeek.ordinal, DateTimeUnit.DAY).run {

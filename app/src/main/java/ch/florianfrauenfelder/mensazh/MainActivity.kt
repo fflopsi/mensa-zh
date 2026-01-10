@@ -72,8 +72,6 @@ class MainActivity : ComponentActivity() {
         weekday = params.weekday,
         setWeekday = viewModel::setNew,
         locations = locations,
-        language = params.language,
-        setLanguage = viewModel::setNew,
         isRefreshing = viewModel.isRefreshing.collectAsStateWithLifecycle().value,
         onRefresh = viewModel::forceRefresh,
       )

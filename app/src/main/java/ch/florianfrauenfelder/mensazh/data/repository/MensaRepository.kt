@@ -5,7 +5,7 @@ import ch.florianfrauenfelder.mensazh.data.local.room.MenuDao
 import ch.florianfrauenfelder.mensazh.data.providers.MensaProvider
 import ch.florianfrauenfelder.mensazh.domain.model.Location
 import ch.florianfrauenfelder.mensazh.domain.model.Menu
-import ch.florianfrauenfelder.mensazh.domain.navigation.Params
+import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
 import ch.florianfrauenfelder.mensazh.domain.value.Institution
 import ch.florianfrauenfelder.mensazh.domain.value.Language
 import kotlinx.coroutines.Dispatchers
@@ -47,29 +47,32 @@ class MensaRepository(
     date = date.toString(),
   ).map { list -> list.map { it.toMenu() } }
 
-  suspend fun forceRefresh(params: Params) = supervisorScope {
+  suspend fun forceRefresh(destination: Destination, language: Language) = supervisorScope {
     providers.forEach { (institution, _) ->
-      launch { refresh(params, institution) }
+      launch { refresh(institution, destination, language) }
     }
   }
 
-  suspend fun refreshIfNeeded(params: Params) = supervisorScope {
+  suspend fun refreshIfNeeded(destination: Destination, language: Language) = supervisorScope {
     providers.forEach { (institution, _) ->
-      if (shouldRefresh(params, institution)) launch { refresh(params, institution) }
+      if (shouldRefresh(institution, destination, language)) {
+        launch { refresh(institution, destination, language) }
+      }
     }
   }
 
   private val refreshMutexes = providers.keys.associateWith { Mutex() }
 
-  private suspend fun refresh(params: Params, institution: Institution) {
+  private suspend fun refresh(
+    institution: Institution,
+    destination: Destination,
+    language: Language,
+  ) {
     refreshMutexes[institution]?.withLock {
       _isRefreshing[institution]?.value = true
       try {
         withContext(Dispatchers.IO) {
-          providers[institution]?.fetchMenus(
-            language = params.language,
-            destination = params.destination,
-          )
+          providers[institution]?.fetchMenus(destination, language)
         }
       } finally {
         _isRefreshing[institution]?.value = false
@@ -78,16 +81,17 @@ class MensaRepository(
   }
 
   private suspend fun shouldRefresh(
-    params: Params,
     institution: Institution,
+    destination: Destination,
+    language: Language,
   ): Boolean {
     val now = System.currentTimeMillis()
 
     val fetchInfo = withContext(Dispatchers.IO) {
       fetchInfoDao.getFetchInfo(
         institution = institution.toString(),
-        destination = params.destination.toString(),
-        language = params.language.toString(),
+        destination = destination.toString(),
+        language = language.toString(),
       )
     }
 

@@ -34,6 +34,7 @@ import ch.florianfrauenfelder.mensazh.data.local.datastore.saveFavoriteMensas
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveHiddenMensas
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveListShowAllergens
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveListUseShortDescription
+import ch.florianfrauenfelder.mensazh.data.local.datastore.saveShowMenusInGerman
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveShowNextWeek
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveShowOnlyExpandedMensas
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveShowOnlyOpenMensas
@@ -42,6 +43,7 @@ import ch.florianfrauenfelder.mensazh.data.local.datastore.saveShowTomorrow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveShownLocations
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveTheme
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveUseDynamicColor
+import ch.florianfrauenfelder.mensazh.data.local.datastore.showMenusInGermanFlow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.showNextWeekFlow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.showOnlyExpandedMensasFlow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.showOnlyOpenMensasFlow
@@ -54,10 +56,12 @@ import ch.florianfrauenfelder.mensazh.domain.model.Location
 import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
 import ch.florianfrauenfelder.mensazh.domain.navigation.Weekday
 import ch.florianfrauenfelder.mensazh.domain.value.Language
+import ch.florianfrauenfelder.mensazh.domain.value.showMenusInGermanToLanguage
 import ch.florianfrauenfelder.mensazh.ui.main.MainScreen
 import ch.florianfrauenfelder.mensazh.ui.navigation.Route
 import ch.florianfrauenfelder.mensazh.ui.settings.SettingsScreen
 import ch.florianfrauenfelder.mensazh.ui.theme.MensaZHTheme
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -69,8 +73,6 @@ fun App(
   weekday: Weekday,
   setWeekday: (Weekday) -> Unit,
   locations: List<Location>,
-  language: Language,
-  setLanguage: (Language) -> Unit,
   isRefreshing: Boolean,
   onRefresh: () -> Unit,
   modifier: Modifier = Modifier,
@@ -90,6 +92,8 @@ fun App(
   val showOnlyExpandedMensas by context.showOnlyExpandedMensasFlow.collectAsStateWithLifecycle(
     initialValue = Prefs.Defaults.SHOW_ONLY_EXPANDED_MENSAS,
   )
+  val language by context.showMenusInGermanFlow.map { it.showMenusInGermanToLanguage }
+    .collectAsStateWithLifecycle(initialValue = Language.default)
   val shownLocationsIds by context.shownLocationsFlow.collectAsStateWithLifecycle(
     initialValue = Prefs.Defaults.SHOWN_LOCATIONS,
   )
@@ -178,7 +182,7 @@ fun App(
           hiddenMensas = hiddenMensas,
           saveFavoriteMensas = { scope.launch { context.saveFavoriteMensas(it) } },
           language = language,
-          setLanguage = setLanguage,
+          setLanguage = { scope.launch { context.saveShowMenusInGerman(it.showMenusInGerman) } },
           isRefreshing = isRefreshing,
           onRefresh = onRefresh,
           showOnlyOpenMensas = showOnlyOpenMensas,
@@ -201,7 +205,7 @@ fun App(
           showOnlyExpandedMensas = showOnlyExpandedMensas,
           setShowOnlyExpandedMensas = { scope.launch { context.saveShowOnlyExpandedMensas(it) } },
           language = language,
-          setLanguage = setLanguage,
+          setLanguage = { scope.launch { context.saveShowMenusInGerman(it.showMenusInGerman) } },
           locations = locations,
           shownLocations = shownLocations,
           saveShownLocations = { scope.launch { context.saveShownLocations(it) } },

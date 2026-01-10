@@ -1,11 +1,11 @@
 package ch.florianfrauenfelder.mensazh.ui
 
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import ch.florianfrauenfelder.mensazh.data.local.datastore.expandedMensasFlow
-import ch.florianfrauenfelder.mensazh.data.local.datastore.saveShowMenusInGerman
 import ch.florianfrauenfelder.mensazh.data.local.datastore.showMenusInGermanFlow
 import ch.florianfrauenfelder.mensazh.data.local.room.FetchInfoDao
 import ch.florianfrauenfelder.mensazh.data.local.room.MenuDao
@@ -31,7 +31,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -49,22 +48,24 @@ import kotlin.time.Clock
 class ViewModel(
   private val mensaRepository: MensaRepository,
   private val favoriteMensas: Flow<Set<String>>,
-  initialLanguage: Flow<Language>,
-  private val saveLanguage: suspend (Language) -> Unit,
-) : androidx.lifecycle.ViewModel() {
-  private val _params = MutableStateFlow(
-    Params(
-      destination = Destination.Today,
-      weekday = currentWeekday(),
-      language = Language.default,
-    ),
-  )
+  language: Flow<Language>,
+) : ViewModel() {
+  private val _params =
+    MutableStateFlow(Params(destination = Destination.Today, weekday = currentWeekday()))
   val params = _params.asStateFlow()
 
+  private val language = language.stateIn(
+    scope = viewModelScope,
+    started = SharingStarted.WhileSubscribed(5000),
+    initialValue = Language.default,
+  )
+
   @OptIn(ExperimentalCoroutinesApi::class)
-  val locations = params.flatMapLatest {
-    viewModelScope.launch { mensaRepository.refreshIfNeeded(it) }
-    locationListFlow(it)
+  val locations = combine(params, language) { params, language ->
+    params to language
+  }.flatMapLatest { (params, language) ->
+    viewModelScope.launch { mensaRepository.refreshIfNeeded(params.destination, language) }
+    locationListFlow(params.destination, params.weekday, language)
   }.stateIn(
     scope = viewModelScope,
     started = SharingStarted.WhileSubscribed(5000),
@@ -83,8 +84,6 @@ class ViewModel(
 
   init {
     viewModelScope.launch {
-      val firstLanguage = withContext(Dispatchers.IO) { initialLanguage.first() }
-      _params.update { it.copy(language = firstLanguage) }
       baseLocations.value = withContext(Dispatchers.IO) { mensaRepository.getLocations() }
       initCompleted.complete(Unit)
     }
@@ -94,43 +93,41 @@ class ViewModel(
 
   fun setNew(newWeekday: Weekday) = _params.update { it.copy(weekday = newWeekday) }
 
-  fun setNew(newLanguage: Language) {
-    viewModelScope.launch { withContext(Dispatchers.IO) { saveLanguage(newLanguage) } }
-    _params.update { it.copy(language = newLanguage) }
-  }
-
   fun forceRefresh() = viewModelScope.launch {
     initCompleted.await()
-    mensaRepository.forceRefresh(_params.value)
+    mensaRepository.forceRefresh(params.value.destination, language.value)
   }
 
   fun refreshIfNeeded() = viewModelScope.launch {
     initCompleted.await()
-    mensaRepository.refreshIfNeeded(_params.value)
+    mensaRepository.refreshIfNeeded(params.value.destination, language.value)
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
-  private fun locationListFlow(params: Params): Flow<List<Location>> =
-    baseLocations.flatMapLatest { baseLocations ->
-      val date = computeDate(params)
-      val locationFlows = baseLocations.map { location ->
-        val mensaFlows = location.mensas.map {
-          mensaStateFlow(mensa = it.mensa, params = params, date = date)
-        }
-        combine(mensaFlows) {
-          Location(id = location.id, title = location.title, mensas = it.toList())
-        }
+  private fun locationListFlow(
+    destination: Destination,
+    weekday: Weekday,
+    language: Language,
+  ): Flow<List<Location>> = baseLocations.flatMapLatest { baseLocations ->
+    val date = computeDate(destination, weekday)
+    val locationFlows = baseLocations.map { location ->
+      val mensaFlows = location.mensas.map {
+        mensaStateFlow(mensa = it.mensa, language = language, date = date)
       }
-      combine(locationFlows) { it.toList() }
+      combine(mensaFlows) {
+        Location(id = location.id, title = location.title, mensas = it.toList())
+      }
     }
+    combine(locationFlows) { it.toList() }
+  }
 
   private fun mensaStateFlow(
     mensa: Mensa,
-    params: Params,
+    language: Language,
     date: LocalDate,
   ): Flow<MensaState> = combine(
     favoriteMensas,
-    mensaRepository.observeMenus(mensaId = mensa.id, language = params.language, date = date),
+    mensaRepository.observeMenus(mensaId = mensa.id, language = language, date = date),
   ) { favorites, menus ->
     MensaState(
       mensa = mensa,
@@ -143,16 +140,16 @@ class ViewModel(
     )
   }
 
-  private fun computeDate(params: Params): LocalDate {
+  private fun computeDate(destination: Destination, weekday: Weekday): LocalDate {
     val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
     val monday = today.minus(today.dayOfWeek.ordinal, DateTimeUnit.DAY).run {
-      if (params.destination == Destination.NextWeek) plus(7, DateTimeUnit.DAY) else this
+      if (destination == Destination.NextWeek) plus(7, DateTimeUnit.DAY) else this
     }
-    return when (params.destination) {
+    return when (destination) {
       Destination.Today -> today
       Destination.Tomorrow -> today.plus(1, DateTimeUnit.DAY)
       Destination.ThisWeek, Destination.NextWeek -> {
-        monday.plus(params.weekday.ordinal, DateTimeUnit.DAY)
+        monday.plus(weekday.ordinal, DateTimeUnit.DAY)
       }
     }
   }
@@ -177,8 +174,7 @@ class ViewModel(
             ),
           ),
           favoriteMensas = application.expandedMensasFlow,
-          initialLanguage = application.showMenusInGermanFlow.map { it.showMenusInGermanToLanguage },
-          saveLanguage = { application.saveShowMenusInGerman(it.showMenusInGerman) },
+          language = application.showMenusInGermanFlow.map { it.showMenusInGermanToLanguage },
         )
       }
     }

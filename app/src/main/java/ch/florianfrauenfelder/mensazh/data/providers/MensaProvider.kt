@@ -51,8 +51,8 @@ abstract class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider
   }
 
   abstract suspend fun fetchMenus(
-    language: Language,
     destination: Destination,
+    language: Language,
   )
 
   protected abstract suspend fun fetchJson(language: Language, destination: Destination): String?
