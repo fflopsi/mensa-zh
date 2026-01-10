@@ -28,7 +28,6 @@ import java.util.Locale
 import java.util.UUID
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
-import kotlin.time.ExperimentalTime
 
 class UZHMensaProvider(
   menuDao: MenuDao,
@@ -43,7 +42,6 @@ class UZHMensaProvider(
   override val locationsFile = "uzh/locations_zfv.json"
   override val locationSerializer = UzhLocation.serializer()
 
-  @OptIn(ExperimentalTime::class)
   override suspend fun fetchMenus(
     language: Language,
     destination: Destination,
@@ -113,7 +111,6 @@ class UZHMensaProvider(
     }
   }
 
-  @OptIn(ExperimentalTime::class)
   override suspend fun fetchJson(language: Language, destination: Destination): String? {
     val isoDateString =
       Clock.System

@@ -25,7 +25,6 @@ import java.net.URI
 import java.util.Locale
 import java.util.UUID
 import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
 
 class ETHMensaProvider(
   menuDao: MenuDao,
@@ -40,7 +39,6 @@ class ETHMensaProvider(
   override val locationsFile = "eth/locations.json"
   override val locationSerializer = EthLocation.serializer()
 
-  @OptIn(ExperimentalTime::class)
   override suspend fun fetchMenus(
     language: Language,
     destination: Destination,
@@ -74,7 +72,6 @@ class ETHMensaProvider(
     }
   }
 
-  @OptIn(ExperimentalTime::class)
   override suspend fun fetchJson(language: Language, destination: Destination): String? {
     val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
     val monday = today.minus(today.dayOfWeek.ordinal, DateTimeUnit.DAY).run {
@@ -105,7 +102,6 @@ class ETHMensaProvider(
     }
   }
 
-  @OptIn(ExperimentalTime::class)
   private suspend fun getMensaMenusFromCookpit(
     language: Language,
     destination: Destination,
