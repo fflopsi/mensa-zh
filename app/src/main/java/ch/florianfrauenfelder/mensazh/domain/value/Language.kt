@@ -16,7 +16,7 @@ enum class Language {
   val showMenusInGerman get() = this == German
 
   companion object {
-    val default get() = English
+    val default = English
   }
 }
 

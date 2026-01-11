@@ -108,8 +108,6 @@ abstract class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider
       replace("\n ", "\n")
     }
 
-  protected fun fallbackLanguage(language: Language) = !language
-
   private fun Menu.toRoomMenu(
     facilityId: String,
     date: LocalDate,
