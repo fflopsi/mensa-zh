@@ -1,4 +1,4 @@
-package ch.florianfrauenfelder.mensazh.models
+package ch.florianfrauenfelder.mensazh.domain.model
 
 import java.util.UUID
 

@@ -23,7 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ch.florianfrauenfelder.mensazh.R
-import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
+import ch.florianfrauenfelder.mensazh.domain.value.Language
 
 @Composable
 fun SettingsDropdown(
@@ -31,8 +31,8 @@ fun SettingsDropdown(
   setShowOnlyOpenMensas: (Boolean) -> Unit,
   showOnlyExpandedMensas: Boolean,
   setShowOnlyExpandedMensas: (Boolean) -> Unit,
-  language: MensaProvider.Language,
-  setLanguage: (MensaProvider.Language) -> Unit,
+  language: Language,
+  setLanguage: (Language) -> Unit,
   navigateToSettings: () -> Unit,
   modifier: Modifier = Modifier,
 ) {

@@ -11,9 +11,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import ch.florianfrauenfelder.mensazh.models.Location
-import ch.florianfrauenfelder.mensazh.models.Mensa
-import ch.florianfrauenfelder.mensazh.models.Menu
+import ch.florianfrauenfelder.mensazh.domain.model.Location
+import ch.florianfrauenfelder.mensazh.domain.model.Mensa
+import ch.florianfrauenfelder.mensazh.domain.model.MensaState
+import ch.florianfrauenfelder.mensazh.domain.model.Menu
 import java.util.UUID
 
 @Composable
@@ -25,7 +26,7 @@ fun LocationRow(
   saveIsExpandedMensa: (Mensa, Boolean) -> Unit,
   listUseShortDescription: Boolean,
   listShowAllergens: Boolean,
-  onMenuClick: (Menu) -> Unit,
+  onMenuClick: (MensaState, Menu) -> Unit,
   favoriteMensas: List<Mensa>,
   saveFavoriteMensas: (List<Mensa>) -> Unit,
   modifier: Modifier = Modifier,
@@ -41,27 +42,27 @@ fun LocationRow(
       ),
     )
     Column(modifier = Modifier.fillMaxWidth()) {
-      location.mensas.forEach {
-        val showMensa by remember(it, hiddenMensas, showOnlyOpenMensas, showOnlyExpandedMensas) {
+      location.mensas.forEach { mensa ->
+        val showMensa by remember(mensa, hiddenMensas, showOnlyOpenMensas, showOnlyExpandedMensas) {
           derivedStateOf {
-            !(hiddenMensas.contains(it.id)
-              || (showOnlyOpenMensas && it.state == Mensa.State.Closed)
-              || (showOnlyExpandedMensas && it.state != Mensa.State.Expanded))
+            !(hiddenMensas.contains(mensa.mensa.id)
+              || (showOnlyOpenMensas && mensa.state == MensaState.State.Closed)
+              || (showOnlyExpandedMensas && mensa.state != MensaState.State.Expanded))
           }
         }
 
         AnimatedVisibility(visible = showMensa) {
           MensaRow(
-            mensa = it,
+            mensa = mensa,
             saveIsExpandedMensa = saveIsExpandedMensa,
             listUseShortDescription = listUseShortDescription,
             listShowAllergens = listShowAllergens,
-            onMenuClick = onMenuClick,
-            isFavoriteMensa = favoriteMensas.contains(it),
+            onMenuClick = { onMenuClick(mensa, it) },
+            isFavoriteMensa = favoriteMensas.contains(mensa.mensa),
             changeIsFavoriteMensa = {
               saveFavoriteMensas(
-                if (favoriteMensas.contains(it)) favoriteMensas - it
-                else favoriteMensas + it,
+                if (favoriteMensas.contains(mensa.mensa)) favoriteMensas - mensa.mensa
+                else favoriteMensas + mensa.mensa,
               )
             },
             modifier = Modifier.fillMaxWidth(),

@@ -37,10 +37,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ch.florianfrauenfelder.mensazh.R
-import ch.florianfrauenfelder.mensazh.models.Location
-import ch.florianfrauenfelder.mensazh.models.Mensa
-import ch.florianfrauenfelder.mensazh.services.providers.MensaProvider
-import ch.florianfrauenfelder.mensazh.ui.components.InfoLinks
+import ch.florianfrauenfelder.mensazh.domain.model.Location
+import ch.florianfrauenfelder.mensazh.domain.model.Mensa
+import ch.florianfrauenfelder.mensazh.domain.value.Language
+import ch.florianfrauenfelder.mensazh.ui.shared.InfoLinks
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,8 +49,8 @@ fun SettingsScreen(
   setShowOnlyOpenMensas: (Boolean) -> Unit,
   showOnlyExpandedMensas: Boolean,
   setShowOnlyExpandedMensas: (Boolean) -> Unit,
-  language: MensaProvider.Language,
-  setLanguage: (MensaProvider.Language) -> Unit,
+  language: Language,
+  setLanguage: (Language) -> Unit,
   locations: List<Location>,
   shownLocations: List<Location>,
   saveShownLocations: (List<Location>) -> Unit,
@@ -108,7 +108,8 @@ fun SettingsScreen(
     )
     ListSelectorDialog(
       show = showFavoriteMensaSelector,
-      entireList = locations.flatMap { it.mensas }.filter { !hiddenMensas.contains(it) },
+      entireList = locations.flatMap { location -> location.mensas.map { it.mensa } }
+        .filter { !hiddenMensas.contains(it) },
       selectedList = favoriteMensas,
       saveList = saveFavoriteMensas,
       icon = Icons.Default.HotelClass,
@@ -118,7 +119,8 @@ fun SettingsScreen(
     )
     ListSelectorDialog(
       show = showHiddenMensaSelector,
-      entireList = shownLocations.flatMap { it.mensas }.filter { !favoriteMensas.contains(it) },
+      entireList = shownLocations.flatMap { location -> location.mensas.map { it.mensa } }
+        .filter { !favoriteMensas.contains(it) },
       selectedList = hiddenMensas,
       saveList = saveHiddenMensas,
       icon = Icons.Default.FilterListOff,

@@ -23,10 +23,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ch.florianfrauenfelder.mensazh.R
-import ch.florianfrauenfelder.mensazh.models.Location
-import ch.florianfrauenfelder.mensazh.models.Mensa
-import ch.florianfrauenfelder.mensazh.models.Menu
-import ch.florianfrauenfelder.mensazh.ui.components.InfoLinks
+import ch.florianfrauenfelder.mensazh.domain.model.Location
+import ch.florianfrauenfelder.mensazh.domain.model.Mensa
+import ch.florianfrauenfelder.mensazh.domain.model.MensaState
+import ch.florianfrauenfelder.mensazh.domain.model.Menu
+import ch.florianfrauenfelder.mensazh.ui.shared.InfoLinks
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
@@ -40,7 +41,7 @@ fun LocationList(
   saveIsExpandedMensa: (Mensa, Boolean) -> Unit,
   listUseShortDescription: Boolean,
   listShowAllergens: Boolean,
-  onMenuClick: (Menu) -> Unit,
+  onMenuClick: (MensaState, Menu) -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
@@ -52,11 +53,12 @@ fun LocationList(
   ) {
     derivedStateOf {
       locations.isEmpty()
-        || locations.flatMap { it.mensas }.all { hiddenMensas.contains(it.id) }
+        || locations.flatMap { it.mensas }.all { hiddenMensas.contains(it.mensa.id) }
         || (showOnlyOpenMensas && locations.flatMap { it.mensas }
-        .filter { !hiddenMensas.contains(it.id) }.all { it.state == Mensa.State.Closed })
+        .filter { !hiddenMensas.contains(it.mensa.id) }.all { it.state == MensaState.State.Closed })
         || (showOnlyExpandedMensas && locations.flatMap { it.mensas }
-        .filter { !hiddenMensas.contains(it.id) }.none { it.state == Mensa.State.Expanded })
+        .filter { !hiddenMensas.contains(it.mensa.id) }
+        .none { it.state == MensaState.State.Expanded })
     }
   }
 
@@ -86,11 +88,11 @@ fun LocationList(
         location, hiddenMensas, showOnlyOpenMensas, showOnlyExpandedMensas,
       ) {
         derivedStateOf {
-          !(location.mensas.all { hiddenMensas.contains(it.id) }
-            || (showOnlyOpenMensas && location.mensas.filter { !hiddenMensas.contains(it.id) }
-            .all { it.state == Mensa.State.Closed })
-            || (showOnlyExpandedMensas && location.mensas.filter { !hiddenMensas.contains(it.id) }
-            .none { it.state == Mensa.State.Expanded }))
+          !(location.mensas.all { hiddenMensas.contains(it.mensa.id) }
+            || (showOnlyOpenMensas && location.mensas.filter { !hiddenMensas.contains(it.mensa.id) }
+            .all { it.state == MensaState.State.Closed })
+            || (showOnlyExpandedMensas && location.mensas.filter { !hiddenMensas.contains(it.mensa.id) }
+            .none { it.state == MensaState.State.Expanded }))
         }
       }
 
@@ -108,7 +110,7 @@ fun LocationList(
           listUseShortDescription = listUseShortDescription,
           listShowAllergens = listShowAllergens,
           onMenuClick = onMenuClick,
-          favoriteMensas = locations.first().mensas,
+          favoriteMensas = locations.first().mensas.map { it.mensa },
           saveFavoriteMensas = saveFavoriteMensas,
           modifier = Modifier.fillMaxWidth(),
         )

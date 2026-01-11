@@ -1,4 +1,4 @@
-package ch.florianfrauenfelder.mensazh.services
+package ch.florianfrauenfelder.mensazh.data.util
 
 import android.content.res.AssetManager
 import kotlinx.coroutines.Dispatchers

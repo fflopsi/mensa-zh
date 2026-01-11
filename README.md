@@ -39,8 +39,8 @@ these values). Note that this API needs a key. There are other APIs (e.g.
 [food2050](https://api.app.food2050.ch/)), but ZFV only needs one request.
 
 For implementation details on how the links are constructed (to try it out yourself), check
-out [ETHMensaProvider.kt](./app/src/main/java/ch/florianfrauenfelder/mensazh/services/providers/ETHMensaProvider.kt)
-and [UZHMensaProvider.kt](./app/src/main/java/ch/florianfrauenfelder/mensazh/services/providers/UZHMensaProvider.kt).
+out [ETHMensaProvider.kt](./app/src/main/java/ch/florianfrauenfelder/mensazh/data/providers/ETHMensaProvider.kt)
+and [UZHMensaProvider.kt](./app/src/main/java/ch/florianfrauenfelder/mensazh/data/providers/UZHMensaProvider.kt).
 
 ## Development status
 

@@ -9,12 +9,14 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.room.Room
-import ch.florianfrauenfelder.mensazh.models.AppViewModel
-import ch.florianfrauenfelder.mensazh.services.CacheDatabase
-import ch.florianfrauenfelder.mensazh.services.themeFlow
+import ch.florianfrauenfelder.mensazh.data.local.datastore.themeFlow
+import ch.florianfrauenfelder.mensazh.data.local.room.CacheDatabase
 import ch.florianfrauenfelder.mensazh.ui.App
+import ch.florianfrauenfelder.mensazh.ui.ViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -35,12 +37,12 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge(
           statusBarStyle = SystemBarStyle.auto(
             Color.TRANSPARENT,
-            Color.TRANSPARENT
+            Color.TRANSPARENT,
           ) { dark },
           navigationBarStyle = SystemBarStyle.auto(
             Color.TRANSPARENT,
-            Color.TRANSPARENT
-          ) { dark }
+            Color.TRANSPARENT,
+          ) { dark },
         )
       }
     }
@@ -52,25 +54,26 @@ class MainActivity : ComponentActivity() {
     val fetchInfoDao = db.fetchInfoDao()
 
     setContent {
-      val viewModel: AppViewModel by viewModels { AppViewModel.Factory(menuDao, fetchInfoDao) }
+      val viewModel: ViewModel by viewModels { ViewModel.Factory(menuDao, fetchInfoDao) }
 
       LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
           menuDao.deleteExpired(System.currentTimeMillis() - 1.days.inWholeMilliseconds)
         }
-        viewModel.refresh()
+        viewModel.refreshIfNeeded()
       }
 
+      val params by viewModel.params.collectAsStateWithLifecycle()
+      val locations by viewModel.locations.collectAsStateWithLifecycle()
+
       App(
-        destination = viewModel.destination,
-        setDestination = viewModel::setDestination,
-        weekday = viewModel.weekday,
-        setWeekday = viewModel::setWeekday,
-        locations = viewModel.locations,
-        language = viewModel.language,
-        setLanguage = viewModel::setLanguage,
-        isRefreshing = viewModel.isRefreshing,
-        onRefresh = { viewModel.refresh(ignoreCache = true) },
+        destination = params.destination,
+        setDestination = viewModel::setNew,
+        weekday = params.weekday,
+        setWeekday = viewModel::setNew,
+        locations = locations,
+        isRefreshing = viewModel.isRefreshing.collectAsStateWithLifecycle().value,
+        onRefresh = viewModel::forceRefresh,
       )
     }
   }
