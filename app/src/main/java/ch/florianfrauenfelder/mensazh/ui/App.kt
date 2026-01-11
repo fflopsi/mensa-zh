@@ -55,13 +55,11 @@ import ch.florianfrauenfelder.mensazh.data.local.datastore.useDynamicColorFlow
 import ch.florianfrauenfelder.mensazh.domain.model.Location
 import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
 import ch.florianfrauenfelder.mensazh.domain.navigation.Weekday
-import ch.florianfrauenfelder.mensazh.domain.value.Language
 import ch.florianfrauenfelder.mensazh.domain.value.showMenusInGermanToLanguage
 import ch.florianfrauenfelder.mensazh.ui.main.MainScreen
 import ch.florianfrauenfelder.mensazh.ui.navigation.Route
 import ch.florianfrauenfelder.mensazh.ui.settings.SettingsScreen
 import ch.florianfrauenfelder.mensazh.ui.theme.MensaZHTheme
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -92,8 +90,9 @@ fun App(
   val showOnlyExpandedMensas by context.showOnlyExpandedMensasFlow.collectAsStateWithLifecycle(
     initialValue = Prefs.Defaults.SHOW_ONLY_EXPANDED_MENSAS,
   )
-  val language by context.showMenusInGermanFlow.map { it.showMenusInGermanToLanguage }
-    .collectAsStateWithLifecycle(initialValue = Language.default)
+  val language = context.showMenusInGermanFlow.collectAsStateWithLifecycle(
+    initialValue = Prefs.Defaults.SHOW_MENUS_IN_GERMAN,
+  ).value.showMenusInGermanToLanguage
   val shownLocationsIds by context.shownLocationsFlow.collectAsStateWithLifecycle(
     initialValue = Prefs.Defaults.SHOWN_LOCATIONS,
   )
