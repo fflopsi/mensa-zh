@@ -2,16 +2,13 @@ package ch.florianfrauenfelder.mensazh.data.providers
 
 import ch.florianfrauenfelder.mensazh.data.local.room.FetchInfoDao
 import ch.florianfrauenfelder.mensazh.data.local.room.MenuDao
+import ch.florianfrauenfelder.mensazh.data.local.room.RoomMenu
 import ch.florianfrauenfelder.mensazh.data.util.AssetService
 import ch.florianfrauenfelder.mensazh.data.util.SerializationService
 import ch.florianfrauenfelder.mensazh.domain.model.Mensa
-import ch.florianfrauenfelder.mensazh.domain.model.Menu
 import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
-import ch.florianfrauenfelder.mensazh.domain.navigation.Weekday
 import ch.florianfrauenfelder.mensazh.domain.value.Institution
 import ch.florianfrauenfelder.mensazh.domain.value.Language
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -26,23 +23,18 @@ import java.util.Locale
 import java.util.UUID
 import kotlin.time.Clock
 
-class ETHMensaProvider(
-  menuDao: MenuDao,
-  fetchInfoDao: FetchInfoDao,
-  assetService: AssetService,
-) : MensaProvider<ETHMensaProvider.EthLocation, ETHMensaProvider.EthMensa>(
-  menuDao = menuDao,
-  fetchInfoDao = fetchInfoDao,
-  assetService = assetService,
-) {
+class ETHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetService: AssetService) :
+  MensaProvider<ETHMensaProvider.EthLocation, ETHMensaProvider.EthMensa, ETHMensaProvider.EthApi.Root>(
+    menuDao = menuDao,
+    fetchInfoDao = fetchInfoDao,
+    assetService = assetService,
+  ) {
   override val institution = Institution.ETH
   override val locationsFile = "eth/locations.json"
   override val locationSerializer = EthLocation.serializer()
+  override val apiRootSerializer = EthApi.Root.serializer()
 
-  override suspend fun fetchMenus(
-    destination: Destination,
-    language: Language,
-  ) {
+  override fun buildRequest(destination: Destination, language: Language): Request {
     val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
     val monday = today.minus(today.dayOfWeek.ordinal, DateTimeUnit.DAY).run {
       if (destination == Destination.NextWeek) {
@@ -50,37 +42,7 @@ class ETHMensaProvider(
       } else this
     }
 
-    try {
-      updateFetchInfo(destination, language)
-      val menuPerMensa = getMensaMenusFromCookpit(
-        language = language,
-        destination = destination,
-      )
-      apiMensas.forEach { apiMensa ->
-        menuPerMensa[apiMensa.getMapId()].orEmpty().forEachIndexed { index, it ->
-          cacheMenu(
-            facilityId = apiMensa.id,
-            date = monday.plus(it.weekday.ordinal, DateTimeUnit.DAY),
-            language = language,
-            index = index,
-            menu = it,
-          )
-        }
-      }
-    } catch (e: Exception) {
-      e.printStackTrace()
-    }
-  }
-
-  override suspend fun fetchJson(language: Language, destination: Destination): String? {
-    val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
-    val monday = today.minus(today.dayOfWeek.ordinal, DateTimeUnit.DAY).run {
-      if (destination == Destination.NextWeek) {
-        plus(7, DateTimeUnit.DAY)
-      } else this
-    }
-
-    val request = Request
+    return Request
       .Builder()
       .url(
         "https://idapps.ethz.ch/cookpit-pub-services/v1/weeklyrotas" +
@@ -88,54 +50,33 @@ class ETHMensaProvider(
       )
       .get()
       .build()
-
-    return try {
-      withContext(Dispatchers.IO) {
-        client.newCall(request).execute().use {
-          if (it.isSuccessful) {
-            it.body.string()
-          } else null
-        }
-      }
-    } catch (_: Exception) {
-      null
-    }
   }
 
-  private suspend fun getMensaMenusFromCookpit(
-    language: Language,
-    destination: Destination,
-  ): Map<String, List<Menu>> {
-    val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
-    val monday = today.minus(today.dayOfWeek.ordinal, DateTimeUnit.DAY).run {
-      if (destination == Destination.NextWeek) {
-        plus(7, DateTimeUnit.DAY)
-      } else this
-    }
-    val json = fetchJson(language, destination) ?: throw Exception("Cannot load web content")
-    val data: Api.Root = SerializationService.deserialize(json)
-
-    val menuByFacilityIds = hashMapOf<String, List<Menu>>()
-    data.weeklyRotaArray
+  override fun extractMenus(root: EthApi.Root, monday: LocalDate, language: Language) =
+    root.weeklyRotaArray
       .filter { monday in LocalDate.parse(it.validFrom)..LocalDate.parse(it.validTo) }
-      .forEach { weeklyRotaArray ->
-        weeklyRotaArray.dayOfWeekArray.forEach { dayOfWeekArray ->
-          val weekday = Weekday.entries[dayOfWeekArray.dayOfWeekCode - 1]
-          dayOfWeekArray.openingHourArray?.forEach { openingHour ->
-            openingHour.mealTimeArray?.forEach { mealTime ->
-              if (mealTime.lineArray == null) return@forEach
-              val time = parseMealTime(mealTime.name) ?: return@forEach
-              menuByFacilityIds["${weeklyRotaArray.facilityId}_$time"] =
-                menuByFacilityIds["${weeklyRotaArray.facilityId}_$time"].orEmpty() + mealTime.lineArray
-                  .mapNotNull { parseApiLineArray(it.name, it.meal, weekday) }
-                  .filter { !isNoMenuNotice(it, language) }
+      .flatMap { weeklyRota ->
+        weeklyRota.dayOfWeekArray.flatMap { dayOfWeek ->
+          dayOfWeek.openingHourArray.orEmpty().flatMap { openingHour ->
+            openingHour.mealTimeArray.orEmpty().flatMap { mealTime ->
+              val ethMensa = mealTime.lineArray?.let {
+                apiMensas.firstOrNull {
+                  it.getMapId() == "${weeklyRota.facilityId}_${parseMealTime(mealTime.name)}"
+                }
+              } ?: return@flatMap emptyList()
+              mealTime.lineArray.mapIndexedNotNull { index, line ->
+                parseApiMenu(
+                  line = line,
+                  ethMensa = ethMensa,
+                  index = index,
+                  language = language,
+                  date = monday.plus(dayOfWeek.dayOfWeekCode - 1, DateTimeUnit.DAY),
+                )
+              }
             }
           }
         }
       }
-
-    return menuByFacilityIds
-  }
 
   private fun parseMealTime(mealTime: String): String? = when {
     listOf("mittag", "lunch", "pranzo").any { mealTime.lowercase().contains(it) } -> "lunch"
@@ -143,34 +84,41 @@ class ETHMensaProvider(
     else -> null
   }
 
-  override fun isNoMenuNotice(menu: Menu, language: Language): Boolean = when (language) {
-    Language.English -> listOf(
-      "We look forward to serving you this menu again soon!",
-      "is closed",
-      "Closed",
-      "novalue",
-    )
+  private fun parseApiMenu(
+    line: EthApi.Line,
+    ethMensa: EthMensa,
+    index: Int,
+    language: Language,
+    date: LocalDate,
+  ): RoomMenu? =
+    if (line.meal == null) null
+    else RoomMenu(
+      mensaId = ethMensa.id,
+      index = index,
+      language = language.toString(),
+      title = line.name,
+      description = "${line.meal.name.trim()}\n${
+        line.meal.description.replace("\\s+".toRegex(), " ")
+      }",
+      price = SerializationService.serialize(
+        line.meal.mealPriceArray.orEmpty().map { String.format(Locale.US, "%.2f", it.price) },
+      ),
+      allergens = line.meal.allergenArray?.joinToString(separator = ", ") { it.desc },
+      isVegetarian = line.meal.mealClassArray?.any { it.desc.contains("vegetari", true) } ?: false,
+      isVegan = line.meal.mealClassArray?.any { it.desc.contains("vegan", true) } ?: false,
+      imageUrl = line.meal.imageUrl?.let { "$it?client-id=ethz-wcms" },
+      date = date.toString(),
+    ).run { if (hasClosedNotice) null else this }
 
-    Language.German -> listOf(
-      "Dieses Menu servieren wir Ihnen gerne bald wieder!",
-      "geschlossen",
-      "Geschlossen",
-    )
-  }.onEach { it.lowercase() }
-    .any { menu.description.lowercase().contains(it) || menu.title.lowercase() == it }
-
-  private fun parseApiLineArray(name: String, meal: Api.Meal?, weekday: Weekday): Menu? =
-    if (meal == null) null
-    else Menu(
-      title = name,
-      description = "${meal.name.trim()}\n${meal.description.replace("\\s+".toRegex(), " ")}",
-      price = meal.mealPriceArray.orEmpty().map { String.format(Locale.US, "%.2f", it.price) },
-      allergens = meal.allergenArray?.joinToString(separator = ", ") { it.desc },
-      isVegetarian = meal.mealClassArray?.any { it.desc.contains("vegetari", true) } ?: false,
-      isVegan = meal.mealClassArray?.any { it.desc.contains("vegan", true) } ?: false,
-      imageUrl = meal.imageUrl?.let { "$it?client-id=ethz-wcms" },
-      weekday = weekday,
-    )
+  override suspend fun updateFetchInfo(destination: Destination, language: Language) {
+    if (destination != Destination.NextWeek) {
+      listOf(Destination.Today, Destination.Tomorrow, Destination.ThisWeek).forEach {
+        insertFetchInfo(it, language)
+      }
+    } else {
+      insertFetchInfo(destination, language)
+    }
+  }
 
   @Serializable
   data class EthLocation(
@@ -199,9 +147,10 @@ class ETHMensaProvider(
     )
   }
 
-  private object Api {
+  object EthApi {
     @Serializable
-    data class Root(@SerialName("weekly-rota-array") val weeklyRotaArray: List<WeeklyRota>)
+    data class Root(@SerialName("weekly-rota-array") val weeklyRotaArray: List<WeeklyRota>) :
+      Api.Root()
 
     @Serializable
     data class WeeklyRota(

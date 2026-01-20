@@ -8,18 +8,26 @@ import ch.florianfrauenfelder.mensazh.data.util.AssetService
 import ch.florianfrauenfelder.mensazh.data.util.SerializationService
 import ch.florianfrauenfelder.mensazh.domain.model.Location
 import ch.florianfrauenfelder.mensazh.domain.model.Mensa
-import ch.florianfrauenfelder.mensazh.domain.model.Menu
 import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
 import ch.florianfrauenfelder.mensazh.domain.value.Institution
 import ch.florianfrauenfelder.mensazh.domain.value.Language
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.minus
+import kotlinx.datetime.plus
+import kotlinx.datetime.todayIn
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import okhttp3.OkHttpClient
+import okhttp3.Request
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+import kotlin.time.Clock
 
-abstract class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.ApiMensa>(
+abstract class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.ApiMensa, R : MensaProvider.Api.Root>(
   private val menuDao: MenuDao,
   private val fetchInfoDao: FetchInfoDao,
   private val assetService: AssetService,
@@ -27,7 +35,9 @@ abstract class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider
   abstract val institution: Institution
   protected abstract val locationsFile: String
   protected abstract val locationSerializer: KSerializer<L>
-  protected val apiMensas = mutableListOf<M>()
+  protected abstract val apiRootSerializer: KSerializer<R>
+  private val _apiMensas = mutableListOf<M>()
+  protected val apiMensas: List<M> = _apiMensas
   protected val client = OkHttpClient
     .Builder()
     .connectTimeout(5, TimeUnit.SECONDS)
@@ -37,95 +47,88 @@ abstract class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider
   suspend fun getLocations(): List<Location> {
     val json: String = assetService.readStringFile(locationsFile) ?: return emptyList()
     return SerializationService
-      .deserializeLocationList(json, locationSerializer)
+      .deserializeLocationList(json, locationSerializer) // Should not throw during normal operation
       .map { apiLocation ->
         Location(
           id = UUID.fromString(apiLocation.id),
           title = apiLocation.title,
           mensas = apiLocation.mensas.map {
-            apiMensas += it
+            _apiMensas += it
             it.toMensa().toMensaState()
           },
         )
       }
   }
 
-  abstract suspend fun fetchMenus(
-    destination: Destination,
-    language: Language,
-  )
-
-  protected abstract suspend fun fetchJson(language: Language, destination: Destination): String?
-
-  protected suspend fun cacheMenu(
-    facilityId: String,
-    date: LocalDate,
-    language: Language,
-    index: Int,
-    menu: Menu,
-  ) = menuDao.insertMenu(menu.toRoomMenu(facilityId, date, language, index))
-
-  protected suspend fun cacheMenus(
-    facilityId: String,
-    date: LocalDate,
-    language: Language,
-    index: Int,
-    menus: List<Menu>,
-  ) = menuDao.insertMenus(menus.map { it.toRoomMenu(facilityId, date, language, index) })
-
-  protected suspend fun updateFetchInfo(
+  suspend fun fetchMenus(
     destination: Destination,
     language: Language,
   ) {
-    if (institution == Institution.ETH && destination != Destination.NextWeek) {
-      listOf(Destination.Today, Destination.Tomorrow, Destination.ThisWeek).forEach {
-        fetchInfoDao.insertFetchInfo(
-          FetchInfo(
-            institution = institution.toString(),
-            destination = it.toString(),
-            language = language.toString(),
-          ),
-        )
-      }
-    } else {
-      fetchInfoDao.insertFetchInfo(
-        FetchInfo(
-          institution = institution.toString(),
-          destination = destination.toString(),
-          language = language.toString(),
-        ),
-      )
+    val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+    val monday = today.minus(today.dayOfWeek.ordinal, DateTimeUnit.DAY).run {
+      if (destination == Destination.NextWeek) {
+        plus(7, DateTimeUnit.DAY)
+      } else this
+    }
+
+    updateFetchInfo(destination, language)
+    val json = fetchJson(destination, language) ?: return
+    try {
+      val root = SerializationService.deserializeApiRoot(json, apiRootSerializer)
+      menuDao.insertMenus(extractMenus(root, monday, language))
+    } catch (_: Exception) {
+      return
     }
   }
 
-  protected abstract fun isNoMenuNotice(menu: Menu, language: Language): Boolean
-
-  protected fun normalizeText(text: String): String =
-    // remove too much whitespace
-    text.apply {
-      replace("  ", " ")
-      replace(" \n", "\n")
-      replace("\n ", "\n")
+  private suspend fun fetchJson(destination: Destination, language: Language): String? {
+    val request = buildRequest(destination, language)
+    return try {
+      withContext(Dispatchers.IO) {
+        client.newCall(request).execute().use {
+          if (it.isSuccessful) it.body.string()
+          else null
+        }
+      }
+    } catch (_: Exception) {
+      null
     }
+  }
 
-  private fun Menu.toRoomMenu(
-    facilityId: String,
-    date: LocalDate,
+  protected abstract fun buildRequest(destination: Destination, language: Language): Request
+
+  protected abstract fun extractMenus(
+    root: R,
+    monday: LocalDate,
     language: Language,
-    index: Int,
-  ) = RoomMenu(
-    mensaId = facilityId,
-    index = index,
-    language = language.toString(),
-    title = title,
-    description = description,
-    price = SerializationService.serialize(price),
-    allergens = allergens,
-    isVegetarian = isVegetarian,
-    isVegan = isVegan,
-    imageUrl = imageUrl,
-    date = date.toString(),
-  )
+  ): List<RoomMenu>
+
+  protected abstract suspend fun updateFetchInfo(destination: Destination, language: Language)
+
+  protected suspend fun insertFetchInfo(destination: Destination, language: Language) =
+    fetchInfoDao.insertFetchInfo(
+      FetchInfo(
+        institution = institution.toString(),
+        destination = destination.toString(),
+        language = language.toString(),
+      ),
+    )
+
+  protected val RoomMenu.hasClosedNotice: Boolean
+    get() = listOf(
+      "We look forward to serving you this menu again soon!",
+      "Dieses Menu servieren wir Ihnen gerne bald wieder!",
+      "closed",
+      "geschlossen",
+      "kein Abendessen",
+      "no dinner",
+      "novalue",
+      "Wir sind ab Vollsemester",
+      "Betriebsferien",
+    )
+      .onEach { it.lowercase() }
+      .any { description.lowercase().contains(it) || title.lowercase() == it }
+      || description.isBlank()
 
   @Serializable
   sealed class ApiLocation<M : ApiMensa> {
@@ -140,5 +143,9 @@ abstract class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider
     abstract val title: String
     abstract val mealTime: String
     abstract fun toMensa(): Mensa
+  }
+
+  object Api {
+    sealed class Root
   }
 }

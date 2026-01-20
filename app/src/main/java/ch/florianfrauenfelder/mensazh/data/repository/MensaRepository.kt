@@ -28,7 +28,7 @@ import kotlin.time.Duration.Companion.hours
 class MensaRepository(
   private val menuDao: MenuDao,
   private val fetchInfoDao: FetchInfoDao,
-  private val providers: Map<Institution, MensaProvider<*, *>>,
+  private val providers: Map<Institution, MensaProvider<*, *, *>>,
 ) {
   private val _isRefreshing = providers.keys.associateWith { MutableStateFlow(false) }
   val isRefreshing = combine(_isRefreshing.values) { refreshes -> refreshes.any { it } }

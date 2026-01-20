@@ -2,22 +2,16 @@ package ch.florianfrauenfelder.mensazh.data.providers
 
 import ch.florianfrauenfelder.mensazh.data.local.room.FetchInfoDao
 import ch.florianfrauenfelder.mensazh.data.local.room.MenuDao
+import ch.florianfrauenfelder.mensazh.data.local.room.RoomMenu
 import ch.florianfrauenfelder.mensazh.data.util.AssetService
 import ch.florianfrauenfelder.mensazh.data.util.SerializationService
 import ch.florianfrauenfelder.mensazh.domain.model.Mensa
-import ch.florianfrauenfelder.mensazh.domain.model.Menu
 import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
-import ch.florianfrauenfelder.mensazh.domain.navigation.Weekday
 import ch.florianfrauenfelder.mensazh.domain.value.Institution
 import ch.florianfrauenfelder.mensazh.domain.value.Language
-import ch.florianfrauenfelder.mensazh.domain.value.toLanguage
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.minus
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.plus
-import kotlinx.datetime.todayIn
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import okhttp3.MediaType.Companion.toMediaType
@@ -29,89 +23,18 @@ import java.util.UUID
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 
-class UZHMensaProvider(
-  menuDao: MenuDao,
-  fetchInfoDao: FetchInfoDao,
-  assetService: AssetService,
-) : MensaProvider<UZHMensaProvider.UzhLocation, UZHMensaProvider.UzhMensa>(
-  menuDao = menuDao,
-  fetchInfoDao = fetchInfoDao,
-  assetService = assetService,
-) {
+class UZHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetService: AssetService) :
+  MensaProvider<UZHMensaProvider.UzhLocation, UZHMensaProvider.UzhMensa, UZHMensaProvider.UzhApi.Root>(
+    menuDao = menuDao,
+    fetchInfoDao = fetchInfoDao,
+    assetService = assetService,
+  ) {
   override val institution = Institution.UZH
   override val locationsFile = "uzh/locations_zfv.json"
   override val locationSerializer = UzhLocation.serializer()
+  override val apiRootSerializer = UzhApi.Root.serializer()
 
-  override suspend fun fetchMenus(
-    destination: Destination,
-    language: Language,
-  ) {
-    val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
-    val monday = today.minus(today.dayOfWeek.ordinal, DateTimeUnit.DAY).run {
-      if (destination == Destination.NextWeek) {
-        plus(7, DateTimeUnit.DAY)
-      } else this
-    }
-
-    updateFetchInfo(destination, language)
-    val json = fetchJson(language, destination) ?: return
-    val root = SerializationService.deserialize<Api.Root>(json)
-
-    apiMensas.forEach { apiMensa ->
-      apiMensa.toMensa().also { mensa ->
-        val days =
-          root.data?.organisation?.outlets?.find { it.slug == apiMensa.slug }?.calendar?.day?.let {
-            listOf(it)
-          }
-            ?: root.data?.organisation?.outlets?.find { it.slug == apiMensa.slug }?.calendar?.week?.daily
-            ?: return@forEach
-        var menusByWeekday =
-          days.associate { Weekday.entries[it.date.weekdayNumber - 1] to it.menuItems.orEmpty() }
-        if (apiMensa.categoryPath != null) {
-          menusByWeekday = menusByWeekday.mapValues { (_, menus) ->
-            menus.filter { item ->
-              item.category?.path?.any { it.contains(apiMensa.categoryPath) } == true
-            }
-          }
-        }
-        menusByWeekday.forEach { (weekday, items) ->
-          items.forEachIndexed { index, relevantMenu ->
-            relevantMenu.dish?.nameI18n
-              ?.filter { name -> (name.locale ?: "") in Language.entries.map { it.toString() } }
-              ?.forEach { i18nName ->
-                Menu(
-                  title = relevantMenu.category?.name ?: return@forEach,
-                  description = i18nName.label?.replaceFirst(",", "\n")?.replace("\n ", "\n")
-                    ?: return@forEach,
-                  price = relevantMenu.prices?.mapNotNull { it.amount?.toFloat() }?.sorted()?.map {
-                    String.format(Locale.US, "%.2f", it)
-                  } ?: emptyList(),
-                  allergens = relevantMenu.dish.allergens?.mapNotNull {
-                    it.allergen?.name
-                  }?.joinToString(separator = ", "),
-                  isVegetarian = relevantMenu.dish.isVegetarian ?: false,
-                  isVegan = relevantMenu.dish.isVegan ?: false,
-                  imageUrl = relevantMenu.dish.media?.firstOrNull()?.media?.url,
-                  weekday = weekday,
-                ).run {
-                  if (!isNoMenuNotice(this, language)) {
-                    cacheMenu(
-                      facilityId = mensa.id.toString(),
-                      date = monday.plus(weekday.ordinal, DateTimeUnit.DAY),
-                      language = i18nName.locale!!.toLanguage,
-                      index = index,
-                      menu = this,
-                    )
-                  }
-                }
-              }
-          }
-        }
-      }
-    }
-  }
-
-  override suspend fun fetchJson(language: Language, destination: Destination): String? {
+  override fun buildRequest(destination: Destination, language: Language): Request {
     val isoDateString =
       Clock.System
         .now()
@@ -153,7 +76,7 @@ class UZHMensaProvider(
       }
     }
 
-    val request = Request
+    return Request
       .Builder()
       .url("https://api.zfv.ch/graphql")
       .post(requestBody.toRequestBody("application/json".toMediaType()))
@@ -164,38 +87,59 @@ class UZHMensaProvider(
         "Y21nMGdleDdkN2xwbXM2MHRhemIyZWl1MjpBS0dLVkdPSnM5RjJEeDdrVUdySnZGaGZ4dWtpUUN2UHBaRjJrNUt5RENEQldObHRNNUZJUk84MU5JMkdCdmc3",
       )
       .build()
+  }
 
-    return try {
-      withContext(Dispatchers.IO) {
-        client.newCall(request).execute().use {
-          if (it.isSuccessful) it.body.string()
-          else null
+  override fun extractMenus(root: UzhApi.Root, monday: LocalDate, language: Language) =
+    root.data?.organisation?.outlets.orEmpty().flatMap { outlet ->
+      val uzhMensa = apiMensas.find { it.slug == outlet.slug } ?: return@flatMap emptyList()
+      val days =
+        outlet.calendar?.week?.daily ?: outlet.calendar?.day?.let { listOf(it) }
+        ?: return@flatMap emptyList()
+      days.flatMap { day ->
+        day.menuItems.orEmpty().flatMapIndexed { index, menuItem ->
+          menuItem.dish?.nameI18n.orEmpty()
+            .filter { name -> (name.locale ?: "") in Language.entries.map { it.toString() } }
+            .mapNotNull { i18nName ->
+              parseApiMenu(
+                menuItem = menuItem,
+                uzhMensa = uzhMensa,
+                index = index,
+                i18nName = i18nName,
+                date = monday.plus(day.date.weekdayNumber - 1, DateTimeUnit.DAY),
+              )
+            }
         }
       }
-    } catch (_: Exception) {
-      null
     }
-  }
 
-  override fun isNoMenuNotice(menu: Menu, language: Language): Boolean = when (language) {
-    Language.English -> arrayOf(
-      "kein Abendessen",
-      "no dinner",
-      "geschlossen",
-      "is closed",
-      "Wir sind ab Vollsemester",
-    )
+  private fun parseApiMenu(
+    menuItem: UzhApi.MenuItem,
+    uzhMensa: UzhMensa,
+    index: Int,
+    i18nName: UzhApi.I18nName,
+    date: LocalDate,
+  ): RoomMenu? =
+    if (menuItem.dish == null || menuItem.category?.name == null || i18nName.label == null) null
+    else RoomMenu(
+      mensaId = uzhMensa.id,
+      index = index,
+      language = i18nName.locale!!,
+      title = menuItem.category.name,
+      description = i18nName.label.replaceFirst(",", "\n").replace("\n ", "\n"),
+      price = SerializationService.serialize(
+        menuItem.prices?.mapNotNull { it.amount?.toFloat() }?.sorted()
+          ?.map { String.format(Locale.US, "%.2f", it) } ?: emptyList(),
+      ),
+      allergens = menuItem.dish.allergens?.mapNotNull { it.allergen?.name }
+        ?.joinToString(separator = ", "),
+      isVegetarian = menuItem.dish.isVegetarian ?: false,
+      isVegan = menuItem.dish.isVegan ?: false,
+      imageUrl = menuItem.dish.media?.firstOrNull()?.media?.url,
+      date = date.toString(),
+    ).run { if (hasClosedNotice) null else this }
 
-    Language.German -> arrayOf(
-      "kein Abendessen",
-      "geschlossen",
-      "Wir sind ab Vollsemester",
-      "Betriebsferien",
-    )
-  }
-    .onEach { it.lowercase() }
-    .any { menu.description.lowercase().contains(it) }
-    || menu.description.isBlank()
+  override suspend fun updateFetchInfo(destination: Destination, language: Language) =
+    Language.entries.forEach { insertFetchInfo(destination, it) }
 
   @Serializable
   data class UzhLocation(
@@ -221,9 +165,9 @@ class UZHMensaProvider(
     )
   }
 
-  private object Api {
+  object UzhApi {
     @Serializable
-    data class Root(val data: Data? = null)
+    data class Root(val data: Data? = null) : Api.Root()
 
     @Serializable
     data class Data(val organisation: Organisation? = null)
