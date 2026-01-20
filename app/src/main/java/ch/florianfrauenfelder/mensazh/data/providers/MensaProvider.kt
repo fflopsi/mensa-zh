@@ -21,13 +21,14 @@ import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 import kotlin.time.Clock
 
-abstract class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.ApiMensa, R : MensaProvider.Api.Root>(
+sealed class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.ApiMensa, R : MensaProvider.Api.Root>(
   private val menuDao: MenuDao,
   private val fetchInfoDao: FetchInfoDao,
   private val assetService: AssetService,
@@ -46,8 +47,10 @@ abstract class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider
 
   suspend fun getLocations(): List<Location> {
     val json: String = assetService.readStringFile(locationsFile) ?: return emptyList()
-    return SerializationService
-      .deserializeLocationList(json, locationSerializer) // Should not throw during normal operation
+    return SerializationService.safeJson.decodeFromString(
+        ListSerializer(locationSerializer),
+        json,
+      ) // Should not throw during normal operation
       .map { apiLocation ->
         Location(
           id = UUID.fromString(apiLocation.id),
@@ -74,7 +77,7 @@ abstract class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider
     updateFetchInfo(destination, language)
     val json = fetchJson(destination, language) ?: return
     try {
-      val root = SerializationService.deserializeApiRoot(json, apiRootSerializer)
+      val root = SerializationService.safeJson.decodeFromString(apiRootSerializer, json)
       menuDao.insertMenus(extractMenus(root, monday, language))
     } catch (_: Exception) {
       return
