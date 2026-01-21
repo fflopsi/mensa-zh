@@ -102,6 +102,8 @@ class ViewModel(
     mensaRepository.refreshIfNeeded(params.value.destination, language.value)
   }
 
+  fun clearCache() = viewModelScope.launch { mensaRepository.clearCache() }
+
   @OptIn(ExperimentalCoroutinesApi::class)
   private fun locationListFlow(
     destination: Destination,

@@ -58,6 +58,11 @@ class MensaRepository(
     }
   }
 
+  suspend fun clearCache() {
+    fetchInfoDao.clearAll()
+    menuDao.clearAll()
+  }
+
   private val refreshMutexes = providers.keys.associateWith { Mutex() }
 
   private suspend fun refresh(

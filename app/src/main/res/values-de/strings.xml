@@ -66,4 +66,6 @@
   <string name="auto_show_image">Bild in Detailansicht automatisch anzeigen</string>
   <string name="auto_show_image_desc">Bild für ausgewähltes Menu automatisch anzeigen</string>
   <string name="more_settings_desc">Systemeinstellungen für diese App: Speicher, Cache, App-Sprache, …</string>
+  <string name="clear_app_cache">App-Cache leeren</string>
+  <string name="clear_app_cache_desc">Alle zwischengespeicherten Menus und Metadaten löschen</string>
 </resources>

@@ -71,4 +71,6 @@
   <string name="auto_show_image">Auto show image in detail view</string>
   <string name="auto_show_image_desc">Automatically show image for selected menu</string>
   <string name="more_settings_desc">System settings for this app: storage, cache, app language, …</string>
+  <string name="clear_app_cache">Clear app cache</string>
+  <string name="clear_app_cache_desc">Delete all cached menus and metadata</string>
 </resources>

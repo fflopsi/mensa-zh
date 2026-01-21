@@ -74,6 +74,7 @@ class MainActivity : ComponentActivity() {
         locations = locations,
         isRefreshing = viewModel.isRefreshing.collectAsStateWithLifecycle().value,
         onRefresh = viewModel::forceRefresh,
+        clearCache = viewModel::clearCache,
       )
     }
   }

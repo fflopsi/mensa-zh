@@ -73,6 +73,7 @@ fun App(
   locations: List<Location>,
   isRefreshing: Boolean,
   onRefresh: () -> Unit,
+  clearCache: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   val context = LocalContext.current
@@ -235,6 +236,7 @@ fun App(
           saveListShowAllergens = { scope.launch { context.saveListShowAllergens(it) } },
           autoShowImage = autoShowImage,
           saveAutoShowImage = { scope.launch { context.saveAutoShowImage(it) } },
+          clearCache = clearCache,
           openSystemSettings = {
             Intent(
               Settings.ACTION_APPLICATION_DETAILS_SETTINGS,

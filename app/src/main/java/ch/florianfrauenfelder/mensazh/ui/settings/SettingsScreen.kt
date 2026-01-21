@@ -74,6 +74,7 @@ fun SettingsScreen(
   saveTheme: (Int) -> Unit,
   dynamicColor: Boolean,
   saveDynamicColor: (Boolean) -> Unit,
+  clearCache: () -> Unit,
   openSystemSettings: () -> Unit,
   navigateUp: () -> Unit,
   modifier: Modifier = Modifier,
@@ -338,6 +339,13 @@ fun SettingsScreen(
         }
       }
       item { HorizontalDivider() }
+      item {
+        SettingsRow(
+          title = stringResource(R.string.clear_app_cache),
+          subtitle = stringResource(R.string.clear_app_cache_desc),
+          onClick = clearCache,
+        )
+      }
       item {
         SettingsRow(
           title = stringResource(R.string.more_settings),
