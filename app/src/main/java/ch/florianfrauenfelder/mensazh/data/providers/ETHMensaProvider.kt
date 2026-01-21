@@ -45,7 +45,7 @@ class ETHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
       .Builder()
       .url(
         "https://idapps.ethz.ch/cookpit-pub-services/v1/weeklyrotas" +
-          "?client-id=ethz-wcms&lang=$language&rs-first=0&rs-size=150&valid-after=$monday",
+          "?client-id=ethz-wcms&lang=${language.code}&rs-first=0&rs-size=150&valid-after=$monday",
       )
       .get()
       .build()
