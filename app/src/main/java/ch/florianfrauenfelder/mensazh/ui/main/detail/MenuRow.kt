@@ -5,12 +5,14 @@ import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -27,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -63,6 +66,15 @@ fun MenuRow(
   var showMore by rememberSaveable { mutableStateOf(if (autoShowImage) selected else false) }
   val painter = rememberAsyncImagePainter(model = menu.imageUrl)
 
+  val showImage = remember { mutableStateOf(false) }
+  ImageDialog(
+    show = showImage,
+    painter = painter,
+    modifier = Modifier
+      .fillMaxWidth()
+      .fillMaxHeight(0.7f),
+  )
+
   Box(
     modifier = modifier
       .padding(horizontal = 8.dp, vertical = 4.dp)
@@ -76,19 +88,18 @@ fun MenuRow(
       } else {
         CardDefaults.elevatedCardColors()
       },
-      modifier = Modifier
-        .combinedClickable(
-          onClick = { showMore = !showMore },
-          onLongClick = {
-            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-            select(menu)
-          },
-          onLongClickLabel = stringResource(R.string.select_menu),
-        )
-        .animateContentSize(),
+      modifier = Modifier.animateContentSize(),
     ) {
       Row(
         modifier = Modifier
+          .combinedClickable(
+            onClick = { showMore = !showMore },
+            onLongClick = {
+              haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+              select(menu)
+            },
+            onLongClickLabel = stringResource(R.string.select_menu),
+          )
           .fillMaxWidth()
           .padding(8.dp),
       ) {
@@ -173,7 +184,9 @@ fun MenuRow(
           Image(
             painter = painter,
             contentDescription = null,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+              .clickable { showImage.value = true }
+              .fillMaxWidth(),
           )
         }
       }
