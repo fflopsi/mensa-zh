@@ -41,11 +41,8 @@ class MensaRepository(
     mensaId: UUID,
     language: Language,
     date: LocalDate,
-  ): Flow<List<Menu>> = menuDao.getMenus2(
-    mensaId = mensaId.toString(),
-    language = language.toString(),
-    date = date.toString(),
-  ).map { list -> list.map { it.toMenu() } }
+  ): Flow<List<Menu>> =
+    menuDao.getMenus(mensaId, language, date).map { list -> list.map { it.toMenu() } }
 
   suspend fun forceRefresh(destination: Destination, language: Language) = supervisorScope {
     providers.forEach { (institution, _) ->
@@ -88,11 +85,7 @@ class MensaRepository(
     val now = System.currentTimeMillis()
 
     val fetchInfo = withContext(Dispatchers.IO) {
-      fetchInfoDao.getFetchInfo(
-        institution = institution.toString(),
-        destination = destination.toString(),
-        language = language.toString(),
-      )
+      fetchInfoDao.getFetchInfo(institution, destination, language)
     }
 
     return now - (fetchInfo?.fetchDate ?: 0) > 12.hours.inWholeMilliseconds

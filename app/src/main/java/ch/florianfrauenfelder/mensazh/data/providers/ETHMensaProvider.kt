@@ -4,7 +4,6 @@ import ch.florianfrauenfelder.mensazh.data.local.room.FetchInfoDao
 import ch.florianfrauenfelder.mensazh.data.local.room.MenuDao
 import ch.florianfrauenfelder.mensazh.data.local.room.RoomMenu
 import ch.florianfrauenfelder.mensazh.data.util.AssetService
-import ch.florianfrauenfelder.mensazh.data.util.SerializationService
 import ch.florianfrauenfelder.mensazh.domain.model.Mensa
 import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
 import ch.florianfrauenfelder.mensazh.domain.value.Institution
@@ -95,19 +94,17 @@ class ETHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
     else RoomMenu(
       mensaId = ethMensa.id,
       index = index,
-      language = language.toString(),
+      language = language,
       title = line.name,
       description = "${line.meal.name.trim()}\n${
         line.meal.description.replace("\\s+".toRegex(), " ")
       }",
-      price = SerializationService.serialize(
-        line.meal.mealPriceArray.orEmpty().map { String.format(Locale.US, "%.2f", it.price) },
-      ),
+      price = line.meal.mealPriceArray.orEmpty().map { String.format(Locale.US, "%.2f", it.price) },
       allergens = line.meal.allergenArray?.joinToString(separator = ", ") { it.desc },
       isVegetarian = line.meal.mealClassArray?.any { it.desc.contains("vegetari", true) } ?: false,
       isVegan = line.meal.mealClassArray?.any { it.desc.contains("vegan", true) } ?: false,
       imageUrl = line.meal.imageUrl?.let { "$it?client-id=ethz-wcms" },
-      date = date.toString(),
+      date = date,
     ).run { if (hasClosedNotice) null else this }
 
   override suspend fun updateFetchInfo(destination: Destination, language: Language) {

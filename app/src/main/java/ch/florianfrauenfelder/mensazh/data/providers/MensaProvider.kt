@@ -47,7 +47,8 @@ sealed class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.A
 
   suspend fun getLocations(): List<Location> {
     val json: String = assetService.readStringFile(locationsFile) ?: return emptyList()
-    return SerializationService.safeJson.decodeFromString(
+    return SerializationService.safeJson
+      .decodeFromString(
         ListSerializer(locationSerializer),
         json,
       ) // Should not throw during normal operation
@@ -111,9 +112,9 @@ sealed class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.A
   protected suspend fun insertFetchInfo(destination: Destination, language: Language) =
     fetchInfoDao.insertFetchInfo(
       FetchInfo(
-        institution = institution.toString(),
-        destination = destination.toString(),
-        language = language.toString(),
+        institution = institution,
+        destination = destination,
+        language = language,
       ),
     )
 

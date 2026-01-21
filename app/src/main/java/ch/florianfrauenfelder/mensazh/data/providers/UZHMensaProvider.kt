@@ -4,7 +4,6 @@ import ch.florianfrauenfelder.mensazh.data.local.room.FetchInfoDao
 import ch.florianfrauenfelder.mensazh.data.local.room.MenuDao
 import ch.florianfrauenfelder.mensazh.data.local.room.RoomMenu
 import ch.florianfrauenfelder.mensazh.data.util.AssetService
-import ch.florianfrauenfelder.mensazh.data.util.SerializationService
 import ch.florianfrauenfelder.mensazh.domain.model.Mensa
 import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
 import ch.florianfrauenfelder.mensazh.domain.value.Institution
@@ -35,11 +34,10 @@ class UZHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
   override val apiRootSerializer = UzhApi.Root.serializer()
 
   override fun buildRequest(destination: Destination, language: Language): Request {
-    val isoDateString =
+    val date =
       Clock.System
         .now()
         .run { if (destination == Destination.Tomorrow) plus(1.days) else this }
-        .toString()
     val dayQuery =
       "date { weekdayNumber }" +
         "menuItems {" +
@@ -59,7 +57,7 @@ class UZHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
         "{\"query\":\"query Client {" +
           "organisation(where: {id: \\\"cm1tjaby3002o72q4lhhak996\\\", tenantId: \\\"zfv\\\"}) {" +
           "  outlets(take: 100) { slug calendar {" +
-          "    day(date: \\\"$isoDateString\\\") { $dayQuery }" +
+          "    day(date: \\\"$date\\\") { $dayQuery }" +
           "  }" +
           "} }}\",\"operationName\":\"Client\"}"
       }
@@ -98,7 +96,7 @@ class UZHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
       days.flatMap { day ->
         day.menuItems.orEmpty().flatMapIndexed { index, menuItem ->
           menuItem.dish?.nameI18n.orEmpty()
-            .filter { name -> (name.locale ?: "") in Language.entries.map { it.toString() } }
+            .filter { i18nName -> i18nName.locale in Language.entries.map { it.code } }
             .mapNotNull { i18nName ->
               parseApiMenu(
                 menuItem = menuItem,
@@ -123,19 +121,17 @@ class UZHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
     else RoomMenu(
       mensaId = uzhMensa.id,
       index = index,
-      language = i18nName.locale!!,
+      language = Language.fromCode(i18nName.locale!!),
       title = menuItem.category.name,
       description = i18nName.label.replaceFirst(",", "\n").replace("\n ", "\n"),
-      price = SerializationService.serialize(
-        menuItem.prices?.mapNotNull { it.amount?.toFloat() }?.sorted()
-          ?.map { String.format(Locale.US, "%.2f", it) } ?: emptyList(),
-      ),
+      price = menuItem.prices?.mapNotNull { it.amount?.toFloat() }?.sorted()
+        ?.map { String.format(Locale.US, "%.2f", it) } ?: emptyList(),
       allergens = menuItem.dish.allergens?.mapNotNull { it.allergen?.name }
         ?.joinToString(separator = ", "),
       isVegetarian = menuItem.dish.isVegetarian ?: false,
       isVegan = menuItem.dish.isVegan ?: false,
       imageUrl = menuItem.dish.media?.firstOrNull()?.media?.url,
-      date = date.toString(),
+      date = date,
     ).run { if (hasClosedNotice) null else this }
 
   override suspend fun updateFetchInfo(destination: Destination, language: Language) =

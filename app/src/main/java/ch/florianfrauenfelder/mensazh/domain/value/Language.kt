@@ -1,12 +1,7 @@
 package ch.florianfrauenfelder.mensazh.domain.value
 
-enum class Language {
-  German, English;
-
-  override fun toString() = when (this) {
-    German -> "de"
-    English -> "en"
-  }
+enum class Language(val code: String) {
+  German("de"), English("en");
 
   operator fun not(): Language {
     if (this == German) return English
@@ -17,14 +12,10 @@ enum class Language {
 
   companion object {
     val default = English
+
+    fun fromCode(code: String) =
+      entries.firstOrNull { it.code == code } ?: error("$code is not a language")
+
+    fun fromBoolean(showMenusInGerman: Boolean) = if (showMenusInGerman) German else English
   }
 }
-
-val String.toLanguage
-  get() = when (this) {
-    "en" -> Language.English
-    "de" -> Language.German
-    else -> throw IllegalArgumentException("$this is not a language")
-  }
-
-val Boolean.showMenusInGermanToLanguage get() = if (this) Language.German else Language.English

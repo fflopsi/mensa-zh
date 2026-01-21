@@ -22,7 +22,6 @@ import ch.florianfrauenfelder.mensazh.domain.navigation.Params
 import ch.florianfrauenfelder.mensazh.domain.navigation.Weekday
 import ch.florianfrauenfelder.mensazh.domain.value.Institution
 import ch.florianfrauenfelder.mensazh.domain.value.Language
-import ch.florianfrauenfelder.mensazh.domain.value.showMenusInGermanToLanguage
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -165,16 +164,12 @@ class ViewModel(
             menuDao = menuDao,
             fetchInfoDao = fetchInfoDao,
             providers = mapOf(
-              Institution.ETH to ETHMensaProvider(
-                menuDao, fetchInfoDao, assetService
-              ),
-              Institution.UZH to UZHMensaProvider(
-                menuDao, fetchInfoDao, assetService
-              ),
+              Institution.ETH to ETHMensaProvider(menuDao, fetchInfoDao, assetService),
+              Institution.UZH to UZHMensaProvider(menuDao, fetchInfoDao, assetService),
             ),
           ),
           favoriteMensas = application.expandedMensasFlow,
-          language = application.showMenusInGermanFlow.map { it.showMenusInGermanToLanguage },
+          language = application.showMenusInGermanFlow.map { Language.fromBoolean(it) },
         )
       }
     }

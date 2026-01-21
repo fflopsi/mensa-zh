@@ -55,7 +55,7 @@ import ch.florianfrauenfelder.mensazh.data.local.datastore.useDynamicColorFlow
 import ch.florianfrauenfelder.mensazh.domain.model.Location
 import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
 import ch.florianfrauenfelder.mensazh.domain.navigation.Weekday
-import ch.florianfrauenfelder.mensazh.domain.value.showMenusInGermanToLanguage
+import ch.florianfrauenfelder.mensazh.domain.value.Language
 import ch.florianfrauenfelder.mensazh.ui.main.MainScreen
 import ch.florianfrauenfelder.mensazh.ui.navigation.Route
 import ch.florianfrauenfelder.mensazh.ui.settings.SettingsScreen
@@ -90,9 +90,11 @@ fun App(
   val showOnlyExpandedMensas by context.showOnlyExpandedMensasFlow.collectAsStateWithLifecycle(
     initialValue = Prefs.Defaults.SHOW_ONLY_EXPANDED_MENSAS,
   )
-  val language = context.showMenusInGermanFlow.collectAsStateWithLifecycle(
-    initialValue = Prefs.Defaults.SHOW_MENUS_IN_GERMAN,
-  ).value.showMenusInGermanToLanguage
+  val language = Language.fromBoolean(
+    context.showMenusInGermanFlow.collectAsStateWithLifecycle(
+      initialValue = Prefs.Defaults.SHOW_MENUS_IN_GERMAN,
+    ).value,
+  )
   val shownLocationsIds by context.shownLocationsFlow.collectAsStateWithLifecycle(
     initialValue = Prefs.Defaults.SHOWN_LOCATIONS,
   )
