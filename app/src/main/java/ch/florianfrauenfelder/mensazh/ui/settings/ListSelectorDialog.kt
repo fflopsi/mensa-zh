@@ -44,9 +44,9 @@ fun <T : IdTitleItem> ListSelectorDialog(
   modifier: Modifier = Modifier,
   showMoveButtons: Boolean = false,
 ) {
-  val selected = remember { selectedList.toMutableStateList() }
-
   if (show.value) {
+    val selected = remember { selectedList.toMutableStateList() }
+
     AlertDialog(
       onDismissRequest = { show.value = false },
       confirmButton = {
