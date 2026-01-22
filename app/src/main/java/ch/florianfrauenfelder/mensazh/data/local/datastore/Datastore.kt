@@ -9,7 +9,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import ch.florianfrauenfelder.mensazh.domain.model.Location
 import ch.florianfrauenfelder.mensazh.domain.model.Mensa
 import kotlinx.coroutines.flow.map
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 val Context.dataStore by preferencesDataStore(name = "settings")
 
@@ -44,9 +44,9 @@ object Prefs {
       "125c00f8-dfbb-4db6-9683-6113cb78aa68", // UZH Zentrum
       "99222f55-901f-417a-bcbc-191e38628485", // UZH Irchel
       "8b4b82af-64ae-45c9-bc43-dc8a4580a019", // UZH Other
-    ).map { UUID.fromString(it) }
-    val FAVORITE_MENSAS = emptyList<UUID>()
-    val HIDDEN_MENSAS = emptyList<UUID>()
+    ).map { Uuid.parse(it) }
+    val FAVORITE_MENSAS = emptyList<Uuid>()
+    val HIDDEN_MENSAS = emptyList<Uuid>()
     const val SHOW_TOMORROW = false
     const val SHOW_THIS_WEEK = true
     const val SHOW_NEXT_WEEK = true
@@ -107,7 +107,7 @@ suspend fun Context.saveShownLocations(shownLocations: List<Location>) {
 
 val Context.shownLocationsFlow
   get() = dataStore.data.map { pref ->
-    pref[Prefs.Keys.SHOWN_LOCATIONS]?.map { UUID.fromString(it) } ?: Prefs.Defaults.SHOWN_LOCATIONS
+    pref[Prefs.Keys.SHOWN_LOCATIONS]?.map { Uuid.parse(it) } ?: Prefs.Defaults.SHOWN_LOCATIONS
   }
 
 suspend fun Context.saveFavoriteMensas(favoriteMensas: List<Mensa>) {
@@ -118,7 +118,7 @@ suspend fun Context.saveFavoriteMensas(favoriteMensas: List<Mensa>) {
 
 val Context.favoriteMensasFlow
   get() = dataStore.data.map { pref ->
-    pref[Prefs.Keys.FAVORITE_MENSAS]?.map { UUID.fromString(it) } ?: Prefs.Defaults.FAVORITE_MENSAS
+    pref[Prefs.Keys.FAVORITE_MENSAS]?.map { Uuid.parse(it) } ?: Prefs.Defaults.FAVORITE_MENSAS
   }
 
 suspend fun Context.saveHiddenMensas(hiddenMensas: List<Mensa>) {
@@ -129,7 +129,7 @@ suspend fun Context.saveHiddenMensas(hiddenMensas: List<Mensa>) {
 
 val Context.hiddenMensasFlow
   get() = dataStore.data.map { pref ->
-    pref[Prefs.Keys.HIDDEN_MENSAS]?.map { UUID.fromString(it) } ?: Prefs.Defaults.HIDDEN_MENSAS
+    pref[Prefs.Keys.HIDDEN_MENSAS]?.map { Uuid.parse(it) } ?: Prefs.Defaults.HIDDEN_MENSAS
   }
 
 suspend fun Context.saveShowTomorrow(showTomorrow: Boolean) {

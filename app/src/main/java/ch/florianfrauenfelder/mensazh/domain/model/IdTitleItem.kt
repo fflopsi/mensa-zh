@@ -1,8 +1,8 @@
 package ch.florianfrauenfelder.mensazh.domain.model
 
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 interface IdTitleItem {
-  val id: UUID
+  val id: Uuid
   val title: String
 }

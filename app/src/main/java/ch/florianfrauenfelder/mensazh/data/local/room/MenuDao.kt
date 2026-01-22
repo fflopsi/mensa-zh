@@ -7,7 +7,7 @@ import androidx.room.Query
 import ch.florianfrauenfelder.mensazh.domain.value.Language
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.LocalDate
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 @Dao
 interface MenuDao {
@@ -18,11 +18,11 @@ interface MenuDao {
   suspend fun insertMenus(menus: List<RoomMenu>)
 
   @Query("SELECT * FROM menus WHERE mensaId = :mensaId AND language = :language AND date = :date")
-  fun getMenus(mensaId: UUID, language: Language, date: LocalDate): Flow<List<RoomMenu>>
+  fun getMenus(mensaId: Uuid, language: Language, date: LocalDate): Flow<List<RoomMenu>>
 
   @Query("SELECT * FROM menus WHERE mensaId = :mensaId AND language = :language AND date BETWEEN :startDate AND :endDate")
   fun getMenus(
-    mensaId: UUID,
+    mensaId: Uuid,
     language: Language,
     startDate: LocalDate,
     endDate: LocalDate,

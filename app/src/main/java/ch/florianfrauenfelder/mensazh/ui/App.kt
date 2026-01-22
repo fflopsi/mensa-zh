@@ -6,8 +6,6 @@ import android.provider.Settings
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -61,9 +59,8 @@ import ch.florianfrauenfelder.mensazh.ui.navigation.Route
 import ch.florianfrauenfelder.mensazh.ui.settings.SettingsScreen
 import ch.florianfrauenfelder.mensazh.ui.theme.MensaZHTheme
 import kotlinx.coroutines.launch
-import java.util.UUID
+import kotlin.uuid.Uuid
 
-@OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun App(
   destination: Destination,
@@ -145,7 +142,7 @@ fun App(
         add(
           0,
           Location(
-            id = UUID.randomUUID(),
+            id = Uuid.random(),
             title = favoriteLocationTitle,
             mensas = locations
               .flatMap { it.mensas }

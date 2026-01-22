@@ -24,9 +24,9 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import java.util.UUID
 import java.util.concurrent.TimeUnit
 import kotlin.time.Clock
+import kotlin.uuid.Uuid
 
 sealed class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.ApiMensa, R : MensaProvider.Api.Root>(
   private val menuDao: MenuDao,
@@ -54,7 +54,7 @@ sealed class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.A
       ) // Should not throw during normal operation
       .map { apiLocation ->
         Location(
-          id = UUID.fromString(apiLocation.id),
+          id = Uuid.parse(apiLocation.id),
           title = apiLocation.title,
           mensas = apiLocation.mensas.map {
             _apiMensas += it

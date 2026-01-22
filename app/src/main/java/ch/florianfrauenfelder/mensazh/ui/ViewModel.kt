@@ -24,7 +24,6 @@ import ch.florianfrauenfelder.mensazh.domain.value.Institution
 import ch.florianfrauenfelder.mensazh.domain.value.Language
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -59,7 +58,6 @@ class ViewModel(
     initialValue = Language.default,
   )
 
-  @OptIn(ExperimentalCoroutinesApi::class)
   val locations = combine(params, language) { params, language ->
     params to language
   }.flatMapLatest { (params, language) ->
@@ -104,7 +102,6 @@ class ViewModel(
 
   fun clearCache() = viewModelScope.launch { mensaRepository.clearCache() }
 
-  @OptIn(ExperimentalCoroutinesApi::class)
   private fun locationListFlow(
     destination: Destination,
     weekday: Weekday,

@@ -17,10 +17,10 @@ import kotlinx.datetime.todayIn
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import okhttp3.Request
-import java.net.URI
+import java.net.URL
 import java.util.Locale
-import java.util.UUID
 import kotlin.time.Clock
+import kotlin.uuid.Uuid
 
 class ETHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetService: AssetService) :
   MensaProvider<ETHMensaProvider.EthLocation, ETHMensaProvider.EthMensa, ETHMensaProvider.EthApi.Root>(
@@ -136,10 +136,10 @@ class ETHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
     fun getMapId(): String = facilityId.toString() + "_" + timeSlug
 
     override fun toMensa() = Mensa(
-      id = UUID.fromString(id),
+      id = Uuid.parse(id),
       title = title,
       mealTime = mealTime,
-      url = URI("https://ethz.ch/de/campus/erleben/gastronomie-und-einkaufen/gastronomie/restaurants-und-cafeterias/$infoUrlSlug"),
+      url = URL("https://ethz.ch/de/campus/erleben/gastronomie-und-einkaufen/gastronomie/restaurants-und-cafeterias/$infoUrlSlug"),
       imagePath = "eth/images/${infoUrlSlug.substring(infoUrlSlug.indexOf("/") + 1)}.jpg",
     )
   }

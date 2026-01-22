@@ -1,9 +1,9 @@
 package ch.florianfrauenfelder.mensazh.domain.model
 
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 data class Location(
-  override val id: UUID,
+  override val id: Uuid,
   override val title: String,
   val mensas: List<MensaState>,
 ) : IdTitleItem {
@@ -11,7 +11,7 @@ data class Location(
 
   companion object {
     val dummy = Location(
-      id = UUID.randomUUID(),
+      id = Uuid.random(),
       title = "Zentrum",
       mensas = List(3) { MensaState.dummy },
     )

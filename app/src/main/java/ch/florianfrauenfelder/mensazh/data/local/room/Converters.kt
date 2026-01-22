@@ -6,7 +6,7 @@ import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
 import ch.florianfrauenfelder.mensazh.domain.value.Institution
 import ch.florianfrauenfelder.mensazh.domain.value.Language
 import kotlinx.datetime.LocalDate
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 class Converters {
   @TypeConverter
@@ -34,7 +34,7 @@ class Converters {
   fun stringToDate(string: String?): LocalDate? = string?.let(LocalDate::parse)
 
   @TypeConverter
-  fun uuidToString(uuid: UUID?): String? = uuid?.toString()
+  fun uuidToString(uuid: Uuid?): String? = uuid?.toString()
 
   @TypeConverter
   fun stringListToString(list: List<String>?): String? = list?.let(SerializationService::serialize)

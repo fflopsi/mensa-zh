@@ -22,8 +22,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDate
-import java.util.UUID
 import kotlin.time.Duration.Companion.hours
+import kotlin.uuid.Uuid
 
 class MensaRepository(
   private val menuDao: MenuDao,
@@ -38,7 +38,7 @@ class MensaRepository(
   }
 
   fun observeMenus(
-    mensaId: UUID,
+    mensaId: Uuid,
     language: Language,
     date: LocalDate,
   ): Flow<List<Menu>> =

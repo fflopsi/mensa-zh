@@ -18,7 +18,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -30,7 +29,6 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
@@ -57,9 +55,8 @@ import ch.florianfrauenfelder.mensazh.R
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveIsExpandedMensa
 import ch.florianfrauenfelder.mensazh.domain.model.Location
 import ch.florianfrauenfelder.mensazh.domain.model.Mensa
-import ch.florianfrauenfelder.mensazh.domain.model.MensaState
-import ch.florianfrauenfelder.mensazh.domain.model.Menu
 import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
+import ch.florianfrauenfelder.mensazh.domain.navigation.NavigationDetail
 import ch.florianfrauenfelder.mensazh.domain.navigation.Weekday
 import ch.florianfrauenfelder.mensazh.domain.value.Language
 import ch.florianfrauenfelder.mensazh.ui.main.detail.MenuList
@@ -67,9 +64,8 @@ import ch.florianfrauenfelder.mensazh.ui.main.list.LocationList
 import ch.florianfrauenfelder.mensazh.ui.navigation.label
 import ch.florianfrauenfelder.mensazh.ui.navigation.ui
 import kotlinx.coroutines.launch
-import java.util.UUID
+import kotlin.uuid.Uuid
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun MainScreen(
   destination: Destination,
@@ -77,7 +73,7 @@ fun MainScreen(
   weekday: Weekday,
   setWeekday: (Weekday) -> Unit,
   locations: List<Location>,
-  hiddenMensas: List<UUID>,
+  hiddenMensas: List<Uuid>,
   saveFavoriteMensas: (List<Mensa>) -> Unit,
   language: Language,
   setLanguage: (Language) -> Unit,
@@ -101,7 +97,7 @@ fun MainScreen(
   val scope = rememberCoroutineScope()
 
   val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
-  val navigator = rememberListDetailPaneScaffoldNavigator<Pair<MensaState, Menu>>()
+  val navigator = rememberListDetailPaneScaffoldNavigator<NavigationDetail>()
   val snackbarState = remember { SnackbarHostState() }
 
   var tabRowSize by remember { mutableStateOf(IntSize.Zero) }
@@ -121,7 +117,7 @@ fun MainScreen(
       TopAppBar(
         title = {
           Text(
-            text = navigator.currentDestination?.contentKey?.first?.mensa?.title
+            text = navigator.currentDestination?.contentKey?.mensaState?.mensa?.title
               ?: stringResource(R.string.app_name),
           )
         },
@@ -142,7 +138,8 @@ fun MainScreen(
               onClick = {
                 Intent(Intent.ACTION_VIEW).apply {
                   data =
-                    navigator.currentDestination?.contentKey?.first?.mensa?.url.toString().toUri()
+                    navigator.currentDestination?.contentKey?.mensaState?.mensa?.url.toString()
+                      .toUri()
                   context.startActivity(this)
                 }
               },
@@ -208,7 +205,10 @@ fun MainScreen(
                   listShowAllergens = listShowAllergens,
                   onMenuClick = { mensa, menu ->
                     scope.launch {
-                      navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, mensa to menu)
+                      navigator.navigateTo(
+                        ListDetailPaneScaffoldRole.Detail,
+                        NavigationDetail(mensa, menu),
+                      )
                     }
                   },
                   modifier = Modifier.fillMaxWidth(),
@@ -219,11 +219,14 @@ fun MainScreen(
               AnimatedPane {
                 navigator.currentDestination?.contentKey?.let {
                   MenuList(
-                    menus = it.first.menus,
-                    selectedMenu = it.second,
+                    menus = it.mensaState.menus,
+                    selectedMenu = it.selectedMenu,
                     selectMenu = { menu ->
                       scope.launch {
-                        navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, it.first to menu)
+                        navigator.navigateTo(
+                          ListDetailPaneScaffoldRole.Detail,
+                          it.copy(selectedMenu = menu),
+                        )
                       }
                     },
                     autoShowImage = autoShowImage,

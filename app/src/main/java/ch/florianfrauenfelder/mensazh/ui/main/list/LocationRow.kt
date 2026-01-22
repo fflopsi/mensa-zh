@@ -15,12 +15,12 @@ import ch.florianfrauenfelder.mensazh.domain.model.Location
 import ch.florianfrauenfelder.mensazh.domain.model.Mensa
 import ch.florianfrauenfelder.mensazh.domain.model.MensaState
 import ch.florianfrauenfelder.mensazh.domain.model.Menu
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 @Composable
 fun LocationRow(
   location: Location,
-  hiddenMensas: List<UUID>,
+  hiddenMensas: List<Uuid>,
   showOnlyOpenMensas: Boolean,
   showOnlyExpandedMensas: Boolean,
   saveIsExpandedMensa: (Mensa, Boolean) -> Unit,

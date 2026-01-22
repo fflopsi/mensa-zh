@@ -16,11 +16,11 @@ import kotlinx.serialization.Serializable
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import java.net.URI
+import java.net.URL
 import java.util.Locale
-import java.util.UUID
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
+import kotlin.uuid.Uuid
 
 class UZHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetService: AssetService) :
   MensaProvider<UZHMensaProvider.UzhLocation, UZHMensaProvider.UzhMensa, UZHMensaProvider.UzhApi.Root>(
@@ -154,10 +154,10 @@ class UZHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
     val categoryPath: String? = null,
   ) : ApiMensa() {
     override fun toMensa() = Mensa(
-      id = UUID.fromString(id),
+      id = Uuid.parse(id),
       title = title,
       mealTime = mealTime,
-      url = URI("https://www.mensa.uzh.ch/de/menueplaene/$infoUrlSlug.html"),
+      url = URL("https://www.mensa.uzh.ch/de/menueplaene/$infoUrlSlug.html"),
     )
   }
 
