@@ -12,7 +12,7 @@ import ch.florianfrauenfelder.mensazh.domain.model.Menu
 @Composable
 fun MenuList(
   menus: List<Menu>,
-  selectedMenu: Menu,
+  selectedMenu: Menu?,
   selectMenu: (Menu) -> Unit,
   autoShowImage: Boolean,
   modifier: Modifier = Modifier,
@@ -28,7 +28,7 @@ fun MenuList(
     ) {
       MenuRow(
         menu = it,
-        selected = it.title == selectedMenu.title,
+        selected = it.title == selectedMenu?.title,
         select = selectMenu,
         autoShowImage = autoShowImage,
         modifier = Modifier.fillMaxWidth(),

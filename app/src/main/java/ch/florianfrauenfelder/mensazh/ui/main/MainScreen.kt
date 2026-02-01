@@ -37,6 +37,7 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffo
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -98,6 +99,22 @@ fun MainScreen(
 
   val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
   val navigator = rememberListDetailPaneScaffoldNavigator<NavigationDetail>()
+  val selectedMensa by remember(locations, navigator.currentDestination?.contentKey) {
+    derivedStateOf {
+      locations
+        .flatMap { it.mensas }
+        .firstOrNull { it.mensa.id == navigator.currentDestination?.contentKey?.mensaId }
+    }
+  }
+  val selectedMenu by remember(locations, navigator.currentDestination?.contentKey) {
+    derivedStateOf {
+      selectedMensa
+        ?.menus
+        ?.elementAtOrNull(
+          navigator.currentDestination?.contentKey?.menuIndex ?: return@derivedStateOf null
+        )
+    }
+  }
   val snackbarState = remember { SnackbarHostState() }
 
   var tabRowSize by remember { mutableStateOf(IntSize.Zero) }
@@ -115,12 +132,7 @@ fun MainScreen(
   Scaffold(
     topBar = {
       TopAppBar(
-        title = {
-          Text(
-            text = navigator.currentDestination?.contentKey?.mensaState?.mensa?.title
-              ?: stringResource(R.string.app_name),
-          )
-        },
+        title = { Text(text = selectedMensa?.mensa?.title ?: stringResource(R.string.app_name)) },
         navigationIcon = {
           AnimatedVisibility(
             visible = navigator.canNavigateBack(),
@@ -137,9 +149,7 @@ fun MainScreen(
             IconButton(
               onClick = {
                 Intent(Intent.ACTION_VIEW).apply {
-                  data =
-                    navigator.currentDestination?.contentKey?.mensaState?.mensa?.url.toString()
-                      .toUri()
+                  data = selectedMensa?.mensa?.url.toString().toUri()
                   context.startActivity(this)
                 }
               },
@@ -207,7 +217,7 @@ fun MainScreen(
                     scope.launch {
                       navigator.navigateTo(
                         ListDetailPaneScaffoldRole.Detail,
-                        NavigationDetail(mensa, menu),
+                        NavigationDetail(mensa.mensa.id, mensa.menus.indexOf(menu)),
                       )
                     }
                   },
@@ -217,15 +227,15 @@ fun MainScreen(
             },
             detailPane = {
               AnimatedPane {
-                navigator.currentDestination?.contentKey?.let {
+                selectedMensa?.let { mensa ->
                   MenuList(
-                    menus = it.mensaState.menus,
-                    selectedMenu = it.selectedMenu,
+                    menus = mensa.menus,
+                    selectedMenu = selectedMenu,
                     selectMenu = { menu ->
                       scope.launch {
                         navigator.navigateTo(
                           ListDetailPaneScaffoldRole.Detail,
-                          it.copy(selectedMenu = menu),
+                          NavigationDetail(mensa.mensa.id, mensa.menus.indexOf(menu)),
                         )
                       }
                     },
