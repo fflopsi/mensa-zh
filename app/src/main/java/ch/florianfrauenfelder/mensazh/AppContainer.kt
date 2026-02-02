@@ -8,6 +8,9 @@ import ch.florianfrauenfelder.mensazh.data.providers.UZHMensaProvider
 import ch.florianfrauenfelder.mensazh.data.repository.MensaRepository
 import ch.florianfrauenfelder.mensazh.data.util.AssetService
 import ch.florianfrauenfelder.mensazh.domain.value.Institution
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 class AppContainer(context: Context) {
   private val database =
@@ -25,5 +28,6 @@ class AppContainer(context: Context) {
       Institution.ETH to ETHMensaProvider(menuDao, fetchInfoDao, assetService),
       Institution.UZH to UZHMensaProvider(menuDao, fetchInfoDao, assetService),
     ),
+    appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
   )
 }

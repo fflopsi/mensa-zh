@@ -7,20 +7,14 @@ import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.toMutableStateList
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import ch.florianfrauenfelder.mensazh.R
 import ch.florianfrauenfelder.mensazh.data.local.datastore.Prefs
 import ch.florianfrauenfelder.mensazh.data.local.datastore.autoShowImageFlow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.favoriteMensasFlow
@@ -50,29 +44,15 @@ import ch.florianfrauenfelder.mensazh.data.local.datastore.showTomorrowFlow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.shownLocationsFlow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.themeFlow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.useDynamicColorFlow
-import ch.florianfrauenfelder.mensazh.domain.model.Location
-import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
-import ch.florianfrauenfelder.mensazh.domain.navigation.Weekday
 import ch.florianfrauenfelder.mensazh.domain.value.Language
 import ch.florianfrauenfelder.mensazh.ui.main.MainScreen
 import ch.florianfrauenfelder.mensazh.ui.navigation.Route
 import ch.florianfrauenfelder.mensazh.ui.settings.SettingsScreen
 import ch.florianfrauenfelder.mensazh.ui.theme.MensaZHTheme
 import kotlinx.coroutines.launch
-import kotlin.uuid.Uuid
 
 @Composable
-fun App(
-  destination: Destination,
-  setDestination: (Destination) -> Unit,
-  weekday: Weekday,
-  setWeekday: (Weekday) -> Unit,
-  locations: List<Location>,
-  isRefreshing: Boolean,
-  onRefresh: () -> Unit,
-  clearCache: () -> Unit,
-  modifier: Modifier = Modifier,
-) {
+fun MensaApp() {
   val context = LocalContext.current
   val scope = rememberCoroutineScope()
 
@@ -121,39 +101,6 @@ fun App(
     initialValue = Prefs.Defaults.AUTO_SHOW_IMAGE,
   )
 
-  val shownLocations by remember(locations, shownLocationsIds) {
-    derivedStateOf {
-      locations
-        .filter { shownLocationsIds.contains(it.id) }
-        .sortedBy { shownLocationsIds.indexOf(it.id) }
-    }
-  }
-
-  val favoriteLocationTitle = stringResource(R.string.favorites)
-  val listedLocations by remember(locations, shownLocationsIds, favoriteMensas) {
-    derivedStateOf {
-      shownLocations.map { location ->
-        location.copy(
-          id = location.id,
-          title = location.title,
-          mensas = location.mensas.filter { !favoriteMensas.contains(it.mensa.id) },
-        )
-      }.toMutableStateList().apply {
-        add(
-          0,
-          Location(
-            id = Uuid.random(),
-            title = favoriteLocationTitle,
-            mensas = locations
-              .flatMap { it.mensas }
-              .filter { favoriteMensas.contains(it.mensa.id) }
-              .sortedBy { favoriteMensas.indexOf(it.mensa.id) },
-          ),
-        )
-      }
-    }
-  }
-
   MensaZHTheme(
     darkTheme = when (theme) {
       1 -> false
@@ -169,21 +116,13 @@ fun App(
       exitTransition = { slideOut { IntOffset(-it.width, 0) } },
       popEnterTransition = { slideIn { IntOffset(-it.width, 0) } },
       popExitTransition = { slideOut { IntOffset(it.width, 0) } },
-      modifier = modifier,
     ) {
       composable<Route.Main> {
         MainScreen(
-          destination = destination,
-          setDestination = setDestination,
-          weekday = weekday,
-          setWeekday = setWeekday,
-          locations = listedLocations,
           hiddenMensas = hiddenMensas,
           saveFavoriteMensas = { scope.launch { context.saveFavoriteMensas(it) } },
           language = language,
           setLanguage = { scope.launch { context.saveShowMenusInGerman(it.showMenusInGerman) } },
-          isRefreshing = isRefreshing,
-          onRefresh = onRefresh,
           showOnlyOpenMensas = showOnlyOpenMensas,
           setShowOnlyOpenMensas = { scope.launch { context.saveShowOnlyOpenMensas(it) } },
           showOnlyExpandedMensas = showOnlyExpandedMensas,
@@ -205,17 +144,11 @@ fun App(
           setShowOnlyExpandedMensas = { scope.launch { context.saveShowOnlyExpandedMensas(it) } },
           language = language,
           setLanguage = { scope.launch { context.saveShowMenusInGerman(it.showMenusInGerman) } },
-          locations = locations,
-          shownLocations = shownLocations,
+          shownLocationsIds = shownLocationsIds,
           saveShownLocations = { scope.launch { context.saveShownLocations(it) } },
-          favoriteMensas = locations
-            .flatMap { location -> location.mensas.map { it.mensa } }
-            .filter { favoriteMensas.contains(it.id) && !hiddenMensas.contains(it.id) }
-            .sortedBy { favoriteMensas.indexOf(it.id) },
+          favoriteMensasIds = favoriteMensas,
           saveFavoriteMensas = { scope.launch { context.saveFavoriteMensas(it) } },
-          hiddenMensas = shownLocations
-            .flatMap { location -> location.mensas.map { it.mensa } }
-            .filter { hiddenMensas.contains(it.id) && !favoriteMensas.contains(it.id) },
+          hiddenMensasIds = hiddenMensas,
           saveHiddenMensas = { scope.launch { context.saveHiddenMensas(it) } },
           showTomorrow = showTomorrow,
           saveShowTomorrow = { scope.launch { context.saveShowTomorrow(it) } },
@@ -233,7 +166,6 @@ fun App(
           saveListShowAllergens = { scope.launch { context.saveListShowAllergens(it) } },
           autoShowImage = autoShowImage,
           saveAutoShowImage = { scope.launch { context.saveAutoShowImage(it) } },
-          clearCache = clearCache,
           openSystemSettings = {
             Intent(
               Settings.ACTION_APPLICATION_DETAILS_SETTINGS,

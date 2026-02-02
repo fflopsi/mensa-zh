@@ -43,6 +43,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onSizeChanged
@@ -52,8 +53,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import ch.florianfrauenfelder.mensazh.R
+import ch.florianfrauenfelder.mensazh.data.local.datastore.Prefs
+import ch.florianfrauenfelder.mensazh.data.local.datastore.favoriteMensasFlow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveIsExpandedMensa
+import ch.florianfrauenfelder.mensazh.data.local.datastore.shownLocationsFlow
 import ch.florianfrauenfelder.mensazh.domain.model.Location
 import ch.florianfrauenfelder.mensazh.domain.model.Mensa
 import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
@@ -69,17 +75,11 @@ import kotlin.uuid.Uuid
 
 @Composable
 fun MainScreen(
-  destination: Destination,
-  setDestination: (Destination) -> Unit,
-  weekday: Weekday,
-  setWeekday: (Weekday) -> Unit,
-  locations: List<Location>,
+  viewModel: MainViewModel = viewModel(factory = MainViewModel.Factory),
   hiddenMensas: List<Uuid>,
   saveFavoriteMensas: (List<Mensa>) -> Unit,
   language: Language,
   setLanguage: (Language) -> Unit,
-  isRefreshing: Boolean,
-  onRefresh: () -> Unit,
   showOnlyOpenMensas: Boolean,
   setShowOnlyOpenMensas: (Boolean) -> Unit,
   showOnlyExpandedMensas: Boolean,
@@ -91,11 +91,56 @@ fun MainScreen(
   listShowAllergens: Boolean,
   autoShowImage: Boolean,
   navigateToSettings: () -> Unit,
-  modifier: Modifier = Modifier,
 ) {
   val context = LocalContext.current
   val density = LocalDensity.current
   val scope = rememberCoroutineScope()
+
+  val params by viewModel.params.collectAsStateWithLifecycle()
+  val bareLocations by viewModel.locations.collectAsStateWithLifecycle()
+  val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+
+  val shownLocationsIds by context.shownLocationsFlow.collectAsStateWithLifecycle(
+    initialValue = Prefs.Defaults.SHOWN_LOCATIONS,
+  )
+  val favoriteMensas by context.favoriteMensasFlow.collectAsStateWithLifecycle(
+    initialValue = Prefs.Defaults.FAVORITE_MENSAS,
+  )
+
+  val shownLocations by remember(bareLocations, shownLocationsIds) {
+    derivedStateOf {
+      bareLocations
+        .filter { shownLocationsIds.contains(it.id) }
+        .sortedBy { shownLocationsIds.indexOf(it.id) }
+    }
+  }
+  val favoriteLocationTitle = stringResource(R.string.favorites)
+  val locations by remember(bareLocations, shownLocationsIds, favoriteMensas) {
+    derivedStateOf {
+      shownLocations
+        .map { location ->
+          location.copy(
+            id = location.id,
+            title = location.title,
+            mensas = location.mensas.filter { !favoriteMensas.contains(it.mensa.id) },
+          )
+        }
+        .toMutableStateList()
+        .apply {
+          add(
+            0,
+            Location(
+              id = Uuid.random(),
+              title = favoriteLocationTitle,
+              mensas = bareLocations
+                .flatMap { it.mensas }
+                .filter { favoriteMensas.contains(it.mensa.id) }
+                .sortedBy { favoriteMensas.indexOf(it.mensa.id) },
+            ),
+          )
+        }
+    }
+  }
 
   val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
   val navigator = rememberListDetailPaneScaffoldNavigator<NavigationDetail>()
@@ -120,13 +165,17 @@ fun MainScreen(
   var tabRowSize by remember { mutableStateOf(IntSize.Zero) }
 
   val snackbarMessage = stringResource(R.string.no_internet_or_menus)
-  LaunchedEffect(isRefreshing, locations, destination, weekday) {
+  LaunchedEffect(isRefreshing, locations, params) {
     if (!isRefreshing && locations.flatMap { it.mensas }.flatMap { it.menus }.isEmpty()) {
       snackbarState.showSnackbar(
         message = snackbarMessage,
         withDismissAction = true,
       )
     }
+  }
+
+  LaunchedEffect(Unit) {
+    viewModel.deleteExpired()
   }
 
   Scaffold(
@@ -157,7 +206,7 @@ fun MainScreen(
               Icon(Icons.Default.OpenInBrowser, stringResource(R.string.open_in_browser))
             }
           }
-          IconButton(onClick = onRefresh) {
+          IconButton(onClick = viewModel::forceRefresh) {
             Icon(Icons.Default.Refresh, stringResource(R.string.refresh))
           }
           SettingsDropdown(
@@ -174,12 +223,12 @@ fun MainScreen(
       )
     },
     contentWindowInsets = WindowInsets.safeDrawing,
-    modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+    modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
   ) { insets ->
 
     PullToRefreshBox(
       isRefreshing = isRefreshing,
-      onRefresh = onRefresh,
+      onRefresh = viewModel::forceRefresh,
       modifier = Modifier
         .padding(insets)
         .consumeWindowInsets(insets),
@@ -248,14 +297,14 @@ fun MainScreen(
             modifier = Modifier.weight(1f),
           )
           AnimatedVisibility(
-            visible = destination in listOf(Destination.ThisWeek, Destination.NextWeek),
+            visible = params.destination in listOf(Destination.ThisWeek, Destination.NextWeek),
             modifier = Modifier.onSizeChanged { tabRowSize = it },
           ) {
-            SecondaryTabRow(selectedTabIndex = weekday.ordinal) {
+            SecondaryTabRow(selectedTabIndex = params.weekday.ordinal) {
               Weekday.entries.forEach {
                 Tab(
-                  selected = weekday == it,
-                  onClick = { setWeekday(it) },
+                  selected = params.weekday == it,
+                  onClick = { viewModel.setNew(it) },
                   text = { Text(text = stringResource(it.label)) },
                 )
               }
@@ -276,10 +325,10 @@ fun MainScreen(
               item(
                 icon = { Icon(it.ui.icon, stringResource(it.ui.label)) },
                 label = { Text(stringResource(it.ui.label)) },
-                selected = it == destination,
+                selected = it == params.destination,
                 onClick = {
-                  if (it != destination) {
-                    setDestination(it)
+                  if (it != params.destination) {
+                    viewModel.setNew(it)
                   } else if (navigator.canNavigateBack()) {
                     scope.launch { navigator.navigateBack() }
                   }

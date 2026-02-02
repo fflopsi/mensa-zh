@@ -3,19 +3,22 @@ package ch.florianfrauenfelder.mensazh.data.repository
 import ch.florianfrauenfelder.mensazh.data.local.room.FetchInfoDao
 import ch.florianfrauenfelder.mensazh.data.local.room.MenuDao
 import ch.florianfrauenfelder.mensazh.data.providers.MensaProvider
-import ch.florianfrauenfelder.mensazh.domain.model.Location
 import ch.florianfrauenfelder.mensazh.domain.model.Menu
 import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
 import ch.florianfrauenfelder.mensazh.domain.value.Institution
 import ch.florianfrauenfelder.mensazh.domain.value.Language
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.sync.Mutex
@@ -30,13 +33,22 @@ class MensaRepository(
   private val menuDao: MenuDao,
   private val fetchInfoDao: FetchInfoDao,
   private val providers: Map<Institution, MensaProvider<*, *, *>>,
+  appScope: CoroutineScope,
 ) {
   private val _isRefreshing = providers.keys.associateWith { MutableStateFlow(false) }
   val isRefreshing = combine(_isRefreshing.values) { refreshes -> refreshes.any { it } }
 
-  suspend fun getLocations(): List<Location> = coroutineScope {
-    providers.values.map { async { it.getLocations() } }.awaitAll().flatten()
-  }
+  val baseLocations = flow {
+    emit(
+      coroutineScope {
+        providers.values.map { async { it.getLocations() } }.awaitAll().flatten()
+      },
+    )
+  }.stateIn(
+    scope = appScope,
+    started = SharingStarted.WhileSubscribed(5000),
+    initialValue = emptyList(),
+  )
 
   fun observeMenus(
     mensaId: Uuid,

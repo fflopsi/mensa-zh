@@ -7,14 +7,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import ch.florianfrauenfelder.mensazh.data.local.datastore.themeFlow
-import ch.florianfrauenfelder.mensazh.ui.App
-import ch.florianfrauenfelder.mensazh.ui.MainViewModel
+import ch.florianfrauenfelder.mensazh.ui.MensaApp
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -42,26 +37,6 @@ class MainActivity : ComponentActivity() {
       }
     }
 
-    setContent {
-      val viewModel: MainViewModel = viewModel(factory = MainViewModel.Factory)
-
-      LaunchedEffect(Unit) {
-        viewModel.deleteExpired()
-      }
-
-      val params by viewModel.params.collectAsStateWithLifecycle()
-      val locations by viewModel.locations.collectAsStateWithLifecycle()
-
-      App(
-        destination = params.destination,
-        setDestination = viewModel::setNew,
-        weekday = params.weekday,
-        setWeekday = viewModel::setNew,
-        locations = locations,
-        isRefreshing = viewModel.isRefreshing.collectAsStateWithLifecycle().value,
-        onRefresh = viewModel::forceRefresh,
-        clearCache = viewModel::clearCache,
-      )
-    }
+    setContent { MensaApp() }
   }
 }

@@ -1,4 +1,4 @@
-package ch.florianfrauenfelder.mensazh.ui
+package ch.florianfrauenfelder.mensazh.ui.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -17,7 +17,6 @@ import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
 import ch.florianfrauenfelder.mensazh.domain.navigation.Params
 import ch.florianfrauenfelder.mensazh.domain.navigation.Weekday
 import ch.florianfrauenfelder.mensazh.domain.value.Language
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -62,46 +61,27 @@ class MainViewModel(
     initialValue = emptyList(),
   )
 
-  private val baseLocations = MutableStateFlow<List<Location>>(emptyList())
-
   val isRefreshing = mensaRepository.isRefreshing.stateIn(
     scope = viewModelScope,
     started = SharingStarted.WhileSubscribed(5000),
     initialValue = false,
   )
 
-  private val initCompleted = CompletableDeferred<Unit>()
-
-  init {
-    viewModelScope.launch {
-      baseLocations.value = mensaRepository.getLocations()
-      initCompleted.complete(Unit)
-    }
-  }
-
   fun setNew(newDestination: Destination) = _params.update { it.copy(destination = newDestination) }
 
   fun setNew(newWeekday: Weekday) = _params.update { it.copy(weekday = newWeekday) }
 
   fun forceRefresh() = viewModelScope.launch {
-    initCompleted.await()
     mensaRepository.forceRefresh(params.value.destination, language.value)
   }
 
-  fun refreshIfNeeded() = viewModelScope.launch {
-    initCompleted.await()
-    mensaRepository.refreshIfNeeded(params.value.destination, language.value)
-  }
-
   fun deleteExpired() = viewModelScope.launch { mensaRepository.deleteExpired() }
-
-  fun clearCache() = viewModelScope.launch { mensaRepository.clearCache() }
 
   private fun locationListFlow(
     destination: Destination,
     weekday: Weekday,
     language: Language,
-  ): Flow<List<Location>> = baseLocations.flatMapLatest { baseLocations ->
+  ): Flow<List<Location>> = mensaRepository.baseLocations.flatMapLatest { baseLocations ->
     val date = computeDate(destination, weekday)
     val locationFlows = baseLocations.map { location ->
       val mensaFlows = location.mensas.map {
@@ -150,10 +130,9 @@ class MainViewModel(
   companion object {
     val Factory = viewModelFactory {
       initializer {
-        val application =
-          checkNotNull(
-            this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as MensaApplication,
-          )
+        val application = checkNotNull(
+          this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as MensaApplication,
+        )
         MainViewModel(
           mensaRepository = application.container.mensaRepository,
           favoriteMensas = application.expandedMensasFlow,

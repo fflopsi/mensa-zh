@@ -28,6 +28,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,26 +36,29 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import ch.florianfrauenfelder.mensazh.R
 import ch.florianfrauenfelder.mensazh.domain.model.Location
 import ch.florianfrauenfelder.mensazh.domain.model.Mensa
 import ch.florianfrauenfelder.mensazh.domain.value.Language
 import ch.florianfrauenfelder.mensazh.ui.shared.InfoLinks
+import kotlin.uuid.Uuid
 
 @Composable
 fun SettingsScreen(
+  viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory),
   showOnlyOpenMensas: Boolean,
   setShowOnlyOpenMensas: (Boolean) -> Unit,
   showOnlyExpandedMensas: Boolean,
   setShowOnlyExpandedMensas: (Boolean) -> Unit,
   language: Language,
   setLanguage: (Language) -> Unit,
-  locations: List<Location>,
-  shownLocations: List<Location>,
+  shownLocationsIds: List<Uuid>,
   saveShownLocations: (List<Location>) -> Unit,
-  favoriteMensas: List<Mensa>,
+  favoriteMensasIds: List<Uuid>,
   saveFavoriteMensas: (List<Mensa>) -> Unit,
-  hiddenMensas: List<Mensa>,
+  hiddenMensasIds: List<Uuid>,
   saveHiddenMensas: (List<Mensa>) -> Unit,
   showTomorrow: Boolean,
   saveShowTomorrow: (Boolean) -> Unit,
@@ -72,11 +76,25 @@ fun SettingsScreen(
   saveTheme: (Int) -> Unit,
   dynamicColor: Boolean,
   saveDynamicColor: (Boolean) -> Unit,
-  clearCache: () -> Unit,
   openSystemSettings: () -> Unit,
   navigateUp: () -> Unit,
-  modifier: Modifier = Modifier,
 ) {
+  val baseLocations by viewModel.baseLocations.collectAsStateWithLifecycle()
+  val shownLocations by remember(baseLocations, shownLocationsIds) {
+    derivedStateOf {
+      baseLocations
+        .filter { shownLocationsIds.contains(it.id) }
+        .sortedBy { shownLocationsIds.indexOf(it.id) }
+    }
+  }
+  val hiddenMensas = shownLocations
+    .flatMap { location -> location.mensas.map { it.mensa } }
+    .filter { hiddenMensasIds.contains(it.id) && !favoriteMensasIds.contains(it.id) }
+  val favoriteMensas = baseLocations
+    .flatMap { location -> location.mensas.map { it.mensa } }
+    .filter { favoriteMensasIds.contains(it.id) && !hiddenMensasIds.contains(it.id) }
+    .sortedBy { favoriteMensasIds.indexOf(it.id) }
+
   val showLocationSelector = remember { mutableStateOf(false) }
   val showFavoriteMensaSelector = remember { mutableStateOf(false) }
   val showHiddenMensaSelector = remember { mutableStateOf(false) }
@@ -93,11 +111,10 @@ fun SettingsScreen(
       )
     },
     contentWindowInsets = WindowInsets.safeDrawing,
-    modifier = modifier,
   ) { insets ->
     ListSelectorDialog(
       show = showLocationSelector,
-      entireList = locations,
+      entireList = baseLocations,
       selectedList = shownLocations,
       saveList = saveShownLocations,
       icon = Icons.Default.EditLocation,
@@ -107,7 +124,7 @@ fun SettingsScreen(
     )
     ListSelectorDialog(
       show = showFavoriteMensaSelector,
-      entireList = locations.flatMap { location -> location.mensas.map { it.mensa } }
+      entireList = baseLocations.flatMap { location -> location.mensas.map { it.mensa } }
         .filter { !hiddenMensas.contains(it) },
       selectedList = favoriteMensas,
       saveList = saveFavoriteMensas,
@@ -341,7 +358,7 @@ fun SettingsScreen(
         SettingsRow(
           title = stringResource(R.string.clear_app_cache),
           subtitle = stringResource(R.string.clear_app_cache_desc),
-          onClick = clearCache,
+          onClick = viewModel::clearCache,
         )
       }
       item {
