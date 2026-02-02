@@ -5,14 +5,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import ch.florianfrauenfelder.mensazh.MensaApplication
 import ch.florianfrauenfelder.mensazh.data.local.datastore.expandedMensasFlow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.showMenusInGermanFlow
-import ch.florianfrauenfelder.mensazh.data.local.room.FetchInfoDao
-import ch.florianfrauenfelder.mensazh.data.local.room.MenuDao
-import ch.florianfrauenfelder.mensazh.data.providers.ETHMensaProvider
-import ch.florianfrauenfelder.mensazh.data.providers.UZHMensaProvider
 import ch.florianfrauenfelder.mensazh.data.repository.MensaRepository
-import ch.florianfrauenfelder.mensazh.data.util.AssetService
 import ch.florianfrauenfelder.mensazh.data.util.currentWeekday
 import ch.florianfrauenfelder.mensazh.domain.model.Location
 import ch.florianfrauenfelder.mensazh.domain.model.Mensa
@@ -20,10 +16,8 @@ import ch.florianfrauenfelder.mensazh.domain.model.MensaState
 import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
 import ch.florianfrauenfelder.mensazh.domain.navigation.Params
 import ch.florianfrauenfelder.mensazh.domain.navigation.Weekday
-import ch.florianfrauenfelder.mensazh.domain.value.Institution
 import ch.florianfrauenfelder.mensazh.domain.value.Language
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -34,7 +28,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -43,7 +36,7 @@ import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
 import kotlin.time.Clock
 
-class ViewModel(
+class MainViewModel(
   private val mensaRepository: MensaRepository,
   private val favoriteMensas: Flow<Set<String>>,
   language: Flow<Language>,
@@ -81,7 +74,7 @@ class ViewModel(
 
   init {
     viewModelScope.launch {
-      baseLocations.value = withContext(Dispatchers.IO) { mensaRepository.getLocations() }
+      baseLocations.value = mensaRepository.getLocations()
       initCompleted.complete(Unit)
     }
   }
@@ -99,6 +92,8 @@ class ViewModel(
     initCompleted.await()
     mensaRepository.refreshIfNeeded(params.value.destination, language.value)
   }
+
+  fun deleteExpired() = viewModelScope.launch { mensaRepository.deleteExpired() }
 
   fun clearCache() = viewModelScope.launch { mensaRepository.clearCache() }
 
@@ -153,20 +148,14 @@ class ViewModel(
   }
 
   companion object {
-    fun Factory(menuDao: MenuDao, fetchInfoDao: FetchInfoDao) = viewModelFactory {
+    val Factory = viewModelFactory {
       initializer {
         val application =
-          checkNotNull(this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
-        val assetService = AssetService(application.assets)
-        ViewModel(
-          mensaRepository = MensaRepository(
-            menuDao = menuDao,
-            fetchInfoDao = fetchInfoDao,
-            providers = mapOf(
-              Institution.ETH to ETHMensaProvider(menuDao, fetchInfoDao, assetService),
-              Institution.UZH to UZHMensaProvider(menuDao, fetchInfoDao, assetService),
-            ),
-          ),
+          checkNotNull(
+            this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as MensaApplication,
+          )
+        MainViewModel(
+          mensaRepository = application.container.mensaRepository,
           favoriteMensas = application.expandedMensasFlow,
           language = application.showMenusInGermanFlow.map { Language.fromBoolean(it) },
         )

@@ -22,6 +22,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDate
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.uuid.Uuid
 
@@ -58,7 +59,11 @@ class MensaRepository(
     }
   }
 
-  suspend fun clearCache() {
+  suspend fun deleteExpired() = withContext(Dispatchers.IO) {
+    menuDao.deleteExpired(System.currentTimeMillis() - 1.days.inWholeMilliseconds)
+  }
+
+  suspend fun clearCache() = withContext(Dispatchers.IO) {
     fetchInfoDao.clearAll()
     menuDao.clearAll()
   }

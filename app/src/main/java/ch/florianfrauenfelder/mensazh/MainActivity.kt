@@ -7,20 +7,15 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.room.Room
+import androidx.lifecycle.viewmodel.compose.viewModel
 import ch.florianfrauenfelder.mensazh.data.local.datastore.themeFlow
-import ch.florianfrauenfelder.mensazh.data.local.room.CacheDatabase
 import ch.florianfrauenfelder.mensazh.ui.App
-import ch.florianfrauenfelder.mensazh.ui.ViewModel
-import kotlinx.coroutines.Dispatchers
+import ch.florianfrauenfelder.mensazh.ui.MainViewModel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlin.time.Duration.Companion.days
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,20 +42,11 @@ class MainActivity : ComponentActivity() {
       }
     }
 
-    val db = Room
-      .databaseBuilder(applicationContext, CacheDatabase::class.java, "cache-database")
-      .build()
-    val menuDao = db.menuDao()
-    val fetchInfoDao = db.fetchInfoDao()
-
     setContent {
-      val viewModel: ViewModel by viewModels { ViewModel.Factory(menuDao, fetchInfoDao) }
+      val viewModel: MainViewModel = viewModel(factory = MainViewModel.Factory)
 
       LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-          menuDao.deleteExpired(System.currentTimeMillis() - 1.days.inWholeMilliseconds)
-        }
-        viewModel.refreshIfNeeded()
+        viewModel.deleteExpired()
       }
 
       val params by viewModel.params.collectAsStateWithLifecycle()
