@@ -1,14 +1,14 @@
 package ch.florianfrauenfelder.mensazh.ui.main
 
+import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import ch.florianfrauenfelder.mensazh.MensaApplication
-import ch.florianfrauenfelder.mensazh.data.local.datastore.expandedMensasFlow
-import ch.florianfrauenfelder.mensazh.data.local.datastore.showMenusInGermanFlow
 import ch.florianfrauenfelder.mensazh.data.repository.MensaRepository
+import ch.florianfrauenfelder.mensazh.data.repository.PreferencesRepository
 import ch.florianfrauenfelder.mensazh.data.util.currentWeekday
 import ch.florianfrauenfelder.mensazh.domain.model.Location
 import ch.florianfrauenfelder.mensazh.domain.model.Mensa
@@ -16,6 +16,11 @@ import ch.florianfrauenfelder.mensazh.domain.model.MensaState
 import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
 import ch.florianfrauenfelder.mensazh.domain.navigation.Params
 import ch.florianfrauenfelder.mensazh.domain.navigation.Weekday
+import ch.florianfrauenfelder.mensazh.domain.preferences.DestinationSettings
+import ch.florianfrauenfelder.mensazh.domain.preferences.DetailSettings
+import ch.florianfrauenfelder.mensazh.domain.preferences.SelectionSettings
+import ch.florianfrauenfelder.mensazh.domain.preferences.Setting
+import ch.florianfrauenfelder.mensazh.domain.preferences.VisibilitySettings
 import ch.florianfrauenfelder.mensazh.domain.value.Language
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,27 +39,72 @@ import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
 import kotlin.time.Clock
+import kotlin.uuid.Uuid
 
 class MainViewModel(
   private val mensaRepository: MensaRepository,
-  private val favoriteMensas: Flow<Set<String>>,
-  language: Flow<Language>,
+  private val preferencesRepository: PreferencesRepository,
 ) : ViewModel() {
   private val _params =
     MutableStateFlow(Params(destination = Destination.Today, weekday = currentWeekday()))
   val params = _params.asStateFlow()
 
-  private val language = language.stateIn(
+  val visibilitySettings = preferencesRepository.visibilitySettings.stateIn(
     scope = viewModelScope,
     started = SharingStarted.WhileSubscribed(5000),
-    initialValue = Language.default,
+    initialValue = VisibilitySettings(),
   )
 
-  val locations = combine(params, language) { params, language ->
-    params to language
+  val selectionSettings = preferencesRepository.selectionSettings.stateIn(
+    scope = viewModelScope,
+    started = SharingStarted.WhileSubscribed(5000),
+    initialValue = SelectionSettings(),
+  )
+
+  val destinationSettings = preferencesRepository.destinationSettings.stateIn(
+    scope = viewModelScope,
+    started = SharingStarted.WhileSubscribed(5000),
+    initialValue = DestinationSettings(),
+  )
+
+  val detailSettings = preferencesRepository.detailSettings.stateIn(
+    scope = viewModelScope,
+    started = SharingStarted.WhileSubscribed(5000),
+    initialValue = DetailSettings(),
+  )
+
+  private val allLocations = combine(params, visibilitySettings) { params, visibility ->
+    params to visibility.language
   }.flatMapLatest { (params, language) ->
     viewModelScope.launch { mensaRepository.refreshIfNeeded(params.destination, language) }
     locationListFlow(params.destination, params.weekday, language)
+  }
+
+  val locations = combine(allLocations, selectionSettings) { locations, selection ->
+    locations
+      .filter { selection.shownLocations.contains(it.id) }
+      .sortedBy { selection.shownLocations.indexOf(it.id) }
+      .map { location ->
+        location.copy(
+          id = location.id,
+          title = location.title,
+          mensas = location.mensas.filter { !selection.favoriteMensas.contains(it.mensa.id) },
+        )
+      }
+      .toMutableStateList()
+      .apply {
+        add(
+          0,
+          Location(
+            id = Uuid.random(),
+            title = "★",
+            mensas = locations
+              .flatMap { it.mensas }
+              .filter { selection.favoriteMensas.contains(it.mensa.id) }
+              .sortedBy { selection.favoriteMensas.indexOf(it.mensa.id) },
+          ),
+        )
+      }
   }.stateIn(
     scope = viewModelScope,
     started = SharingStarted.WhileSubscribed(5000),
@@ -71,8 +121,12 @@ class MainViewModel(
 
   fun setNew(newWeekday: Weekday) = _params.update { it.copy(weekday = newWeekday) }
 
+  fun updateSetting(setting: Setting) = viewModelScope.launch {
+    preferencesRepository.updateSetting(setting)
+  }
+
   fun forceRefresh() = viewModelScope.launch {
-    mensaRepository.forceRefresh(params.value.destination, language.value)
+    mensaRepository.forceRefresh(params.value.destination, visibilitySettings.value.language)
   }
 
   fun deleteExpired() = viewModelScope.launch { mensaRepository.deleteExpired() }
@@ -99,15 +153,15 @@ class MainViewModel(
     language: Language,
     date: LocalDate,
   ): Flow<MensaState> = combine(
-    favoriteMensas,
+    visibilitySettings.map { it.expandedMensas },
     mensaRepository.observeMenus(mensaId = mensa.id, language = language, date = date),
-  ) { favorites, menus ->
+  ) { expandedMensas, menus ->
     MensaState(
       mensa = mensa,
       menus = menus,
       state = when {
         menus.isEmpty() -> MensaState.State.Closed
-        favorites.contains(mensa.id.toString()) -> MensaState.State.Expanded
+        expandedMensas.contains(mensa.id) -> MensaState.State.Expanded
         else -> MensaState.State.Available
       },
     )
@@ -135,8 +189,7 @@ class MainViewModel(
         )
         MainViewModel(
           mensaRepository = application.container.mensaRepository,
-          favoriteMensas = application.expandedMensasFlow,
-          language = application.showMenusInGermanFlow.map { Language.fromBoolean(it) },
+          preferencesRepository = application.container.preferencesRepository,
         )
       }
     }

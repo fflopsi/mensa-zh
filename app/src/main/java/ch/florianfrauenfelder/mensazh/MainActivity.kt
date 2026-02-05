@@ -8,7 +8,7 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.lifecycleScope
-import ch.florianfrauenfelder.mensazh.data.local.datastore.themeFlow
+import ch.florianfrauenfelder.mensazh.domain.value.Theme
 import ch.florianfrauenfelder.mensazh.ui.MensaApp
 import kotlinx.coroutines.launch
 
@@ -17,12 +17,12 @@ class MainActivity : ComponentActivity() {
     super.onCreate(savedInstanceState)
 
     lifecycleScope.launch {
-      themeFlow.collect {
-        val dark = when (it) {
-          1 -> false
-          2 -> true
-          else -> (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+      (application as MensaApplication).container.preferencesRepository.themeSettings.collect {
+        val dark = when (it.theme) {
+          Theme.Auto -> (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
             Configuration.UI_MODE_NIGHT_YES
+          Theme.Light -> false
+          Theme.Dark -> true
         }
         enableEdgeToEdge(
           statusBarStyle = SystemBarStyle.auto(

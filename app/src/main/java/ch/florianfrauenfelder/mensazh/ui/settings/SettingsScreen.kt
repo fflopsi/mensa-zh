@@ -28,7 +28,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,61 +38,27 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ch.florianfrauenfelder.mensazh.R
-import ch.florianfrauenfelder.mensazh.domain.model.Location
-import ch.florianfrauenfelder.mensazh.domain.model.Mensa
-import ch.florianfrauenfelder.mensazh.domain.value.Language
+import ch.florianfrauenfelder.mensazh.domain.preferences.Setting
+import ch.florianfrauenfelder.mensazh.domain.value.Theme
 import ch.florianfrauenfelder.mensazh.ui.shared.InfoLinks
-import kotlin.uuid.Uuid
 
 @Composable
 fun SettingsScreen(
   viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory),
-  showOnlyOpenMensas: Boolean,
-  setShowOnlyOpenMensas: (Boolean) -> Unit,
-  showOnlyExpandedMensas: Boolean,
-  setShowOnlyExpandedMensas: (Boolean) -> Unit,
-  language: Language,
-  setLanguage: (Language) -> Unit,
-  shownLocationsIds: List<Uuid>,
-  saveShownLocations: (List<Location>) -> Unit,
-  favoriteMensasIds: List<Uuid>,
-  saveFavoriteMensas: (List<Mensa>) -> Unit,
-  hiddenMensasIds: List<Uuid>,
-  saveHiddenMensas: (List<Mensa>) -> Unit,
-  showTomorrow: Boolean,
-  saveShowTomorrow: (Boolean) -> Unit,
-  showThisWeek: Boolean,
-  saveShowThisWeek: (Boolean) -> Unit,
-  showNextWeek: Boolean,
-  saveShowNextWeek: (Boolean) -> Unit,
-  listUseShortDescription: Boolean,
-  saveListUseShortDescription: (Boolean) -> Unit,
-  listShowAllergens: Boolean,
-  saveListShowAllergens: (Boolean) -> Unit,
-  autoShowImage: Boolean,
-  saveAutoShowImage: (Boolean) -> Unit,
-  theme: Int,
-  saveTheme: (Int) -> Unit,
-  dynamicColor: Boolean,
-  saveDynamicColor: (Boolean) -> Unit,
   openSystemSettings: () -> Unit,
   navigateUp: () -> Unit,
 ) {
+  val visibility by viewModel.visibilitySettings.collectAsStateWithLifecycle()
+  val destination by viewModel.destinationSettings.collectAsStateWithLifecycle()
+  val detail by viewModel.detailSettings.collectAsStateWithLifecycle()
+  val theme by viewModel.themeSettings.collectAsStateWithLifecycle()
+
   val baseLocations by viewModel.baseLocations.collectAsStateWithLifecycle()
-  val shownLocations by remember(baseLocations, shownLocationsIds) {
-    derivedStateOf {
-      baseLocations
-        .filter { shownLocationsIds.contains(it.id) }
-        .sortedBy { shownLocationsIds.indexOf(it.id) }
-    }
-  }
-  val hiddenMensas = shownLocations
-    .flatMap { location -> location.mensas.map { it.mensa } }
-    .filter { hiddenMensasIds.contains(it.id) && !favoriteMensasIds.contains(it.id) }
-  val favoriteMensas = baseLocations
-    .flatMap { location -> location.mensas.map { it.mensa } }
-    .filter { favoriteMensasIds.contains(it.id) && !hiddenMensasIds.contains(it.id) }
-    .sortedBy { favoriteMensasIds.indexOf(it.id) }
+  val shownLocations by viewModel.shownLocations.collectAsStateWithLifecycle()
+  val hiddenMensas by viewModel.hiddenMensas.collectAsStateWithLifecycle()
+  val favoriteMensas by viewModel.favoriteMensas.collectAsStateWithLifecycle()
+
+  fun update(setting: Setting) = viewModel.updateSetting(setting)
 
   val showLocationSelector = remember { mutableStateOf(false) }
   val showFavoriteMensaSelector = remember { mutableStateOf(false) }
@@ -116,7 +81,7 @@ fun SettingsScreen(
       show = showLocationSelector,
       entireList = baseLocations,
       selectedList = shownLocations,
-      saveList = saveShownLocations,
+      saveList = { locations -> update(Setting.SetShownLocations(locations.map { it.id })) },
       icon = Icons.Default.EditLocation,
       title = R.string.select_locations,
       subtitleAvailableItems = R.string.available_locations,
@@ -127,7 +92,7 @@ fun SettingsScreen(
       entireList = baseLocations.flatMap { location -> location.mensas.map { it.mensa } }
         .filter { !hiddenMensas.contains(it) },
       selectedList = favoriteMensas,
-      saveList = saveFavoriteMensas,
+      saveList = { mensas -> update(Setting.SetFavoriteMensas(mensas.map { it.id })) },
       icon = Icons.Default.HotelClass,
       title = R.string.favorite_mensas,
       subtitleAvailableItems = R.string.available_mensas,
@@ -138,7 +103,7 @@ fun SettingsScreen(
       entireList = shownLocations.flatMap { location -> location.mensas.map { it.mensa } }
         .filter { !favoriteMensas.contains(it) },
       selectedList = hiddenMensas,
-      saveList = saveHiddenMensas,
+      saveList = { mensas -> update(Setting.SetHiddenMensas(mensas.map { it.id })) },
       icon = Icons.Default.FilterListOff,
       title = R.string.hide_mensas,
       subtitleAvailableItems = R.string.available_mensas,
@@ -151,36 +116,29 @@ fun SettingsScreen(
         SettingsRow(
           title = stringResource(R.string.show_only_open),
           subtitle = stringResource(R.string.show_only_open_desc),
-          onClick = { setShowOnlyOpenMensas(!showOnlyOpenMensas) },
+          onClick = { update(Setting.SetShowOnlyOpenMensas(!visibility.showOnlyOpenMensas)) },
         ) {
-          Switch(
-            checked = showOnlyOpenMensas,
-            onCheckedChange = { setShowOnlyOpenMensas(!showOnlyOpenMensas) },
-          )
+          Switch(checked = visibility.showOnlyOpenMensas, onCheckedChange = null)
         }
       }
       item {
         SettingsRow(
           title = stringResource(R.string.show_only_expanded),
           subtitle = stringResource(R.string.show_only_expanded_desc),
-          onClick = { setShowOnlyExpandedMensas(!showOnlyExpandedMensas) },
+          onClick = {
+            update(Setting.SetShowOnlyExpandedMensas(!visibility.showOnlyExpandedMensas))
+          },
         ) {
-          Switch(
-            checked = showOnlyExpandedMensas,
-            onCheckedChange = { setShowOnlyExpandedMensas(!showOnlyExpandedMensas) },
-          )
+          Switch(checked = visibility.showOnlyExpandedMensas, onCheckedChange = null)
         }
       }
       item {
         SettingsRow(
           title = stringResource(R.string.show_menus_in_german),
           subtitle = stringResource(R.string.show_menus_in_german_desc),
-          onClick = { setLanguage(!language) },
+          onClick = { update(Setting.SetMenusLanguage(!visibility.language)) },
         ) {
-          Switch(
-            checked = language.showMenusInGerman,
-            onCheckedChange = { setLanguage(!language) },
-          )
+          Switch(checked = visibility.language.showMenusInGerman, onCheckedChange = null)
         }
       }
       item { HorizontalDivider() }
@@ -225,36 +183,27 @@ fun SettingsScreen(
         SettingsRow(
           title = stringResource(R.string.show_tomorrow),
           subtitle = stringResource(R.string.show_tomorrow_desc),
-          onClick = { saveShowTomorrow(!showTomorrow) },
+          onClick = { update(Setting.SetShowTomorrow(!destination.showTomorrow)) },
         ) {
-          Switch(
-            checked = showTomorrow,
-            onCheckedChange = { saveShowTomorrow(!showTomorrow) },
-          )
+          Switch(checked = destination.showTomorrow, onCheckedChange = null)
         }
       }
       item {
         SettingsRow(
           title = stringResource(R.string.show_this_week),
           subtitle = stringResource(R.string.show_this_week_desc),
-          onClick = { saveShowThisWeek(!showThisWeek) },
+          onClick = { update(Setting.SetShowThisWeek(!destination.showThisWeek)) },
         ) {
-          Switch(
-            checked = showThisWeek,
-            onCheckedChange = { saveShowThisWeek(!showThisWeek) },
-          )
+          Switch(checked = destination.showThisWeek, onCheckedChange = null)
         }
       }
       item {
         SettingsRow(
           title = stringResource(R.string.show_next_week),
           subtitle = stringResource(R.string.show_next_week_desc),
-          onClick = { saveShowNextWeek(!showNextWeek) },
+          onClick = { update(Setting.SetShowNextWeek(!destination.showNextWeek)) },
         ) {
-          Switch(
-            checked = showNextWeek,
-            onCheckedChange = { saveShowNextWeek(!showNextWeek) },
-          )
+          Switch(checked = destination.showNextWeek, onCheckedChange = null)
         }
       }
       item { HorizontalDivider() }
@@ -262,36 +211,27 @@ fun SettingsScreen(
         SettingsRow(
           title = stringResource(R.string.short_description_overview),
           subtitle = stringResource(R.string.short_description_overview_desc),
-          onClick = { saveListUseShortDescription(!listUseShortDescription) },
+          onClick = { update(Setting.SetListUseShortDescription(!detail.listUseShortDescription)) },
         ) {
-          Switch(
-            checked = listUseShortDescription,
-            onCheckedChange = { saveListUseShortDescription(!listUseShortDescription) },
-          )
+          Switch(checked = detail.listUseShortDescription, onCheckedChange = null)
         }
       }
       item {
         SettingsRow(
           title = stringResource(R.string.show_allergens_overview),
           subtitle = stringResource(R.string.show_allergens_overview_desc),
-          onClick = { saveListShowAllergens(!listShowAllergens) },
+          onClick = { update(Setting.SetListShowAllergens(!detail.listShowAllergens)) },
         ) {
-          Switch(
-            checked = listShowAllergens,
-            onCheckedChange = { saveListShowAllergens(!listShowAllergens) },
-          )
+          Switch(checked = detail.listShowAllergens, onCheckedChange = null)
         }
       }
       item {
         SettingsRow(
           title = stringResource(R.string.auto_show_image),
           subtitle = stringResource(R.string.auto_show_image_desc),
-          onClick = { saveAutoShowImage(!autoShowImage) },
+          onClick = { update(Setting.SetAutoShowImage(!detail.autoShowImage)) },
         ) {
-          Switch(
-            checked = autoShowImage,
-            onCheckedChange = { saveAutoShowImage(!autoShowImage) },
-          )
+          Switch(checked = detail.autoShowImage, onCheckedChange = null)
         }
       }
       item { HorizontalDivider() }
@@ -300,10 +240,10 @@ fun SettingsScreen(
         SettingsRow(
           title = stringResource(R.string.theme),
           subtitle = stringResource(
-            when (theme) {
-              1 -> R.string.light
-              2 -> R.string.dark
-              else -> R.string.auto
+            when (theme.theme) {
+              Theme.Auto -> R.string.auto
+              Theme.Light -> R.string.light
+              Theme.Dark -> R.string.dark
             },
           ),
           onClick = { themeSelectorExpanded = true },
@@ -316,27 +256,33 @@ fun SettingsScreen(
             ) {
               DropdownMenuItem(
                 text = { Text(text = stringResource(R.string.auto)) },
-                onClick = { saveTheme(0) },
+                onClick = { update(Setting.SetTheme(Theme.Auto)) },
                 leadingIcon = { Icon(Icons.Default.BrightnessAuto, null) },
                 trailingIcon = {
-                  if (theme == 0) Icon(Icons.Default.Check, stringResource(R.string.active))
+                  if (theme.theme == Theme.Auto) {
+                    Icon(Icons.Default.Check, stringResource(R.string.active))
+                  }
                 },
               )
               HorizontalDivider()
               DropdownMenuItem(
                 text = { Text(text = stringResource(R.string.light)) },
-                onClick = { saveTheme(1) },
+                onClick = { update(Setting.SetTheme(Theme.Light)) },
                 leadingIcon = { Icon(Icons.Default.LightMode, null) },
                 trailingIcon = {
-                  if (theme == 1) Icon(Icons.Default.Check, stringResource(R.string.active))
+                  if (theme.theme == Theme.Light) {
+                    Icon(Icons.Default.Check, stringResource(R.string.active))
+                  }
                 },
               )
               DropdownMenuItem(
                 text = { Text(text = stringResource(R.string.dark)) },
-                onClick = { saveTheme(2) },
+                onClick = { update(Setting.SetTheme(Theme.Dark)) },
                 leadingIcon = { Icon(Icons.Default.DarkMode, null) },
                 trailingIcon = {
-                  if (theme == 2) Icon(Icons.Default.Check, stringResource(R.string.active))
+                  if (theme.theme == Theme.Dark) {
+                    Icon(Icons.Default.Check, stringResource(R.string.active))
+                  }
                 },
               )
             }
@@ -347,9 +293,9 @@ fun SettingsScreen(
         item {
           SettingsRow(
             title = stringResource(R.string.use_dynamic_colors),
-            onClick = { saveDynamicColor(!dynamicColor) },
+            onClick = { update(Setting.SetUseDynamicColor(!theme.useDynamicColor)) },
           ) {
-            Switch(checked = dynamicColor, onCheckedChange = null)
+            Switch(checked = theme.useDynamicColor, onCheckedChange = null)
           }
         }
       }

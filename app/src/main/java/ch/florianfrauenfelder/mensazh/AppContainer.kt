@@ -2,10 +2,12 @@ package ch.florianfrauenfelder.mensazh
 
 import android.content.Context
 import androidx.room.Room
+import ch.florianfrauenfelder.mensazh.data.local.datastore.dataStore
 import ch.florianfrauenfelder.mensazh.data.local.room.CacheDatabase
 import ch.florianfrauenfelder.mensazh.data.providers.ETHMensaProvider
 import ch.florianfrauenfelder.mensazh.data.providers.UZHMensaProvider
 import ch.florianfrauenfelder.mensazh.data.repository.MensaRepository
+import ch.florianfrauenfelder.mensazh.data.repository.PreferencesRepository
 import ch.florianfrauenfelder.mensazh.data.util.AssetService
 import ch.florianfrauenfelder.mensazh.domain.value.Institution
 import kotlinx.coroutines.CoroutineScope
@@ -30,4 +32,6 @@ class AppContainer(context: Context) {
     ),
     appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
   )
+
+  val preferencesRepository = PreferencesRepository(dataStore = context.dataStore)
 }

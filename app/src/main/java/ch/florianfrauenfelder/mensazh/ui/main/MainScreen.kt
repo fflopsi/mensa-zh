@@ -43,7 +43,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onSizeChanged
@@ -56,91 +55,33 @@ import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ch.florianfrauenfelder.mensazh.R
-import ch.florianfrauenfelder.mensazh.data.local.datastore.Prefs
-import ch.florianfrauenfelder.mensazh.data.local.datastore.favoriteMensasFlow
-import ch.florianfrauenfelder.mensazh.data.local.datastore.saveIsExpandedMensa
-import ch.florianfrauenfelder.mensazh.data.local.datastore.shownLocationsFlow
-import ch.florianfrauenfelder.mensazh.domain.model.Location
-import ch.florianfrauenfelder.mensazh.domain.model.Mensa
 import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
 import ch.florianfrauenfelder.mensazh.domain.navigation.NavigationDetail
 import ch.florianfrauenfelder.mensazh.domain.navigation.Weekday
-import ch.florianfrauenfelder.mensazh.domain.value.Language
+import ch.florianfrauenfelder.mensazh.domain.preferences.Setting
 import ch.florianfrauenfelder.mensazh.ui.main.detail.MenuList
 import ch.florianfrauenfelder.mensazh.ui.main.list.LocationList
 import ch.florianfrauenfelder.mensazh.ui.navigation.label
 import ch.florianfrauenfelder.mensazh.ui.navigation.ui
 import kotlinx.coroutines.launch
-import kotlin.uuid.Uuid
 
 @Composable
 fun MainScreen(
   viewModel: MainViewModel = viewModel(factory = MainViewModel.Factory),
-  hiddenMensas: List<Uuid>,
-  saveFavoriteMensas: (List<Mensa>) -> Unit,
-  language: Language,
-  setLanguage: (Language) -> Unit,
-  showOnlyOpenMensas: Boolean,
-  setShowOnlyOpenMensas: (Boolean) -> Unit,
-  showOnlyExpandedMensas: Boolean,
-  setShowOnlyExpandedMensas: (Boolean) -> Unit,
-  showTomorrow: Boolean,
-  showThisWeek: Boolean,
-  showNextWeek: Boolean,
-  listUseShortDescription: Boolean,
-  listShowAllergens: Boolean,
-  autoShowImage: Boolean,
   navigateToSettings: () -> Unit,
 ) {
   val context = LocalContext.current
   val density = LocalDensity.current
   val scope = rememberCoroutineScope()
 
+  val visibility by viewModel.visibilitySettings.collectAsStateWithLifecycle()
+  val selection by viewModel.selectionSettings.collectAsStateWithLifecycle()
+  val destination by viewModel.destinationSettings.collectAsStateWithLifecycle()
+  val detail by viewModel.detailSettings.collectAsStateWithLifecycle()
+
   val params by viewModel.params.collectAsStateWithLifecycle()
-  val bareLocations by viewModel.locations.collectAsStateWithLifecycle()
+  val locations by viewModel.locations.collectAsStateWithLifecycle()
   val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
-
-  val shownLocationsIds by context.shownLocationsFlow.collectAsStateWithLifecycle(
-    initialValue = Prefs.Defaults.SHOWN_LOCATIONS,
-  )
-  val favoriteMensas by context.favoriteMensasFlow.collectAsStateWithLifecycle(
-    initialValue = Prefs.Defaults.FAVORITE_MENSAS,
-  )
-
-  val shownLocations by remember(bareLocations, shownLocationsIds) {
-    derivedStateOf {
-      bareLocations
-        .filter { shownLocationsIds.contains(it.id) }
-        .sortedBy { shownLocationsIds.indexOf(it.id) }
-    }
-  }
-  val favoriteLocationTitle = stringResource(R.string.favorites)
-  val locations by remember(bareLocations, shownLocationsIds, favoriteMensas) {
-    derivedStateOf {
-      shownLocations
-        .map { location ->
-          location.copy(
-            id = location.id,
-            title = location.title,
-            mensas = location.mensas.filter { !favoriteMensas.contains(it.mensa.id) },
-          )
-        }
-        .toMutableStateList()
-        .apply {
-          add(
-            0,
-            Location(
-              id = Uuid.random(),
-              title = favoriteLocationTitle,
-              mensas = bareLocations
-                .flatMap { it.mensas }
-                .filter { favoriteMensas.contains(it.mensa.id) }
-                .sortedBy { favoriteMensas.indexOf(it.mensa.id) },
-            ),
-          )
-        }
-    }
-  }
 
   val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
   val navigator = rememberListDetailPaneScaffoldNavigator<NavigationDetail>()
@@ -210,12 +151,14 @@ fun MainScreen(
             Icon(Icons.Default.Refresh, stringResource(R.string.refresh))
           }
           SettingsDropdown(
-            showOnlyOpenMensas = showOnlyOpenMensas,
-            setShowOnlyOpenMensas = { setShowOnlyOpenMensas(it) },
-            showOnlyExpandedMensas = showOnlyExpandedMensas,
-            setShowOnlyExpandedMensas = setShowOnlyExpandedMensas,
-            language = language,
-            setLanguage = setLanguage,
+            showOnlyOpenMensas = visibility.showOnlyOpenMensas,
+            setShowOnlyOpenMensas = { viewModel.updateSetting(Setting.SetShowOnlyOpenMensas(it)) },
+            showOnlyExpandedMensas = visibility.showOnlyExpandedMensas,
+            setShowOnlyExpandedMensas = {
+              viewModel.updateSetting(Setting.SetShowOnlyExpandedMensas(it))
+            },
+            language = visibility.language,
+            setLanguage = { viewModel.updateSetting(Setting.SetMenusLanguage(it)) },
             navigateToSettings = navigateToSettings,
           )
         },
@@ -253,15 +196,17 @@ fun MainScreen(
               AnimatedPane(modifier = Modifier.preferredWidth(450.dp)) {
                 LocationList(
                   locations = locations,
-                  hiddenMensas = hiddenMensas,
-                  saveFavoriteMensas = saveFavoriteMensas,
-                  showOnlyOpenMensas = showOnlyOpenMensas,
-                  showOnlyExpandedMensas = showOnlyExpandedMensas,
-                  saveIsExpandedMensa = { mensa, expanded ->
-                    scope.launch { context.saveIsExpandedMensa(mensa, expanded) }
+                  hiddenMensas = selection.hiddenMensas,
+                  saveFavoriteMensas = { mensas ->
+                    viewModel.updateSetting(Setting.SetFavoriteMensas(mensas.map { it.id }))
                   },
-                  listUseShortDescription = listUseShortDescription,
-                  listShowAllergens = listShowAllergens,
+                  showOnlyOpenMensas = visibility.showOnlyOpenMensas,
+                  showOnlyExpandedMensas = visibility.showOnlyExpandedMensas,
+                  saveIsExpandedMensa = { mensa, expanded ->
+                    viewModel.updateSetting(Setting.SetIsExpandedMensa(mensa, expanded))
+                  },
+                  listUseShortDescription = detail.listUseShortDescription,
+                  listShowAllergens = detail.listShowAllergens,
                   onMenuClick = { mensa, menu ->
                     scope.launch {
                       navigator.navigateTo(
@@ -288,7 +233,7 @@ fun MainScreen(
                         )
                       }
                     },
-                    autoShowImage = autoShowImage,
+                    autoShowImage = detail.autoShowImage,
                     modifier = Modifier.fillMaxWidth(),
                   )
                 }
@@ -313,14 +258,14 @@ fun MainScreen(
         }
       }
 
-      if (showTomorrow || showThisWeek || showNextWeek) {
+      if (destination.showAny) {
         NavigationSuiteScaffold(
           navigationSuiteItems = {
             buildList {
               add(Destination.Today)
-              if (showTomorrow) add(Destination.Tomorrow)
-              if (showThisWeek) add(Destination.ThisWeek)
-              if (showNextWeek) add(Destination.NextWeek)
+              if (destination.showTomorrow) add(Destination.Tomorrow)
+              if (destination.showThisWeek) add(Destination.ThisWeek)
+              if (destination.showNextWeek) add(Destination.NextWeek)
             }.forEach {
               item(
                 icon = { Icon(it.ui.icon, stringResource(it.ui.label)) },
