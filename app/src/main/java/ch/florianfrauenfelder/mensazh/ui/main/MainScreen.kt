@@ -75,7 +75,6 @@ fun MainScreen(
   val scope = rememberCoroutineScope()
 
   val visibility by viewModel.visibilitySettings.collectAsStateWithLifecycle()
-  val selection by viewModel.selectionSettings.collectAsStateWithLifecycle()
   val destination by viewModel.destinationSettings.collectAsStateWithLifecycle()
   val detail by viewModel.detailSettings.collectAsStateWithLifecycle()
 
@@ -151,13 +150,11 @@ fun MainScreen(
             Icon(Icons.Default.Refresh, stringResource(R.string.refresh))
           }
           SettingsDropdown(
-            showOnlyOpenMensas = visibility.showOnlyOpenMensas,
+            visibility = visibility,
             setShowOnlyOpenMensas = { viewModel.updateSetting(Setting.SetShowOnlyOpenMensas(it)) },
-            showOnlyExpandedMensas = visibility.showOnlyExpandedMensas,
             setShowOnlyExpandedMensas = {
               viewModel.updateSetting(Setting.SetShowOnlyExpandedMensas(it))
             },
-            language = visibility.language,
             setLanguage = { viewModel.updateSetting(Setting.SetMenusLanguage(it)) },
             navigateToSettings = navigateToSettings,
           )
@@ -196,17 +193,13 @@ fun MainScreen(
               AnimatedPane(modifier = Modifier.preferredWidth(450.dp)) {
                 LocationList(
                   locations = locations,
-                  hiddenMensas = selection.hiddenMensas,
                   saveFavoriteMensas = { mensas ->
                     viewModel.updateSetting(Setting.SetFavoriteMensas(mensas.map { it.id }))
                   },
-                  showOnlyOpenMensas = visibility.showOnlyOpenMensas,
-                  showOnlyExpandedMensas = visibility.showOnlyExpandedMensas,
                   saveIsExpandedMensa = { mensa, expanded ->
                     viewModel.updateSetting(Setting.SetIsExpandedMensa(mensa, expanded))
                   },
-                  listUseShortDescription = detail.listUseShortDescription,
-                  listShowAllergens = detail.listShowAllergens,
+                  detail = detail,
                   onMenuClick = { mensa, menu ->
                     scope.launch {
                       navigator.navigateTo(

@@ -23,15 +23,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ch.florianfrauenfelder.mensazh.R
+import ch.florianfrauenfelder.mensazh.domain.preferences.VisibilitySettings
 import ch.florianfrauenfelder.mensazh.domain.value.Language
 
 @Composable
 fun SettingsDropdown(
-  showOnlyOpenMensas: Boolean,
+  visibility: VisibilitySettings,
   setShowOnlyOpenMensas: (Boolean) -> Unit,
-  showOnlyExpandedMensas: Boolean,
   setShowOnlyExpandedMensas: (Boolean) -> Unit,
-  language: Language,
   setLanguage: (Language) -> Unit,
   navigateToSettings: () -> Unit,
   modifier: Modifier = Modifier,
@@ -57,13 +56,10 @@ fun SettingsDropdown(
                 .padding(end = 16.dp)
                 .weight(1f),
             )
-            Checkbox(
-              checked = showOnlyOpenMensas,
-              onCheckedChange = { setShowOnlyOpenMensas(!showOnlyOpenMensas) },
-            )
+            Checkbox(checked = visibility.showOnlyOpenMensas, onCheckedChange = null)
           }
         },
-        onClick = { setShowOnlyOpenMensas(!showOnlyOpenMensas) },
+        onClick = { setShowOnlyOpenMensas(!visibility.showOnlyOpenMensas) },
       )
       DropdownMenuItem(
         text = {
@@ -74,13 +70,10 @@ fun SettingsDropdown(
                 .padding(end = 16.dp)
                 .weight(1f),
             )
-            Checkbox(
-              checked = showOnlyExpandedMensas,
-              onCheckedChange = { setShowOnlyExpandedMensas(!showOnlyExpandedMensas) },
-            )
+            Checkbox(checked = visibility.showOnlyExpandedMensas, onCheckedChange = null)
           }
         },
-        onClick = { setShowOnlyExpandedMensas(!showOnlyExpandedMensas) },
+        onClick = { setShowOnlyExpandedMensas(!visibility.showOnlyExpandedMensas) },
       )
       DropdownMenuItem(
         text = {
@@ -91,13 +84,10 @@ fun SettingsDropdown(
                 .padding(end = 16.dp)
                 .weight(1f),
             )
-            Checkbox(
-              checked = language.showMenusInGerman,
-              onCheckedChange = { setLanguage(!language) },
-            )
+            Checkbox(checked = visibility.language.showMenusInGerman, onCheckedChange = null)
           }
         },
-        onClick = { setLanguage(!language) },
+        onClick = { setLanguage(!visibility.language) },
       )
       HorizontalDivider()
       DropdownMenuItem(

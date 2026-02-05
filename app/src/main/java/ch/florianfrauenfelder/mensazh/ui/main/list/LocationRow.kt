@@ -6,26 +6,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ch.florianfrauenfelder.mensazh.domain.model.Location
 import ch.florianfrauenfelder.mensazh.domain.model.Mensa
 import ch.florianfrauenfelder.mensazh.domain.model.MensaState
 import ch.florianfrauenfelder.mensazh.domain.model.Menu
-import kotlin.uuid.Uuid
+import ch.florianfrauenfelder.mensazh.domain.preferences.DetailSettings
 
 @Composable
 fun LocationRow(
   location: Location,
-  hiddenMensas: List<Uuid>,
-  showOnlyOpenMensas: Boolean,
-  showOnlyExpandedMensas: Boolean,
   saveIsExpandedMensa: (Mensa, Boolean) -> Unit,
-  listUseShortDescription: Boolean,
-  listShowAllergens: Boolean,
+  detail: DetailSettings,
   onMenuClick: (MensaState, Menu) -> Unit,
   favoriteMensas: List<Mensa>,
   saveFavoriteMensas: (List<Mensa>) -> Unit,
@@ -43,20 +36,11 @@ fun LocationRow(
     )
     Column(modifier = Modifier.fillMaxWidth()) {
       location.mensas.forEach { mensa ->
-        val showMensa by remember(mensa, hiddenMensas, showOnlyOpenMensas, showOnlyExpandedMensas) {
-          derivedStateOf {
-            !(hiddenMensas.contains(mensa.mensa.id)
-              || (showOnlyOpenMensas && mensa.state == MensaState.State.Closed)
-              || (showOnlyExpandedMensas && mensa.state != MensaState.State.Expanded))
-          }
-        }
-
-        AnimatedVisibility(visible = showMensa) {
+        AnimatedVisibility(visible = true) {
           MensaRow(
             mensa = mensa,
             saveIsExpandedMensa = saveIsExpandedMensa,
-            listUseShortDescription = listUseShortDescription,
-            listShowAllergens = listShowAllergens,
+            detail = detail,
             onMenuClick = { onMenuClick(mensa, it) },
             isFavoriteMensa = favoriteMensas.contains(mensa.mensa),
             changeIsFavoriteMensa = {

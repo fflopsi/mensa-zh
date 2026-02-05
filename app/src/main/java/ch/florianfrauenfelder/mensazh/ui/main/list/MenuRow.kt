@@ -20,12 +20,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import ch.florianfrauenfelder.mensazh.R
 import ch.florianfrauenfelder.mensazh.domain.model.Menu
+import ch.florianfrauenfelder.mensazh.domain.preferences.DetailSettings
 
 @Composable
 fun MenuRow(
   menu: Menu,
-  listUseShortDescription: Boolean,
-  listShowAllergens: Boolean,
+  detail: DetailSettings,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -42,9 +42,9 @@ fun MenuRow(
       Text(
         text = menu.description,
         style = MaterialTheme.typography.bodyMedium,
-        maxLines = if (listUseShortDescription) 2 else 3,
+        maxLines = if (detail.listUseShortDescription) 2 else 3,
       )
-      if (listShowAllergens && menu.allergens?.isNotBlank() == true) {
+      if (detail.listShowAllergens && menu.allergens?.isNotBlank() == true) {
         Text(
           text = menu.allergens,
           style = MaterialTheme.typography.bodySmall,

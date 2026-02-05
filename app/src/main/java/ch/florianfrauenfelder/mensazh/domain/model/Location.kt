@@ -15,5 +15,7 @@ data class Location(
       title = "Zentrum",
       mensas = List(3) { MensaState.dummy },
     )
+
+    val favoritesUuid = Uuid.parse("e2b3688c-d305-4efd-bc34-9a3b2974d4e9")
   }
 }

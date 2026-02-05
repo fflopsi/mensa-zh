@@ -43,13 +43,13 @@ import ch.florianfrauenfelder.mensazh.R
 import ch.florianfrauenfelder.mensazh.domain.model.Mensa
 import ch.florianfrauenfelder.mensazh.domain.model.MensaState
 import ch.florianfrauenfelder.mensazh.domain.model.Menu
+import ch.florianfrauenfelder.mensazh.domain.preferences.DetailSettings
 
 @Composable
 fun MensaRow(
   mensa: MensaState,
   saveIsExpandedMensa: (Mensa, Boolean) -> Unit,
-  listUseShortDescription: Boolean,
-  listShowAllergens: Boolean,
+  detail: DetailSettings,
   onMenuClick: (Menu) -> Unit,
   isFavoriteMensa: Boolean,
   changeIsFavoriteMensa: () -> Unit,
@@ -150,8 +150,7 @@ fun MensaRow(
             ) {
               MenuRow(
                 menu = it,
-                listUseShortDescription = listUseShortDescription,
-                listShowAllergens = listShowAllergens,
+                detail = detail,
                 onClick = { onMenuClick(it) },
                 modifier = Modifier.fillMaxWidth(),
               )

@@ -1,6 +1,5 @@
 package ch.florianfrauenfelder.mensazh.ui.main
 
-import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -39,7 +38,6 @@ import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
 import kotlin.time.Clock
-import kotlin.uuid.Uuid
 
 class MainViewModel(
   private val mensaRepository: MensaRepository,
@@ -55,7 +53,7 @@ class MainViewModel(
     initialValue = VisibilitySettings(),
   )
 
-  val selectionSettings = preferencesRepository.selectionSettings.stateIn(
+  private val selectionSettings = preferencesRepository.selectionSettings.stateIn(
     scope = viewModelScope,
     started = SharingStarted.WhileSubscribed(5000),
     initialValue = SelectionSettings(),
@@ -80,31 +78,41 @@ class MainViewModel(
     locationListFlow(params.destination, params.weekday, language)
   }
 
-  val locations = combine(allLocations, selectionSettings) { locations, selection ->
+  val locations = combine(
+    allLocations,
+    visibilitySettings,
+    selectionSettings,
+  ) { locations, visibility, selection ->
     locations
       .filter { selection.shownLocations.contains(it.id) }
       .sortedBy { selection.shownLocations.indexOf(it.id) }
       .map { location ->
         location.copy(
-          id = location.id,
-          title = location.title,
-          mensas = location.mensas.filter { !selection.favoriteMensas.contains(it.mensa.id) },
+          mensas = location
+            .mensas
+            .filter {
+              it.mensa.id !in selection.hiddenMensas
+                && it.mensa.id !in selection.favoriteMensas
+                && !(visibility.showOnlyOpenMensas && it.state == MensaState.State.Closed)
+                && !(visibility.showOnlyExpandedMensas && it.state != MensaState.State.Expanded)
+            },
         )
       }
-      .toMutableStateList()
+      .toMutableList()
       .apply {
         add(
           0,
           Location(
-            id = Uuid.random(),
+            id = Location.favoritesUuid,
             title = "★",
             mensas = locations
               .flatMap { it.mensas }
-              .filter { selection.favoriteMensas.contains(it.mensa.id) }
+              .filter { it.mensa.id in selection.favoriteMensas }
               .sortedBy { selection.favoriteMensas.indexOf(it.mensa.id) },
           ),
         )
       }
+      .filter { it.mensas.isNotEmpty() }
   }.stateIn(
     scope = viewModelScope,
     started = SharingStarted.WhileSubscribed(5000),
