@@ -26,8 +26,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -71,48 +74,67 @@ class MainViewModel(
     initialValue = DetailSettings(),
   )
 
+  private val refreshTriggers =
+    combine(params, visibilitySettings.map { it.language }) { params, language ->
+      params.destination to language
+    }.distinctUntilChanged()
+
+  init {
+    refreshTriggers
+      .onEach { (destination, language) ->
+        mensaRepository.refreshIfNeeded(destination, language)
+      }
+      .launchIn(viewModelScope)
+  }
+
   private val allLocations = combine(params, visibilitySettings) { params, visibility ->
     params to visibility.language
   }.flatMapLatest { (params, language) ->
-    viewModelScope.launch { mensaRepository.refreshIfNeeded(params.destination, language) }
     locationListFlow(params.destination, params.weekday, language)
   }
 
-  val locations = combine(
+  private val filteredLocations = combine(
     allLocations,
     visibilitySettings,
-    selectionSettings,
+    selectionSettings
   ) { locations, visibility, selection ->
+    val shownOrder = selection.shownLocations.withIndex().associate { it.value to it.index }
+
     locations
-      .filter { selection.shownLocations.contains(it.id) }
-      .sortedBy { selection.shownLocations.indexOf(it.id) }
+      .filter { it.id in shownOrder }
+      .sortedBy { shownOrder[it.id] }
       .map { location ->
         location.copy(
-          mensas = location
-            .mensas
-            .filter {
-              it.mensa.id !in selection.hiddenMensas
-                && it.mensa.id !in selection.favoriteMensas
-                && !(visibility.showOnlyOpenMensas && it.state == MensaState.State.Closed)
-                && !(visibility.showOnlyExpandedMensas && it.state != MensaState.State.Expanded)
-            },
-        )
-      }
-      .toMutableList()
-      .apply {
-        add(
-          0,
-          Location(
-            id = Location.favoritesUuid,
-            title = "★",
-            mensas = locations
-              .flatMap { it.mensas }
-              .filter { it.mensa.id in selection.favoriteMensas }
-              .sortedBy { selection.favoriteMensas.indexOf(it.mensa.id) },
-          ),
+          mensas = location.mensas.filter {
+            it.mensa.id !in selection.hiddenMensas
+              && it.mensa.id !in selection.favoriteMensas
+              && !(visibility.showOnlyOpenMensas && it.state == MensaState.State.Closed)
+              && !(visibility.showOnlyExpandedMensas && it.state != MensaState.State.Expanded)
+          },
         )
       }
       .filter { it.mensas.isNotEmpty() }
+  }
+
+  val locations = combine(filteredLocations, selectionSettings) { locations, selection ->
+    val favoriteOrder = selection.favoriteMensas.withIndex().associate { it.value to it.index }
+    val favorites = locations
+      .flatMap { it.mensas }
+      .filter { it.mensa.id in favoriteOrder }
+      .sortedBy { favoriteOrder[it.mensa.id] }
+
+    buildList {
+      if (favorites.isNotEmpty()) {
+        add(
+          Location(
+            id = Location.favoritesUuid,
+            title = "★",
+            mensas = favorites,
+          )
+        )
+      }
+      addAll(locations)
+    }
   }.stateIn(
     scope = viewModelScope,
     started = SharingStarted.WhileSubscribed(5000),
@@ -145,15 +167,26 @@ class MainViewModel(
     language: Language,
   ): Flow<List<Location>> = mensaRepository.baseLocations.flatMapLatest { baseLocations ->
     val date = computeDate(destination, weekday)
-    val locationFlows = baseLocations.map { location ->
-      val mensaFlows = location.mensas.map {
-        mensaStateFlow(mensa = it.mensa, language = language, date = date)
+
+    baseLocations
+      .map { location ->
+        location.mensas
+          .map {
+            mensaStateFlow(it.mensa, language, date)
+          }
+          .let { mensaFlows ->
+            combine(mensaFlows) {
+              Location(
+                id = location.id,
+                title = location.title,
+                mensas = it.toList(),
+              )
+            }
+          }
       }
-      combine(mensaFlows) {
-        Location(id = location.id, title = location.title, mensas = it.toList())
+      .let { locationFlows ->
+        combine(locationFlows) { it.toList() }
       }
-    }
-    combine(locationFlows) { it.toList() }
   }
 
   private fun mensaStateFlow(
