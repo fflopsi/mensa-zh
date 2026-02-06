@@ -196,12 +196,14 @@ class MainViewModel(
   ): Flow<MensaState> = combine(
     visibilitySettings.map { it.expandedMensas },
     mensaRepository.observeMenus(mensaId = mensa.id, language = language, date = date),
-  ) { expandedMensas, menus ->
+    mensaRepository.observeMenus(mensaId = mensa.id, language = !language, date = date),
+  ) { expandedMensas, menus, fallbackMenus ->
+    val returnedMenus = if (menus.isEmpty() && fallbackMenus.isNotEmpty()) fallbackMenus else menus
     MensaState(
       mensa = mensa,
-      menus = menus,
+      menus = returnedMenus,
       state = when {
-        menus.isEmpty() -> MensaState.State.Closed
+        returnedMenus.isEmpty() -> MensaState.State.Closed
         expandedMensas.contains(mensa.id) -> MensaState.State.Expanded
         else -> MensaState.State.Available
       },
