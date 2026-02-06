@@ -17,9 +17,9 @@ import ch.florianfrauenfelder.mensazh.domain.preferences.DetailSettings
 @Composable
 fun LocationRow(
   location: Location,
-  saveIsExpandedMensa: (Mensa, Boolean) -> Unit,
   detail: DetailSettings,
   onMenuClick: (MensaState, Menu) -> Unit,
+  toggleExpandedMensa: (Mensa) -> Unit,
   toggleFavoriteMensa: (Mensa) -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -38,9 +38,9 @@ fun LocationRow(
         AnimatedVisibility(visible = true) {
           MensaRow(
             mensa = mensa,
-            saveIsExpandedMensa = saveIsExpandedMensa,
             detail = detail,
             onMenuClick = { onMenuClick(mensa, it) },
+            toggleIsExpandedMensa = { toggleExpandedMensa(mensa.mensa) },
             toggleIsFavoriteMensa = { toggleFavoriteMensa(mensa.mensa) },
             modifier = Modifier.fillMaxWidth(),
           )

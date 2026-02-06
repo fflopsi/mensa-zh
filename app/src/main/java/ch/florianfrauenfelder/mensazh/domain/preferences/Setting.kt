@@ -6,7 +6,7 @@ import ch.florianfrauenfelder.mensazh.domain.value.Theme
 import kotlin.uuid.Uuid
 
 sealed interface Setting {
-  data class SetIsExpandedMensa(val mensa: Mensa, val expanded: Boolean) : Setting
+  data class SetIsExpandedMensa(val mensa: Mensa) : Setting
   data class SetShowOnlyOpenMensas(val enabled: Boolean) : Setting
   data class SetShowOnlyExpandedMensas(val enabled: Boolean) : Setting
   data class SetMenusLanguage(val language: Language) : Setting

@@ -193,10 +193,6 @@ fun MainScreen(
               AnimatedPane(modifier = Modifier.preferredWidth(450.dp)) {
                 LocationList(
                   locations = locations,
-                  toggleFavoriteMensa = { viewModel.updateSetting(Setting.SetIsFavoriteMensa(it)) },
-                  saveIsExpandedMensa = { mensa, expanded ->
-                    viewModel.updateSetting(Setting.SetIsExpandedMensa(mensa, expanded))
-                  },
                   detail = detail,
                   onMenuClick = { mensa, menu ->
                     scope.launch {
@@ -206,6 +202,8 @@ fun MainScreen(
                       )
                     }
                   },
+                  toggleExpandedMensa = { viewModel.updateSetting(Setting.SetIsExpandedMensa(it)) },
+                  toggleFavoriteMensa = { viewModel.updateSetting(Setting.SetIsFavoriteMensa(it)) },
                   modifier = Modifier.fillMaxWidth(),
                 )
               }

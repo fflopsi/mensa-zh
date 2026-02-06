@@ -23,10 +23,10 @@ import ch.florianfrauenfelder.mensazh.ui.shared.InfoLinks
 @Composable
 fun LocationList(
   locations: List<Location>,
-  toggleFavoriteMensa: (Mensa) -> Unit,
-  saveIsExpandedMensa: (Mensa, Boolean) -> Unit,
   detail: DetailSettings,
   onMenuClick: (MensaState, Menu) -> Unit,
+  toggleExpandedMensa: (Mensa) -> Unit,
+  toggleFavoriteMensa: (Mensa) -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
@@ -52,9 +52,9 @@ fun LocationList(
     ) { location ->
       LocationRow(
         location = location,
-        saveIsExpandedMensa = saveIsExpandedMensa,
         detail = detail,
         onMenuClick = onMenuClick,
+        toggleExpandedMensa = toggleExpandedMensa,
         toggleFavoriteMensa = toggleFavoriteMensa,
         modifier = Modifier
           .animateItem()

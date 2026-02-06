@@ -12,7 +12,7 @@ import ch.florianfrauenfelder.mensazh.data.local.datastore.menusLanguageFlow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveAutoShowImage
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveFavoriteMensas
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveHiddenMensas
-import ch.florianfrauenfelder.mensazh.data.local.datastore.saveIsExpandedMensa
+import ch.florianfrauenfelder.mensazh.data.local.datastore.toggleExpandedMensa
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveListShowAllergens
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveListUseShortDescription
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveMenusLanguage
@@ -107,7 +107,7 @@ class PreferencesRepository(val dataStore: DataStore<Preferences>) {
 
   suspend fun updateSetting(setting: Setting) = withContext(Dispatchers.IO) {
     when (val s = setting) {
-      is Setting.SetIsExpandedMensa -> dataStore.saveIsExpandedMensa(s.mensa, s.expanded)
+      is Setting.SetIsExpandedMensa -> dataStore.toggleExpandedMensa(s.mensa)
       is Setting.SetShowOnlyOpenMensas -> dataStore.saveShowOnlyOpenMensas(s.enabled)
       is Setting.SetShowOnlyExpandedMensas -> dataStore.saveShowOnlyExpandedMensas(s.enabled)
       is Setting.SetMenusLanguage -> dataStore.saveMenusLanguage(s.language)

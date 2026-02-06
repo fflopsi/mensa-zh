@@ -40,7 +40,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import ch.florianfrauenfelder.mensazh.R
-import ch.florianfrauenfelder.mensazh.domain.model.Mensa
 import ch.florianfrauenfelder.mensazh.domain.model.MensaState
 import ch.florianfrauenfelder.mensazh.domain.model.Menu
 import ch.florianfrauenfelder.mensazh.domain.preferences.DetailSettings
@@ -48,21 +47,16 @@ import ch.florianfrauenfelder.mensazh.domain.preferences.DetailSettings
 @Composable
 fun MensaRow(
   mensa: MensaState,
-  saveIsExpandedMensa: (Mensa, Boolean) -> Unit,
   detail: DetailSettings,
   onMenuClick: (Menu) -> Unit,
+  toggleIsExpandedMensa: () -> Unit,
   toggleIsFavoriteMensa: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   val rowModifier by remember(mensa.state) {
     derivedStateOf {
       if (mensa.state == MensaState.State.Available || mensa.state == MensaState.State.Expanded) {
-        Modifier.clickable {
-          when (mensa.state) {
-            MensaState.State.Available -> saveIsExpandedMensa(mensa.mensa, true)
-            MensaState.State.Expanded -> saveIsExpandedMensa(mensa.mensa, false)
-          }
-        }
+        Modifier.clickable(onClick = toggleIsExpandedMensa)
       } else Modifier
     }
   }

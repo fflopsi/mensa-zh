@@ -14,10 +14,10 @@ import kotlin.uuid.Uuid
 
 val Context.dataStore by preferencesDataStore(name = "settings")
 
-suspend fun DataStore<Preferences>.saveIsExpandedMensa(mensa: Mensa, expanded: Boolean) {
+suspend fun DataStore<Preferences>.toggleExpandedMensa(mensa: Mensa) {
   edit { pref ->
     pref[Keys.EXPANDED_MENSAS] = pref[Keys.EXPANDED_MENSAS].orEmpty().let {
-      if (expanded) it + mensa.id.toString() else it - mensa.id.toString()
+      if (mensa.id.toString() in it) it - mensa.id.toString() else it + mensa.id.toString()
     }
   }
 }
