@@ -20,8 +20,7 @@ fun LocationRow(
   saveIsExpandedMensa: (Mensa, Boolean) -> Unit,
   detail: DetailSettings,
   onMenuClick: (MensaState, Menu) -> Unit,
-  favoriteMensas: List<Mensa>,
-  saveFavoriteMensas: (List<Mensa>) -> Unit,
+  toggleFavoriteMensa: (Mensa) -> Unit,
   modifier: Modifier = Modifier,
 ) {
   Column(modifier = modifier) {
@@ -42,13 +41,7 @@ fun LocationRow(
             saveIsExpandedMensa = saveIsExpandedMensa,
             detail = detail,
             onMenuClick = { onMenuClick(mensa, it) },
-            isFavoriteMensa = favoriteMensas.contains(mensa.mensa),
-            changeIsFavoriteMensa = {
-              saveFavoriteMensas(
-                if (favoriteMensas.contains(mensa.mensa)) favoriteMensas - mensa.mensa
-                else favoriteMensas + mensa.mensa,
-              )
-            },
+            toggleIsFavoriteMensa = { toggleFavoriteMensa(mensa.mensa) },
             modifier = Modifier.fillMaxWidth(),
           )
         }

@@ -15,9 +15,9 @@ import kotlin.uuid.Uuid
 val Context.dataStore by preferencesDataStore(name = "settings")
 
 suspend fun DataStore<Preferences>.saveIsExpandedMensa(mensa: Mensa, expanded: Boolean) {
-  edit {
-    it[Keys.EXPANDED_MENSAS] = it[Keys.EXPANDED_MENSAS].orEmpty().toMutableSet().apply {
-      if (expanded) this.add(mensa.id.toString()) else this.remove(mensa.id.toString())
+  edit { pref ->
+    pref[Keys.EXPANDED_MENSAS] = pref[Keys.EXPANDED_MENSAS].orEmpty().let {
+      if (expanded) it + mensa.id.toString() else it - mensa.id.toString()
     }
   }
 }
@@ -56,6 +56,14 @@ val DataStore<Preferences>.shownLocationsFlow
 
 suspend fun DataStore<Preferences>.saveFavoriteMensas(favoriteMensas: List<Uuid>) {
   edit { it[Keys.FAVORITE_MENSAS] = favoriteMensas.map(Uuid::toString).toSet() }
+}
+
+suspend fun DataStore<Preferences>.toggleFavoriteMensa(mensa: Mensa) {
+  edit { pref ->
+    pref[Keys.FAVORITE_MENSAS] = pref[Keys.FAVORITE_MENSAS].orEmpty().let {
+      if (mensa.id.toString() in it) it - mensa.id.toString() else it + mensa.id.toString()
+    }
+  }
 }
 
 val DataStore<Preferences>.favoriteMensasFlow

@@ -31,6 +31,7 @@ import ch.florianfrauenfelder.mensazh.data.local.datastore.showThisWeekFlow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.showTomorrowFlow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.shownLocationsFlow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.themeFlow
+import ch.florianfrauenfelder.mensazh.data.local.datastore.toggleFavoriteMensa
 import ch.florianfrauenfelder.mensazh.data.local.datastore.useDynamicColorFlow
 import ch.florianfrauenfelder.mensazh.domain.preferences.DestinationSettings
 import ch.florianfrauenfelder.mensazh.domain.preferences.DetailSettings
@@ -113,6 +114,7 @@ class PreferencesRepository(val dataStore: DataStore<Preferences>) {
 
       is Setting.SetShownLocations -> dataStore.saveShownLocations(s.locations)
       is Setting.SetFavoriteMensas -> dataStore.saveFavoriteMensas(s.mensas)
+      is Setting.SetIsFavoriteMensa -> dataStore.toggleFavoriteMensa(s.mensa)
       is Setting.SetHiddenMensas -> dataStore.saveHiddenMensas(s.mensas)
 
       is Setting.SetShowTomorrow -> dataStore.saveShowTomorrow(s.enabled)

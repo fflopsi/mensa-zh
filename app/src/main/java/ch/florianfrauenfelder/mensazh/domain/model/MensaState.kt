@@ -8,6 +8,7 @@ data class MensaState(
   val mensa: Mensa,
   val menus: List<Menu> = emptyList(),
   val state: State = State.Initial,
+  val favorite: Boolean = false,
 ) : Parcelable {
   enum class State { Initial, Closed, Available, Expanded }
 
@@ -16,6 +17,7 @@ data class MensaState(
       mensa = Mensa.dummy,
       menus = List(5) { Menu.dummy },
       state = State.Available,
+      favorite = false,
     )
   }
 }

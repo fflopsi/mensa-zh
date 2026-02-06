@@ -13,6 +13,7 @@ sealed interface Setting {
 
   data class SetShownLocations(val locations: List<Uuid>) : Setting
   data class SetFavoriteMensas(val mensas: List<Uuid>) : Setting
+  data class SetIsFavoriteMensa(val mensa: Mensa) : Setting
   data class SetHiddenMensas(val mensas: List<Uuid>) : Setting
 
   data class SetShowTomorrow(val enabled: Boolean) : Setting

@@ -93,14 +93,19 @@ class MainViewModel(
     locationListFlow(params.destination, params.weekday, language)
   }
 
-  private val filteredLocations = combine(
+  val locations = combine(
     allLocations,
     visibilitySettings,
-    selectionSettings
+    selectionSettings,
   ) { locations, visibility, selection ->
     val shownOrder = selection.shownLocations.withIndex().associate { it.value to it.index }
+    val favoriteOrder = selection.favoriteMensas.withIndex().associate { it.value to it.index }
+    val favorites = locations
+      .flatMap { it.mensas }
+      .filter { it.mensa.id in favoriteOrder }
+      .sortedBy { favoriteOrder[it.mensa.id] }
 
-    locations
+    val filteredLocations = locations
       .filter { it.id in shownOrder }
       .sortedBy { shownOrder[it.id] }
       .map { location ->
@@ -114,26 +119,12 @@ class MainViewModel(
         )
       }
       .filter { it.mensas.isNotEmpty() }
-  }
-
-  val locations = combine(filteredLocations, selectionSettings) { locations, selection ->
-    val favoriteOrder = selection.favoriteMensas.withIndex().associate { it.value to it.index }
-    val favorites = locations
-      .flatMap { it.mensas }
-      .filter { it.mensa.id in favoriteOrder }
-      .sortedBy { favoriteOrder[it.mensa.id] }
 
     buildList {
       if (favorites.isNotEmpty()) {
-        add(
-          Location(
-            id = Location.favoritesUuid,
-            title = "★",
-            mensas = favorites,
-          )
-        )
+        add(Location(id = Location.favoritesUuid, title = "★", mensas = favorites))
       }
-      addAll(locations)
+      addAll(filteredLocations)
     }
   }.stateIn(
     scope = viewModelScope,
@@ -195,9 +186,10 @@ class MainViewModel(
     date: LocalDate,
   ): Flow<MensaState> = combine(
     visibilitySettings.map { it.expandedMensas },
+    selectionSettings.map { it.favoriteMensas },
     mensaRepository.observeMenus(mensaId = mensa.id, language = language, date = date),
     mensaRepository.observeMenus(mensaId = mensa.id, language = !language, date = date),
-  ) { expandedMensas, menus, fallbackMenus ->
+  ) { expandedMensas, favoriteMensas, menus, fallbackMenus ->
     val returnedMenus = if (menus.isEmpty() && fallbackMenus.isNotEmpty()) fallbackMenus else menus
     MensaState(
       mensa = mensa,
@@ -207,6 +199,7 @@ class MainViewModel(
         expandedMensas.contains(mensa.id) -> MensaState.State.Expanded
         else -> MensaState.State.Available
       },
+      favorite = mensa.id in favoriteMensas,
     )
   }
 

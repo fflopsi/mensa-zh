@@ -23,7 +23,7 @@ import ch.florianfrauenfelder.mensazh.ui.shared.InfoLinks
 @Composable
 fun LocationList(
   locations: List<Location>,
-  saveFavoriteMensas: (List<Mensa>) -> Unit,
+  toggleFavoriteMensa: (Mensa) -> Unit,
   saveIsExpandedMensa: (Mensa, Boolean) -> Unit,
   detail: DetailSettings,
   onMenuClick: (MensaState, Menu) -> Unit,
@@ -55,8 +55,7 @@ fun LocationList(
         saveIsExpandedMensa = saveIsExpandedMensa,
         detail = detail,
         onMenuClick = onMenuClick,
-        favoriteMensas = locations.first().mensas.map { it.mensa },
-        saveFavoriteMensas = saveFavoriteMensas,
+        toggleFavoriteMensa = toggleFavoriteMensa,
         modifier = Modifier
           .animateItem()
           .fillMaxWidth(),

@@ -51,8 +51,7 @@ fun MensaRow(
   saveIsExpandedMensa: (Mensa, Boolean) -> Unit,
   detail: DetailSettings,
   onMenuClick: (Menu) -> Unit,
-  isFavoriteMensa: Boolean,
-  changeIsFavoriteMensa: () -> Unit,
+  toggleIsFavoriteMensa: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   val rowModifier by remember(mensa.state) {
@@ -81,7 +80,7 @@ fun MensaRow(
       val containerColor = MaterialTheme.colorScheme.secondaryContainer
       val contentColor = MaterialTheme.colorScheme.contentColorFor(containerColor)
       IconButton(
-        onClick = changeIsFavoriteMensa,
+        onClick = toggleIsFavoriteMensa,
         colors = IconButtonColors(
           containerColor = containerColor,
           contentColor = contentColor,
@@ -89,7 +88,7 @@ fun MensaRow(
           disabledContentColor = contentColor,
         ),
       ) {
-        AnimatedContent(targetState = isFavoriteMensa) {
+        AnimatedContent(targetState = mensa.favorite) {
           Icon(if (it) Icons.Default.Favorite else Icons.Default.FavoriteBorder, null)
         }
       }
