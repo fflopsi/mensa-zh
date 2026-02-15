@@ -7,8 +7,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import ch.florianfrauenfelder.mensazh.domain.value.Theme
+import ch.florianfrauenfelder.mensazh.ui.AppViewModel
 import ch.florianfrauenfelder.mensazh.ui.MensaApp
 import kotlinx.coroutines.launch
 
@@ -37,6 +41,11 @@ class MainActivity : ComponentActivity() {
       }
     }
 
-    setContent { MensaApp() }
+    setContent {
+      val appViewModel: AppViewModel = viewModel(factory = AppViewModel.Factory)
+      val theme by appViewModel.themeSettings.collectAsStateWithLifecycle()
+
+      MensaApp(theme = theme)
+    }
   }
 }

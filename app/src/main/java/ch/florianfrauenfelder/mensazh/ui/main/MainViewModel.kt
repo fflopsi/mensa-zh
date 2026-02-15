@@ -1,11 +1,10 @@
 package ch.florianfrauenfelder.mensazh.ui.main
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import ch.florianfrauenfelder.mensazh.MensaApplication
+import ch.florianfrauenfelder.mensazh.AppContainer
 import ch.florianfrauenfelder.mensazh.data.repository.MensaRepository
 import ch.florianfrauenfelder.mensazh.data.repository.PreferencesRepository
 import ch.florianfrauenfelder.mensazh.data.util.currentWeekday
@@ -138,9 +137,7 @@ class MainViewModel(
     initialValue = false,
   )
 
-  fun setNew(newDestination: Destination) = _params.update { it.copy(destination = newDestination) }
-
-  fun setNew(newWeekday: Weekday) = _params.update { it.copy(weekday = newWeekday) }
+  fun setParams(transform: (Params) -> Params) = _params.update(transform)
 
   fun updateSetting(setting: Setting) = viewModelScope.launch {
     preferencesRepository.updateSetting(setting)
@@ -218,14 +215,11 @@ class MainViewModel(
   }
 
   companion object {
-    val Factory = viewModelFactory {
+    fun Factory(container: AppContainer) = viewModelFactory {
       initializer {
-        val application = checkNotNull(
-          this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as MensaApplication,
-        )
         MainViewModel(
-          mensaRepository = application.container.mensaRepository,
-          preferencesRepository = application.container.preferencesRepository,
+          mensaRepository = container.mensaRepository,
+          preferencesRepository = container.preferencesRepository,
         )
       }
     }

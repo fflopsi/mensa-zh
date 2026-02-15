@@ -1,12 +1,20 @@
 package ch.florianfrauenfelder.mensazh.ui.navigation
 
+import androidx.navigation3.runtime.NavKey
+import ch.florianfrauenfelder.mensazh.domain.model.Mensa
 import kotlinx.serialization.Serializable
 
-sealed interface Route {
+@Serializable
+sealed interface Route : NavKey {
   @Serializable
-  object Main : Route
+  data object Main: Route {
+    @Serializable
+    data object List : Route
 
+    @Serializable
+    data class Detail(val mensa: Mensa, val menuIndex: Int) : Route
+  }
   @Serializable
-  object Settings : Route
+  data object Settings : Route
 }
 

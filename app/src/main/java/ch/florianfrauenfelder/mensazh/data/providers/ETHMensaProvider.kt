@@ -17,7 +17,6 @@ import kotlinx.datetime.todayIn
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import okhttp3.Request
-import java.net.URL
 import java.util.Locale
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
@@ -139,7 +138,7 @@ class ETHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
       id = Uuid.parse(id),
       title = title,
       mealTime = mealTime,
-      url = URL("https://ethz.ch/de/campus/erleben/gastronomie-und-einkaufen/gastronomie/restaurants-und-cafeterias/$infoUrlSlug"),
+      url = "https://ethz.ch/de/campus/erleben/gastronomie-und-einkaufen/gastronomie/restaurants-und-cafeterias/$infoUrlSlug",
       imagePath = "eth/images/${infoUrlSlug.substring(infoUrlSlug.indexOf("/") + 1)}.jpg",
     )
   }

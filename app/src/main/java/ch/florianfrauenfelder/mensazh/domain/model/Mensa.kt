@@ -2,15 +2,16 @@ package ch.florianfrauenfelder.mensazh.domain.model
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
-import java.net.URL
+import kotlinx.serialization.Serializable
 import kotlin.uuid.Uuid
 
+@Serializable
 @Parcelize
 data class Mensa(
   override val id: Uuid,
   override val title: String,
   val mealTime: String,
-  val url: URL,
+  val url: String,
   val imagePath: String? = null,
 ) : IdTitleItem, Parcelable {
   override fun toString() = title
@@ -22,7 +23,7 @@ data class Mensa(
       id = Uuid.random(),
       title = "Mensa Polyterrasse",
       mealTime = "11:00 - 14:00",
-      url = URL("https://ethz.ch/de/campus/erleben/gastronomie-und-einkaufen/gastronomie/restaurants-und-cafeterias/zentrum/mensa-polyterrasse.html"),
+      url = "https://ethz.ch/de/campus/erleben/gastronomie-und-einkaufen/gastronomie/restaurants-und-cafeterias/zentrum/mensa-polyterrasse.html",
     )
   }
 }

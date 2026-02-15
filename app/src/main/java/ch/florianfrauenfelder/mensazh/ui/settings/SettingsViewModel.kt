@@ -1,11 +1,10 @@
 package ch.florianfrauenfelder.mensazh.ui.settings
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import ch.florianfrauenfelder.mensazh.MensaApplication
+import ch.florianfrauenfelder.mensazh.AppContainer
 import ch.florianfrauenfelder.mensazh.data.repository.MensaRepository
 import ch.florianfrauenfelder.mensazh.data.repository.PreferencesRepository
 import ch.florianfrauenfelder.mensazh.domain.preferences.DestinationSettings
@@ -97,14 +96,11 @@ class SettingsViewModel(
   }
 
   companion object {
-    val Factory = viewModelFactory {
+    fun Factory(container: AppContainer) = viewModelFactory {
       initializer {
-        val application = checkNotNull(
-          this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as MensaApplication,
-        )
         SettingsViewModel(
-          mensaRepository = application.container.mensaRepository,
-          preferencesRepository = application.container.preferencesRepository,
+          mensaRepository = container.mensaRepository,
+          preferencesRepository = container.preferencesRepository,
         )
       }
     }

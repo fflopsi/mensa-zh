@@ -16,7 +16,6 @@ import kotlinx.serialization.Serializable
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import java.net.URL
 import java.util.Locale
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
@@ -157,7 +156,7 @@ class UZHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
       id = Uuid.parse(id),
       title = title,
       mealTime = mealTime,
-      url = URL("https://www.mensa.uzh.ch/de/menueplaene/$infoUrlSlug.html"),
+      url = "https://www.mensa.uzh.ch/de/menueplaene/$infoUrlSlug.html",
     )
   }
 

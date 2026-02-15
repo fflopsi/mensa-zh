@@ -2,10 +2,14 @@ package ch.florianfrauenfelder.mensazh.ui.settings
 
 import android.os.Build
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -33,32 +37,36 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import ch.florianfrauenfelder.mensazh.R
+import ch.florianfrauenfelder.mensazh.domain.model.Location
+import ch.florianfrauenfelder.mensazh.domain.model.Mensa
+import ch.florianfrauenfelder.mensazh.domain.preferences.DestinationSettings
+import ch.florianfrauenfelder.mensazh.domain.preferences.DetailSettings
 import ch.florianfrauenfelder.mensazh.domain.preferences.Setting
+import ch.florianfrauenfelder.mensazh.domain.preferences.ThemeSettings
+import ch.florianfrauenfelder.mensazh.domain.preferences.VisibilitySettings
 import ch.florianfrauenfelder.mensazh.domain.value.Theme
 import ch.florianfrauenfelder.mensazh.ui.shared.InfoLinks
 
 @Composable
 fun SettingsScreen(
-  viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory),
+  visibility: VisibilitySettings,
+  destination: DestinationSettings,
+  detail: DetailSettings,
+  theme: ThemeSettings,
+  baseLocations: List<Location>,
+  shownLocations: List<Location>,
+  hiddenMensas: List<Mensa>,
+  favoriteMensas: List<Mensa>,
+  update: (Setting) -> Unit,
+  clearCache: () -> Unit,
   openSystemSettings: () -> Unit,
   navigateUp: () -> Unit,
 ) {
-  val visibility by viewModel.visibilitySettings.collectAsStateWithLifecycle()
-  val destination by viewModel.destinationSettings.collectAsStateWithLifecycle()
-  val detail by viewModel.detailSettings.collectAsStateWithLifecycle()
-  val theme by viewModel.themeSettings.collectAsStateWithLifecycle()
-
-  val baseLocations by viewModel.baseLocations.collectAsStateWithLifecycle()
-  val shownLocations by viewModel.shownLocations.collectAsStateWithLifecycle()
-  val hiddenMensas by viewModel.hiddenMensas.collectAsStateWithLifecycle()
-  val favoriteMensas by viewModel.favoriteMensas.collectAsStateWithLifecycle()
-
-  fun update(setting: Setting) = viewModel.updateSetting(setting)
+  val layoutDirection = LocalLayoutDirection.current
 
   val showLocationSelector = remember { mutableStateOf(false) }
   val showFavoriteMensaSelector = remember { mutableStateOf(false) }
@@ -73,10 +81,11 @@ fun SettingsScreen(
             Icon(Icons.AutoMirrored.Default.ArrowBack, stringResource(R.string.back))
           }
         },
+        windowInsets = WindowInsets.statusBars,
       )
     },
     contentWindowInsets = WindowInsets.safeDrawing,
-  ) { insets ->
+  ) { innerPadding ->
     ListSelectorDialog(
       show = showLocationSelector,
       entireList = baseLocations,
@@ -110,7 +119,12 @@ fun SettingsScreen(
     )
 
     LazyColumn(
-      contentPadding = insets,
+      contentPadding = PaddingValues(
+        top = innerPadding.calculateTopPadding(),
+        bottom = innerPadding.calculateBottomPadding(),
+        end = innerPadding.calculateEndPadding(layoutDirection),
+      ),
+      modifier = Modifier.consumeWindowInsets(innerPadding),
     ) {
       item {
         SettingsRow(
@@ -304,7 +318,7 @@ fun SettingsScreen(
         SettingsRow(
           title = stringResource(R.string.clear_app_cache),
           subtitle = stringResource(R.string.clear_app_cache_desc),
-          onClick = viewModel::clearCache,
+          onClick = clearCache,
         )
       }
       item {
