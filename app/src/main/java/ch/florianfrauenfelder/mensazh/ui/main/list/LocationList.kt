@@ -28,7 +28,7 @@ fun LocationList(
   toggleExpandedMensa: (Mensa) -> Unit,
   toggleFavoriteMensa: (Mensa) -> Unit,
   modifier: Modifier = Modifier,
-  contentPadding: PaddingValues = PaddingValues(0.dp),
+  contentPadding: PaddingValues = PaddingValues(),
 ) {
   LazyColumn(
     contentPadding = contentPadding,
@@ -68,7 +68,7 @@ fun LocationList(
             start = 8.dp,
             end = 8.dp,
             top = 32.dp,
-            bottom = 8.dp,
+            bottom = 16.dp,
           )
           .animateItem()
           .fillMaxWidth(),
