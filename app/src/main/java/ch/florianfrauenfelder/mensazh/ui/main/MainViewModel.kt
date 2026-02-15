@@ -73,6 +73,13 @@ class MainViewModel(
     initialValue = DetailSettings(),
   )
 
+  private val destinationTriggers = combine(
+    params.map { it.destination },
+    destinationSettings,
+  ) { destination, destinationSettings ->
+    destination to destinationSettings
+  }.distinctUntilChanged()
+
   private val refreshTriggers =
     combine(params, visibilitySettings.map { it.language }) { params, language ->
       params.destination to language
@@ -82,6 +89,28 @@ class MainViewModel(
     refreshTriggers
       .onEach { (destination, language) ->
         mensaRepository.refreshIfNeeded(destination, language)
+      }
+      .launchIn(viewModelScope)
+    destinationTriggers
+      .onEach { (destination, destinationSettings) ->
+        when (destination) {
+          Destination.Tomorrow -> {
+            if (!destinationSettings.showTomorrow) {
+              setParams { it.copy(destination = Destination.Today) }
+            }
+          }
+          Destination.ThisWeek -> {
+            if (!destinationSettings.showThisWeek) {
+              setParams { it.copy(destination = Destination.Today) }
+            }
+          }
+          Destination.NextWeek -> {
+            if (!destinationSettings.showNextWeek) {
+              setParams { it.copy(destination = Destination.Today) }
+            }
+          }
+          else -> {}
+        }
       }
       .launchIn(viewModelScope)
   }
