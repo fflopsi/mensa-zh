@@ -10,7 +10,7 @@
   <string name="show_menus_in_german">Menus auf Deutsch</string>
   <string name="back">Zurück</string>
   <string name="refresh">Aktualisieren</string>
-  <string name="no_internet_or_menus">Keine Internetverbindung oder keine Menus heute.</string>
+  <string name="no_internet">Keine Internetverbindung</string>
   <string name="privacy_policy">Datenschutzbestimmungen</string>
   <string name="source_code">Quellcode</string>
   <string name="select_menu">Menu auswählen</string>
@@ -71,4 +71,5 @@
   <string name="unfavorite">Mensa aus Favoriten entfernen</string>
   <string name="favorite">Mensa zu Favoriten hinzufügen</string>
   <string name="hide">Mensa ausblenden</string>
+  <string name="api_error">API Fehler, Meldung willkommen</string>
 </resources>

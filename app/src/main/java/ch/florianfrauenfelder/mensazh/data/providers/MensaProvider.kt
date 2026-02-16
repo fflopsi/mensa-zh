@@ -21,9 +21,11 @@ import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.ListSerializer
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
@@ -64,6 +66,12 @@ sealed class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.A
       }
   }
 
+  /**
+   * @throws IOException Menus could not be fetched
+   * @throws IllegalStateException Call already executed
+   * @throws [SerializationException] Menus could not be parsed
+   * @throws IllegalArgumentException Menus could not be parsed
+   * */
   suspend fun fetchMenus(
     destination: Destination,
     language: Language,
@@ -75,27 +83,23 @@ sealed class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.A
       } else this
     }
 
-    updateFetchInfo(destination, language)
     val json = fetchJson(destination, language) ?: return
-    try {
-      val root = SerializationService.safeJson.decodeFromString(apiRootSerializer, json)
-      menuDao.insertMenus(extractMenus(root, monday, language))
-    } catch (_: Exception) {
-      return
-    }
+    updateFetchInfo(destination, language)
+    val root = SerializationService.safeJson.decodeFromString(apiRootSerializer, json)
+    menuDao.insertMenus(extractMenus(root, monday, language))
   }
 
+  /**
+  * @throws IOException Json could not be fetched
+  * @throws IllegalStateException Call already executed
+  * */
   private suspend fun fetchJson(destination: Destination, language: Language): String? {
     val request = buildRequest(destination, language)
-    return try {
-      withContext(Dispatchers.IO) {
-        client.newCall(request).execute().use {
-          if (it.isSuccessful) it.body.string()
-          else null
-        }
+    return withContext(Dispatchers.IO) {
+      client.newCall(request).execute().use {
+        if (it.isSuccessful) it.body.string()
+        else null
       }
-    } catch (_: Exception) {
-      null
     }
   }
 

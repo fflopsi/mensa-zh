@@ -16,14 +16,17 @@ import ch.florianfrauenfelder.mensazh.domain.preferences.DestinationSettings
 import ch.florianfrauenfelder.mensazh.domain.preferences.DetailSettings
 import ch.florianfrauenfelder.mensazh.domain.preferences.Setting
 import ch.florianfrauenfelder.mensazh.domain.preferences.VisibilitySettings
+import ch.florianfrauenfelder.mensazh.domain.value.Event
 import ch.florianfrauenfelder.mensazh.ui.navigation.Route
 import ch.florianfrauenfelder.mensazh.ui.navigation.ui
+import kotlinx.coroutines.flow.Flow
 
 @Composable
 fun MainScreen(
   params: Params,
   locations: List<Location>,
   isRefreshing: Boolean,
+  events: Flow<Event>,
   visibilitySettings: VisibilitySettings,
   destinationSettings: DestinationSettings,
   detailSettings: DetailSettings,
@@ -63,6 +66,7 @@ fun MainScreen(
         params = params,
         locations = locations,
         isRefreshing = isRefreshing,
+        events = events,
         visibilitySettings = visibilitySettings,
         detailSettings = detailSettings,
         backStack = backStack,
@@ -78,6 +82,7 @@ fun MainScreen(
       params = params,
       locations = locations,
       isRefreshing = isRefreshing,
+      events = events,
       visibilitySettings = visibilitySettings,
       detailSettings = detailSettings,
       backStack = backStack,

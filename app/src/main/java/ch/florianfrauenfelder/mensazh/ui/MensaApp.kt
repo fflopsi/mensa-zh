@@ -104,6 +104,7 @@ fun MensaApp(theme: ThemeSettings) {
               params = params,
               locations = locations,
               isRefreshing = isRefreshing,
+              events = viewModel.events,
               visibilitySettings = visibilitySettings,
               destinationSettings = destinationSettings,
               detailSettings = detailSettings,

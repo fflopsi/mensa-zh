@@ -66,16 +66,19 @@ import ch.florianfrauenfelder.mensazh.domain.navigation.Weekday
 import ch.florianfrauenfelder.mensazh.domain.preferences.DetailSettings
 import ch.florianfrauenfelder.mensazh.domain.preferences.Setting
 import ch.florianfrauenfelder.mensazh.domain.preferences.VisibilitySettings
+import ch.florianfrauenfelder.mensazh.domain.value.Event
 import ch.florianfrauenfelder.mensazh.ui.main.detail.MenuList
 import ch.florianfrauenfelder.mensazh.ui.main.list.LocationList
 import ch.florianfrauenfelder.mensazh.ui.navigation.Route
 import ch.florianfrauenfelder.mensazh.ui.navigation.label
+import kotlinx.coroutines.flow.Flow
 
 @Composable
 fun MainScreenScaffold(
   params: Params,
   locations: List<Location>,
   isRefreshing: Boolean,
+  events: Flow<Event>,
   visibilitySettings: VisibilitySettings,
   detailSettings: DetailSettings,
   backStack: NavBackStack<NavKey>,
@@ -111,13 +114,18 @@ fun MainScreenScaffold(
   val snackbarState = remember { SnackbarHostState() }
   var tabRowSize by remember { mutableStateOf(IntSize.Zero) }
 
-  val snackbarMessage = stringResource(R.string.no_internet_or_menus)
-  LaunchedEffect(isRefreshing, locations, params) {
-    if (!isRefreshing && locations.flatMap { it.mensas }.flatMap { it.menus }.isEmpty()) {
-      snackbarState.showSnackbar(
-        message = snackbarMessage,
-        withDismissAction = true,
-      )
+  val noInternetMessage = stringResource(R.string.no_internet)
+  val apiErrorMessage = stringResource(R.string.api_error)
+  LaunchedEffect(Unit) {
+    events.collect {
+      when (it) {
+        Event.NoInternet -> {
+          snackbarState.showSnackbar(message = noInternetMessage, withDismissAction = true)
+        }
+        Event.ApiError -> {
+          snackbarState.showSnackbar(message = apiErrorMessage, withDismissAction = true)
+        }
+      }
     }
   }
 

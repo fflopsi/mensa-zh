@@ -60,6 +60,7 @@ kotlin {
     optIn.addAll(
       "kotlin.uuid.ExperimentalUuidApi",
       "kotlinx.coroutines.ExperimentalCoroutinesApi",
+      "kotlin.concurrent.atomics.ExperimentalAtomicApi",
       "androidx.compose.material3.ExperimentalMaterial3Api",
       "androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi",
     )

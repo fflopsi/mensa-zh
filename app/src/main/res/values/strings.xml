@@ -15,7 +15,7 @@
   <string name="show_menus_in_german">Menus in German</string>
   <string name="back">Back</string>
   <string name="refresh">Refresh</string>
-  <string name="no_internet_or_menus">No internet connection or no menus today.</string>
+  <string name="no_internet">No internet connection</string>
   <string name="privacy_policy">Privacy policy</string>
   <string name="source_code">Source code</string>
   <string name="select_menu">Select menu</string>
@@ -76,4 +76,5 @@
   <string name="unfavorite">Unfavorite mensa</string>
   <string name="favorite">Favorite mensa</string>
   <string name="hide">Hide mensa</string>
+  <string name="api_error">API error, report appreciated</string>
 </resources>
