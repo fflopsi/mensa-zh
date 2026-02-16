@@ -67,12 +67,12 @@ fun ImageDialog(
           painter = painter,
           contentDescription = null,
           modifier = Modifier
-            .graphicsLayer(
-              scaleX = scale,
-              scaleY = scale,
-              translationX = offset.x,
-              translationY = offset.y,
-            )
+            .graphicsLayer {
+              scaleX = scale
+              scaleY = scale
+              translationX = offset.x
+              translationY = offset.y
+            }
             .transformable(state)
             .pointerInput(Unit) {
               detectTapGestures(
