@@ -73,6 +73,14 @@ suspend fun DataStore<Preferences>.saveHiddenMensas(hiddenMensas: List<Uuid>) {
   edit { it[Keys.HIDDEN_MENSAS] = hiddenMensas.map(Uuid::toString).toSet() }
 }
 
+suspend fun DataStore<Preferences>.toggleHiddenMensa(mensa: Mensa) {
+  edit { pref ->
+    pref[Keys.HIDDEN_MENSAS] = pref[Keys.HIDDEN_MENSAS].orEmpty().let {
+      if (mensa.id.toString() in it) it - mensa.id.toString() else it + mensa.id.toString()
+    }
+  }
+}
+
 val DataStore<Preferences>.hiddenMensasFlow
   get() = data.map { it[Keys.HIDDEN_MENSAS]?.map(Uuid::parse) ?: Defaults.HIDDEN_MENSAS }
 
