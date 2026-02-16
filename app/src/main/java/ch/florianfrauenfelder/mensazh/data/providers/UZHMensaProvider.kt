@@ -89,12 +89,16 @@ class UZHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
 
   override fun extractMenus(root: UzhApi.Root, monday: LocalDate, language: Language) =
     root.data?.organisation?.outlets.orEmpty().flatMap { outlet ->
-      val uzhMensa = apiMensas.find { it.slug == outlet.slug } ?: return@flatMap emptyList()
       val days =
         outlet.calendar?.week?.daily ?: outlet.calendar?.day?.let { listOf(it) }
         ?: return@flatMap emptyList()
       days.flatMap { day ->
         day.menuItems.orEmpty().flatMapIndexed { index, menuItem ->
+          val uzhMensa = apiMensas.find { uzhMensa ->
+            uzhMensa.slug == outlet.slug && menuItem.category?.path?.any { path ->
+              uzhMensa.categoryPath?.let { path.contains(it) } != false
+            } != false
+          } ?: return@flatMap emptyList()
           menuItem.dish?.nameI18n.orEmpty()
             .filter { i18nName -> i18nName.locale in Language.entries.map { it.code } }
             .mapNotNull { i18nName ->
