@@ -185,8 +185,6 @@ class MainViewModel(
     mensaRepository.forceRefresh(params.value.destination, visibilitySettings.value.language)
   }
 
-  fun deleteExpired() = viewModelScope.launch { mensaRepository.deleteExpired() }
-
   private fun locationListFlow(
     destination: Destination,
     weekday: Weekday,

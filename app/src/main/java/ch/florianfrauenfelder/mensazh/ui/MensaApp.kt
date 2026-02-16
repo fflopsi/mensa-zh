@@ -14,7 +14,6 @@ import androidx.compose.material3.VerticalDragHandle
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -94,11 +93,6 @@ fun MensaApp(theme: ThemeSettings) {
             val visibilitySettings by viewModel.visibilitySettings.collectAsStateWithLifecycle()
             val destinationSettings by viewModel.destinationSettings.collectAsStateWithLifecycle()
             val detailSettings by viewModel.detailSettings.collectAsStateWithLifecycle()
-
-            // Not optimal
-            LaunchedEffect(Unit) {
-              viewModel.deleteExpired()
-            }
 
             MainScreen(
               params = params,

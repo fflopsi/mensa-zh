@@ -92,10 +92,6 @@ class MensaRepository(
     }
   }
 
-  suspend fun deleteExpired() {
-    menuDao.deleteExpired(System.currentTimeMillis() - 1.days.inWholeMilliseconds)
-  }
-
   suspend fun clearCache() {
     fetchInfoDao.clearAll()
     menuDao.clearAll()
@@ -118,6 +114,7 @@ class MensaRepository(
       _isRefreshing[institution]?.value = true
       try {
         providers[institution]?.fetchMenus(destination, language)
+        menuDao.deleteExpired(System.currentTimeMillis() - 1.days.inWholeMilliseconds)
       } finally {
         _isRefreshing[institution]?.value = false
       }
