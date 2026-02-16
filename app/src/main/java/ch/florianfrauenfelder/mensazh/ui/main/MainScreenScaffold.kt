@@ -218,6 +218,7 @@ fun MainScreenScaffold(
               },
               toggleExpandedMensa = { updateSetting(Setting.SetIsExpandedMensa(it)) },
               toggleFavoriteMensa = { updateSetting(Setting.SetIsFavoriteMensa(it)) },
+              hideMensa = { updateSetting(Setting.SetIsHiddenMensa(it)) },
               contentPadding = PaddingValues(
                 bottom = if (useContentPadding) innerPadding.calculateBottomPadding() else 0.dp
               ),

@@ -1,12 +1,13 @@
 package ch.florianfrauenfelder.mensazh.ui.main.list
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -27,6 +28,7 @@ fun LocationList(
   onMenuClick: (MensaState, Menu) -> Unit,
   toggleExpandedMensa: (Mensa) -> Unit,
   toggleFavoriteMensa: (Mensa) -> Unit,
+  hideMensa: (Mensa) -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
 ) {
@@ -34,31 +36,30 @@ fun LocationList(
     contentPadding = contentPadding,
     modifier = modifier,
   ) {
-    item(key = -1) {
-      if (locations.isEmpty()) {
+    if (locations.isEmpty()) {
+      item(key = -1) {
         Row(
           horizontalArrangement = Arrangement.Center,
           modifier = Modifier
-            .animateItem()
+            .animateItem(
+              fadeInSpec = spring(stiffness = Spring.StiffnessHigh),
+              fadeOutSpec = spring(stiffness = Spring.StiffnessHigh),
+              placementSpec = spring(stiffness = Spring.StiffnessHigh),
+            )
             .fillMaxWidth(),
         ) {
           Text(text = stringResource(R.string.no_expanded_canteens))
         }
       }
     }
-    items(
-      items = locations,
-      key = { it.id },
-    ) { location ->
-      LocationRow(
-        location = location,
+    locations.forEach {
+      locationItem(
+        location = it,
         detail = detail,
         onMenuClick = onMenuClick,
         toggleExpandedMensa = toggleExpandedMensa,
         toggleFavoriteMensa = toggleFavoriteMensa,
-        modifier = Modifier
-          .animateItem()
-          .fillMaxWidth(),
+        hideMensa = hideMensa,
       )
     }
     item(key = 0) {
@@ -70,7 +71,11 @@ fun LocationList(
             top = 32.dp,
             bottom = 16.dp,
           )
-          .animateItem()
+          .animateItem(
+            fadeInSpec = spring(stiffness = Spring.StiffnessHigh),
+            fadeOutSpec = spring(stiffness = Spring.StiffnessHigh),
+            placementSpec = spring(stiffness = Spring.StiffnessHigh),
+          )
           .fillMaxWidth(),
       )
     }
