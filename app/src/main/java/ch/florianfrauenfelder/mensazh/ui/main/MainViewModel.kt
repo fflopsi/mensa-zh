@@ -80,10 +80,12 @@ class MainViewModel(
     destination to destinationSettings
   }.distinctUntilChanged()
 
-  private val refreshTriggers =
-    combine(params, visibilitySettings.map { it.language }) { params, language ->
-      params.destination to language
-    }.distinctUntilChanged()
+  private val refreshTriggers = combine(
+    params,
+    visibilitySettings.map { it.language },
+  ) { params, language ->
+    params.destination to language
+  }.distinctUntilChanged()
 
   init {
     refreshTriggers
