@@ -39,7 +39,15 @@ class MensaRepository(
   private val providers: Map<Institution, MensaProvider<*, *, *>>,
   appScope: CoroutineScope,
 ) {
-  private val _isRefreshing = providers.keys.associateWith { MutableStateFlow(false) }
+  private val mapKeys = providers.keys.flatMap { institution ->
+    Destination.entries.flatMap { destination ->
+      Language.entries.map { language ->
+        Triple(institution, destination, language)
+      }
+    }
+  }
+
+  private val _isRefreshing = mapKeys.associateWith { MutableStateFlow(false) }
   val isRefreshing = combine(_isRefreshing.values) { refreshes -> refreshes.any { it } }
 
   val eventChannel = Channel<Event>()
@@ -97,7 +105,7 @@ class MensaRepository(
     menuDao.clearAll()
   }
 
-  private val refreshMutexes = providers.keys.associateWith { Mutex() }
+  private val refreshMutexes = mapKeys.associateWith { Mutex() }
 
   /**
    * @throws IOException Menus could not be fetched
@@ -110,13 +118,13 @@ class MensaRepository(
     destination: Destination,
     language: Language,
   ) {
-    refreshMutexes[institution]?.withLock {
-      _isRefreshing[institution]?.value = true
+    refreshMutexes[Triple(institution, destination, language)]?.withLock {
+      _isRefreshing[Triple(institution, destination, language)]?.value = true
       try {
         providers[institution]?.fetchMenus(destination, language)
         menuDao.deleteExpired(System.currentTimeMillis() - 1.days.inWholeMilliseconds)
       } finally {
-        _isRefreshing[institution]?.value = false
+        _isRefreshing[Triple(institution, destination, language)]?.value = false
       }
     }
   }
@@ -129,7 +137,7 @@ class MensaRepository(
     val now = System.currentTimeMillis()
     val fetchInfo = fetchInfoDao.getFetchInfo(institution, destination, language)
 
-    return _isRefreshing[institution]?.value != true &&
+    return _isRefreshing[Triple(institution, destination, language)]?.value != true &&
       now - (fetchInfo?.fetchDate ?: 0) > 12.hours.inWholeMilliseconds
   }
 }
