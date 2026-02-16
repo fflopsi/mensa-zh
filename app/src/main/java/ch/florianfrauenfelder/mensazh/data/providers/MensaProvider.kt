@@ -12,6 +12,8 @@ import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
 import ch.florianfrauenfelder.mensazh.domain.value.Institution
 import ch.florianfrauenfelder.mensazh.domain.value.Language
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
@@ -41,6 +43,7 @@ sealed class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.A
   protected abstract val apiRootSerializer: KSerializer<R>
   private val _apiMensas = mutableListOf<M>()
   protected val apiMensas: List<M> = _apiMensas
+  protected abstract val oneLanguagePerCall: Boolean
   protected val client = OkHttpClient
     .Builder()
     .connectTimeout(5, TimeUnit.SECONDS)
@@ -83,16 +86,27 @@ sealed class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.A
       } else this
     }
 
-    val json = fetchJson(destination, language) ?: return
-    updateFetchInfo(destination, language)
-    val root = SerializationService.safeJson.decodeFromString(apiRootSerializer, json)
-    menuDao.insertMenus(extractMenus(root, monday, language))
+    supervisorScope {
+      launch {
+        val json = fetchJson(destination, language) ?: return@launch
+        updateFetchInfo(destination, language)
+        val root = SerializationService.safeJson.decodeFromString(apiRootSerializer, json)
+        menuDao.insertMenus(extractMenus(root, monday, language))
+      }
+      if (oneLanguagePerCall) launch {
+        val json = fetchJson(destination, !language) ?: return@launch
+        updateFetchInfo(destination, !language)
+        val root = SerializationService.safeJson.decodeFromString(apiRootSerializer, json)
+        menuDao.insertMenus(extractMenus(root, monday, !language))
+      }
+    }
+
   }
 
   /**
-  * @throws IOException Json could not be fetched
-  * @throws IllegalStateException Call already executed
-  * */
+   * @throws IOException Json could not be fetched
+   * @throws IllegalStateException Call already executed
+   * */
   private suspend fun fetchJson(destination: Destination, language: Language): String? {
     val request = buildRequest(destination, language)
     return withContext(Dispatchers.IO) {

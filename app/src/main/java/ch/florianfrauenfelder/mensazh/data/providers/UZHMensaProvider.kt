@@ -31,6 +31,7 @@ class UZHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
   override val locationsFile = "uzh/locations_zfv.json"
   override val locationSerializer = UzhLocation.serializer()
   override val apiRootSerializer = UzhApi.Root.serializer()
+  override val oneLanguagePerCall = false
 
   override fun buildRequest(destination: Destination, language: Language): Request {
     val date =

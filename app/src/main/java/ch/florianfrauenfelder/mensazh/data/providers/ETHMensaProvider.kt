@@ -31,6 +31,7 @@ class ETHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
   override val locationsFile = "eth/locations.json"
   override val locationSerializer = EthLocation.serializer()
   override val apiRootSerializer = EthApi.Root.serializer()
+  override val oneLanguagePerCall = true
 
   override fun buildRequest(destination: Destination, language: Language): Request {
     val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
