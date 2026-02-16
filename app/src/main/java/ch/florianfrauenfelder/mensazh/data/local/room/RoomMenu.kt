@@ -22,6 +22,7 @@ data class RoomMenu(
   val creationDate: Long = System.currentTimeMillis(),
 ) {
   fun toMenu(): Menu = Menu(
+    index = index,
     title = title,
     description = description,
     price = price,

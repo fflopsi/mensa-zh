@@ -6,6 +6,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class Menu(
+  val index: Int,
   val title: String,
   val description: String,
   val price: List<String>,
@@ -19,6 +20,7 @@ data class Menu(
 
   companion object {
     val dummy = Menu(
+      index = 1,
       title = "vitality",
       description = "Gnocchi mit Quornwürfel und Tomatensauce",
       price = listOf("14.50", "20.50", "21.30"),

@@ -226,7 +226,7 @@ class MainViewModel(
     val returnedMenus = if (menus.isEmpty() && fallbackMenus.isNotEmpty()) fallbackMenus else menus
     MensaState(
       mensa = mensa,
-      menus = returnedMenus,
+      menus = returnedMenus.sortedBy { it.index },
       state = when {
         returnedMenus.isEmpty() -> MensaState.State.Closed
         expandedMensas.contains(mensa.id) -> MensaState.State.Expanded
