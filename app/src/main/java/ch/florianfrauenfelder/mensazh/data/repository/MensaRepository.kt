@@ -8,7 +8,6 @@ import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
 import ch.florianfrauenfelder.mensazh.domain.value.Institution
 import ch.florianfrauenfelder.mensazh.domain.value.Language
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -23,7 +22,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDate
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
@@ -71,11 +69,11 @@ class MensaRepository(
     }
   }
 
-  suspend fun deleteExpired() = withContext(Dispatchers.IO) {
+  suspend fun deleteExpired() {
     menuDao.deleteExpired(System.currentTimeMillis() - 1.days.inWholeMilliseconds)
   }
 
-  suspend fun clearCache() = withContext(Dispatchers.IO) {
+  suspend fun clearCache() {
     fetchInfoDao.clearAll()
     menuDao.clearAll()
   }
@@ -90,9 +88,7 @@ class MensaRepository(
     refreshMutexes[institution]?.withLock {
       _isRefreshing[institution]?.value = true
       try {
-        withContext(Dispatchers.IO) {
-          providers[institution]?.fetchMenus(destination, language)
-        }
+        providers[institution]?.fetchMenus(destination, language)
       } finally {
         _isRefreshing[institution]?.value = false
       }
@@ -105,10 +101,7 @@ class MensaRepository(
     language: Language,
   ): Boolean {
     val now = System.currentTimeMillis()
-
-    val fetchInfo = withContext(Dispatchers.IO) {
-      fetchInfoDao.getFetchInfo(institution, destination, language)
-    }
+    val fetchInfo = fetchInfoDao.getFetchInfo(institution, destination, language)
 
     return now - (fetchInfo?.fetchDate ?: 0) > 12.hours.inWholeMilliseconds
   }

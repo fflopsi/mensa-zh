@@ -12,7 +12,6 @@ import ch.florianfrauenfelder.mensazh.data.local.datastore.menusLanguageFlow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveAutoShowImage
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveFavoriteMensas
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveHiddenMensas
-import ch.florianfrauenfelder.mensazh.data.local.datastore.toggleExpandedMensa
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveListShowAllergens
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveListUseShortDescription
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveMenusLanguage
@@ -31,6 +30,7 @@ import ch.florianfrauenfelder.mensazh.data.local.datastore.showThisWeekFlow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.showTomorrowFlow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.shownLocationsFlow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.themeFlow
+import ch.florianfrauenfelder.mensazh.data.local.datastore.toggleExpandedMensa
 import ch.florianfrauenfelder.mensazh.data.local.datastore.toggleFavoriteMensa
 import ch.florianfrauenfelder.mensazh.data.local.datastore.toggleHiddenMensa
 import ch.florianfrauenfelder.mensazh.data.local.datastore.useDynamicColorFlow
@@ -40,9 +40,7 @@ import ch.florianfrauenfelder.mensazh.domain.preferences.SelectionSettings
 import ch.florianfrauenfelder.mensazh.domain.preferences.Setting
 import ch.florianfrauenfelder.mensazh.domain.preferences.ThemeSettings
 import ch.florianfrauenfelder.mensazh.domain.preferences.VisibilitySettings
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.withContext
 
 class PreferencesRepository(val dataStore: DataStore<Preferences>) {
   // Grouping because combining more than 5 flows is cumbersome
@@ -106,7 +104,7 @@ class PreferencesRepository(val dataStore: DataStore<Preferences>) {
     )
   }
 
-  suspend fun updateSetting(setting: Setting) = withContext(Dispatchers.IO) {
+  suspend fun updateSetting(setting: Setting) {
     when (val s = setting) {
       is Setting.SetIsExpandedMensa -> dataStore.toggleExpandedMensa(s.mensa)
       is Setting.SetShowOnlyOpenMensas -> dataStore.saveShowOnlyOpenMensas(s.enabled)
