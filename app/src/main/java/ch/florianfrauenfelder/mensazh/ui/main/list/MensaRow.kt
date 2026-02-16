@@ -80,11 +80,15 @@ fun MensaRow(
   ) {
     IconButton(onClick = toggleIsFavoriteMensa) {
       AnimatedContent(targetState = mensa.favorite) {
-        Icon(if (it) Icons.Default.Star else Icons.Default.StarBorder, "Favorite")
+        if (it) {
+          Icon(Icons.Default.Star, stringResource(R.string.unfavorite))
+        } else {
+          Icon(Icons.Default.StarBorder, stringResource(R.string.favorite))
+        }
       }
     }
     IconButton(onClick = hideMensa) {
-      Icon(Icons.Default.VisibilityOff, "Hide")
+      Icon(Icons.Default.VisibilityOff, stringResource(R.string.hide))
     }
   }
   Surface(

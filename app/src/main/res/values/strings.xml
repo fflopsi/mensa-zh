@@ -73,4 +73,7 @@
   <string name="more_settings_desc">System settings for this app: storage, cache, app language, …</string>
   <string name="clear_app_cache">Clear app cache</string>
   <string name="clear_app_cache_desc">Delete all cached menus and metadata</string>
+  <string name="unfavorite">Unfavorite mensa</string>
+  <string name="favorite">Favorite mensa</string>
+  <string name="hide">Hide mensa</string>
 </resources>

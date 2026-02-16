@@ -68,4 +68,7 @@
   <string name="more_settings_desc">Systemeinstellungen für diese App: Speicher, Cache, App-Sprache, …</string>
   <string name="clear_app_cache">App-Cache leeren</string>
   <string name="clear_app_cache_desc">Alle zwischengespeicherten Menus und Metadaten löschen</string>
+  <string name="unfavorite">Mensa aus Favoriten entfernen</string>
+  <string name="favorite">Mensa zu Favoriten hinzufügen</string>
+  <string name="hide">Mensa ausblenden</string>
 </resources>
