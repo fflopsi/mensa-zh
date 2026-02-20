@@ -235,7 +235,7 @@ class MainViewModel(
       mensa = mensa,
       menus = sortedMenus,
       state = when {
-        returnedMenus.isEmpty() -> MensaState.State.Closed
+        sortedMenus.isEmpty() -> MensaState.State.Closed
         expandedMensas.contains(mensa.id) -> MensaState.State.Expanded
         else -> MensaState.State.Available
       },
