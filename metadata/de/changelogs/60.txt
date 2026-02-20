@@ -1,0 +1,19 @@
+Neue Funktionen und Einstellungen (einige davon auf euren Wunsch hin, danke!), Fehlerbehebungen und Leistungsverbesserungen!
+
+Neue Einstellungen für jeden Bedarf:
+
+* Wähle zwischen 2 oder 3 Zeilen Detailinformationen in der Listenübersicht
+* Aktiviere die Allergenanzeige in der Listenübersicht
+* Wähle, ob das Bild des angetippten Menus automatisch angezeigt werden soll
+* Menus sortieren oder ausblenden nach Typ (Standard (Fleisch, Fisch usw.), vegetarisch, vegan) [Warnung: Kategorisierung erfolgt nicht durch die App und kann inkonsistent oder falsch sein]
+* Wähle die Sprache der App in den Systemeinstellungen (Mitwirkung an Übersetzungen ist willkommen!)
+* Lösche die zwischengespeicherten Menus mit einem Fingertipp
+
+Was gibt es sonst noch Neues:
+
+* Tippe auf ein Bild, um ein zoombares Popup zu öffnen
+* Englisch und Deutsch werden gleichzeitig geladen, um bei fehlenden Übersetzungen einen Ersatz zu bieten (ETH)
+* Wische auf einer Mensa nach rechts, um sie als Favorit zu speichern oder auszublenden
+* Bessere Nutzung des Platzes auf größeren Displays
+* Verbesserte Animationen
+* Weitere Fehlerbehebungen und Leistungsverbesserungen
