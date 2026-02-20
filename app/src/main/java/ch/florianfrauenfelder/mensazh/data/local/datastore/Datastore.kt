@@ -55,6 +55,7 @@ val DataStore<Preferences>.shownLocationsFlow
   get() = data.map { it[Keys.SHOWN_LOCATIONS]?.map(Uuid::parse) ?: Defaults.SHOWN_LOCATIONS }
 
 suspend fun DataStore<Preferences>.saveFavoriteMensas(favoriteMensas: List<Uuid>) {
+  edit { it[Keys.FAVORITE_MENSAS] = emptySet() } // necessary to conserve order
   edit { it[Keys.FAVORITE_MENSAS] = favoriteMensas.map(Uuid::toString).toSet() }
 }
 
