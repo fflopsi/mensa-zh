@@ -6,12 +6,12 @@ New settings to fit your needs:
 * Enable allergen display in list overview
 * Choose to automatically show the image of the tapped menu
 * Sort or hide menus by types (standard (meat, fish etc.), vegetarian, vegan) [Warning: labeling not done by the app, may be inconsistent or wrong]
-* Choose the app language in your system settings (translations contributions appreciated!)
+* Choose the app language in your system settings (translation contributions appreciated!)
 * Clear the cached menus in one tap
 
 What's new otherwise:
 
-* Tap an image to get a zoomable popup
+* Tap an image to see a zoomable popup
 * English and German are fetched simultaneously to provide fallback for missing translations (ETH)
 * Swipe right on a mensa to favorite or hide it
 * Better use of space on bigger displays
