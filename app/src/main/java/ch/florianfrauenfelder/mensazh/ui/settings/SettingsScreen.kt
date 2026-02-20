@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.FilterListOff
 import androidx.compose.material.icons.filled.HotelClass
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.NoMeals
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -48,7 +49,9 @@ import ch.florianfrauenfelder.mensazh.domain.preferences.DetailSettings
 import ch.florianfrauenfelder.mensazh.domain.preferences.Setting
 import ch.florianfrauenfelder.mensazh.domain.preferences.ThemeSettings
 import ch.florianfrauenfelder.mensazh.domain.preferences.VisibilitySettings
+import ch.florianfrauenfelder.mensazh.domain.value.MenuType
 import ch.florianfrauenfelder.mensazh.domain.value.Theme
+import ch.florianfrauenfelder.mensazh.ui.domain.label
 import ch.florianfrauenfelder.mensazh.ui.shared.InfoLinks
 
 @Composable
@@ -71,6 +74,7 @@ fun SettingsScreen(
   val showLocationSelector = remember { mutableStateOf(false) }
   val showFavoriteMensaSelector = remember { mutableStateOf(false) }
   val showHiddenMensaSelector = remember { mutableStateOf(false) }
+  val showMenuTypeSelector = remember { mutableStateOf(false) }
 
   Scaffold(
     topBar = {
@@ -122,6 +126,19 @@ fun SettingsScreen(
       icon = Icons.Default.FilterListOff,
       title = R.string.hide_mensas,
       subtitleAvailableItems = R.string.available_mensas,
+    )
+    ListSelectorDialog(
+      show = showMenuTypeSelector,
+      entireList = MenuType.entries,
+      selectedList = visibility.menuTypes,
+      saveList = { update(Setting.SetMenuTypes(it)) },
+      getId = MenuType::code,
+      getTitle = { stringResource(it.label) },
+      icon = Icons.Default.NoMeals,
+      title = R.string.select_menu_types,
+      subtitle = R.string.select_menu_types_desc,
+      subtitleAvailableItems = R.string.hidden_menu_types,
+      showMoveButtons = true,
     )
 
     LazyColumn(
@@ -194,6 +211,19 @@ fun SettingsScreen(
             .ifEmpty { stringResource(R.string.none_selected) }
             .toString(),
           onClick = { showHiddenMensaSelector.value = true },
+        ) {
+          Icon(Icons.AutoMirrored.Filled.NavigateNext, null)
+        }
+      }
+      item {
+        SettingsRow(
+          title = stringResource(R.string.select_menu_types),
+          subtitle = visibility
+            .menuTypes
+            .map { stringResource(it.label) }
+            .ifEmpty { stringResource(R.string.none_selected) }
+            .toString(),
+          onClick = { showMenuTypeSelector.value = true },
         ) {
           Icon(Icons.AutoMirrored.Filled.NavigateNext, null)
         }

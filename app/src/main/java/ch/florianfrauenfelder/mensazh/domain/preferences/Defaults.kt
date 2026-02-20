@@ -1,6 +1,7 @@
 package ch.florianfrauenfelder.mensazh.domain.preferences
 
 import ch.florianfrauenfelder.mensazh.domain.value.Language
+import ch.florianfrauenfelder.mensazh.domain.value.MenuType
 import ch.florianfrauenfelder.mensazh.domain.value.Theme
 import kotlin.uuid.Uuid
 
@@ -9,6 +10,7 @@ object Defaults {
   const val SHOW_ONLY_OPEN_MENSAS = false
   const val SHOW_ONLY_EXPANDED_MENSAS = false
   val MENU_LANGUAGE = Language.default
+  val MENU_TYPES = emptyList<MenuType>()
 
   val SHOWN_LOCATIONS = listOf(
     "99120f22-7a65-4b36-8619-9eb318334950", // ETH Zentrum

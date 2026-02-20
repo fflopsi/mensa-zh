@@ -9,6 +9,7 @@ object Keys {
   val SHOW_ONLY_OPEN_MENSAS = booleanPreferencesKey("show_only_open_mensas")
   val SHOW_ONLY_EXPANDED_MENSAS = booleanPreferencesKey("show_only_expanded_mensas")
   val MENU_LANGUAGE = booleanPreferencesKey("german_menus")
+  val MENU_TYPES = stringSetPreferencesKey("menu_types")
 
   val SHOWN_LOCATIONS = stringSetPreferencesKey("shown_locations")
   val FAVORITE_MENSAS = stringSetPreferencesKey("favorite_mensas")

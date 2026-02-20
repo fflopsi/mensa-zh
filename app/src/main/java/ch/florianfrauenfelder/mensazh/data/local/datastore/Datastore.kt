@@ -8,6 +8,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import ch.florianfrauenfelder.mensazh.domain.model.Mensa
 import ch.florianfrauenfelder.mensazh.domain.preferences.Defaults
 import ch.florianfrauenfelder.mensazh.domain.value.Language
+import ch.florianfrauenfelder.mensazh.domain.value.MenuType
 import ch.florianfrauenfelder.mensazh.domain.value.Theme
 import kotlinx.coroutines.flow.map
 import kotlin.uuid.Uuid
@@ -45,6 +46,14 @@ suspend fun DataStore<Preferences>.saveMenusLanguage(language: Language) {
 
 val DataStore<Preferences>.menusLanguageFlow
   get() = data.map { it[Keys.MENU_LANGUAGE]?.let(Language::fromBoolean) ?: Defaults.MENU_LANGUAGE }
+
+suspend fun DataStore<Preferences>.saveMenuTypes(menuTypes: List<MenuType>) {
+  edit { it[Keys.MENU_TYPES] = emptySet() } // necessary to conserve order
+  edit { it[Keys.MENU_TYPES] = menuTypes.map(MenuType::code).toSet() }
+}
+
+val DataStore<Preferences>.menuTypesFlow
+  get() = data.map { it[Keys.MENU_TYPES]?.map(MenuType::fromCode) ?: Defaults.MENU_TYPES }
 
 suspend fun DataStore<Preferences>.saveShownLocations(shownLocations: List<Uuid>) {
   edit { it[Keys.SHOWN_LOCATIONS] = emptySet() } // necessary to conserve order

@@ -77,4 +77,8 @@
   <string name="favorite">Favorite mensa</string>
   <string name="hide">Hide mensa</string>
   <string name="api_error">API error, report appreciated</string>
+  <string name="standard">Standard</string>
+  <string name="select_menu_types">Show or hide menu types…</string>
+  <string name="select_menu_types_desc">If all are hidden, the default sorting from the provider is used.</string>
+  <string name="hidden_menu_types">Hidden menu types</string>
 </resources>

@@ -2,6 +2,7 @@ package ch.florianfrauenfelder.mensazh.domain.preferences
 
 import ch.florianfrauenfelder.mensazh.domain.model.Mensa
 import ch.florianfrauenfelder.mensazh.domain.value.Language
+import ch.florianfrauenfelder.mensazh.domain.value.MenuType
 import ch.florianfrauenfelder.mensazh.domain.value.Theme
 import kotlin.uuid.Uuid
 
@@ -10,6 +11,7 @@ sealed interface Setting {
   data class SetShowOnlyOpenMensas(val enabled: Boolean) : Setting
   data class SetShowOnlyExpandedMensas(val enabled: Boolean) : Setting
   data class SetMenusLanguage(val language: Language) : Setting
+  data class SetMenuTypes(val menuTypes: List<MenuType>) : Setting
 
   data class SetShownLocations(val locations: List<Uuid>) : Setting
   data class SetFavoriteMensas(val mensas: List<Uuid>) : Setting

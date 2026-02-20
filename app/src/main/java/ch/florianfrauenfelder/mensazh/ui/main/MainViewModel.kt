@@ -20,6 +20,7 @@ import ch.florianfrauenfelder.mensazh.domain.preferences.SelectionSettings
 import ch.florianfrauenfelder.mensazh.domain.preferences.Setting
 import ch.florianfrauenfelder.mensazh.domain.preferences.VisibilitySettings
 import ch.florianfrauenfelder.mensazh.domain.value.Language
+import ch.florianfrauenfelder.mensazh.domain.value.type
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -220,13 +221,19 @@ class MainViewModel(
   ): Flow<MensaState> = combine(
     visibilitySettings.map { it.expandedMensas },
     selectionSettings.map { it.favoriteMensas },
+    visibilitySettings.map { it.menuTypes },
     mensaRepository.observeMenus(mensaId = mensa.id, language = language, date = date),
     mensaRepository.observeMenus(mensaId = mensa.id, language = !language, date = date),
-  ) { expandedMensas, favoriteMensas, menus, fallbackMenus ->
+  ) { expandedMensas, favoriteMensas, menuTypes, menus, fallbackMenus ->
     val returnedMenus = if (menus.isEmpty() && fallbackMenus.isNotEmpty()) fallbackMenus else menus
+    val sortedMenus = returnedMenus
+      .filter { if (menuTypes.isNotEmpty()) it.type in menuTypes else true }
+      .sortedBy { it.index }
+      .sortedBy { menuTypes.indexOf(it.type) }
+
     MensaState(
       mensa = mensa,
-      menus = returnedMenus.sortedBy { it.index },
+      menus = sortedMenus,
       state = when {
         returnedMenus.isEmpty() -> MensaState.State.Closed
         expandedMensas.contains(mensa.id) -> MensaState.State.Expanded

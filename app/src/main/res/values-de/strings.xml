@@ -72,4 +72,8 @@
   <string name="favorite">Mensa zu Favoriten hinzufügen</string>
   <string name="hide">Mensa ausblenden</string>
   <string name="api_error">API Fehler, Meldung willkommen</string>
+  <string name="standard">Standard</string>
+  <string name="select_menu_types">Menutypen anzeigen oder ausblenden…</string>
+  <string name="select_menu_types_desc">Wenn alle ausgeblendet sind, wird die Standard-Sortierung vom Provider benutzt.</string>
+  <string name="hidden_menu_types">Ausgeblendete Menutypen</string>
 </resources>

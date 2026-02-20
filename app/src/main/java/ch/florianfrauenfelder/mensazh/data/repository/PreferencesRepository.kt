@@ -8,12 +8,14 @@ import ch.florianfrauenfelder.mensazh.data.local.datastore.favoriteMensasFlow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.hiddenMensasFlow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.listShowAllergensFlow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.listUseShortDescriptionFlow
+import ch.florianfrauenfelder.mensazh.data.local.datastore.menuTypesFlow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.menusLanguageFlow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveAutoShowImage
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveFavoriteMensas
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveHiddenMensas
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveListShowAllergens
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveListUseShortDescription
+import ch.florianfrauenfelder.mensazh.data.local.datastore.saveMenuTypes
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveMenusLanguage
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveShowNextWeek
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveShowOnlyExpandedMensas
@@ -49,12 +51,14 @@ class PreferencesRepository(val dataStore: DataStore<Preferences>) {
     dataStore.showOnlyOpenMensasFlow,
     dataStore.showOnlyExpandedMensasFlow,
     dataStore.menusLanguageFlow,
-  ) { expandedMensas, showOnlyOpenMensas, showOnlyExpandedMensas, language ->
+    dataStore.menuTypesFlow,
+  ) { expandedMensas, showOnlyOpenMensas, showOnlyExpandedMensas, language, menuTypes ->
     VisibilitySettings(
       expandedMensas = expandedMensas,
       showOnlyOpenMensas = showOnlyOpenMensas,
       showOnlyExpandedMensas = showOnlyExpandedMensas,
       language = language,
+      menuTypes = menuTypes,
     )
   }
 
@@ -110,6 +114,7 @@ class PreferencesRepository(val dataStore: DataStore<Preferences>) {
       is Setting.SetShowOnlyOpenMensas -> dataStore.saveShowOnlyOpenMensas(s.enabled)
       is Setting.SetShowOnlyExpandedMensas -> dataStore.saveShowOnlyExpandedMensas(s.enabled)
       is Setting.SetMenusLanguage -> dataStore.saveMenusLanguage(s.language)
+      is Setting.SetMenuTypes -> dataStore.saveMenuTypes(s.menuTypes)
 
       is Setting.SetShownLocations -> dataStore.saveShownLocations(s.locations)
       is Setting.SetFavoriteMensas -> dataStore.saveFavoriteMensas(s.mensas)
