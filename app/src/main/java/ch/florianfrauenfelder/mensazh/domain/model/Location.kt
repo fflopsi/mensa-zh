@@ -3,10 +3,10 @@ package ch.florianfrauenfelder.mensazh.domain.model
 import kotlin.uuid.Uuid
 
 data class Location(
-  override val id: Uuid,
-  override val title: String,
+  val id: Uuid,
+  val title: String,
   val mensas: List<MensaState>,
-) : IdTitleItem {
+) {
   override fun toString() = title
 
   companion object {

@@ -30,18 +30,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import ch.florianfrauenfelder.mensazh.R
-import ch.florianfrauenfelder.mensazh.domain.model.IdTitleItem
 
 @Composable
-fun <T : IdTitleItem> ListSelectorDialog(
+fun <T> ListSelectorDialog(
   show: MutableState<Boolean>,
   entireList: List<T>,
   selectedList: List<T>,
   saveList: (List<T>) -> Unit,
+  getId: (T) -> String,
+  getTitle: @Composable (T) -> String,
   icon: ImageVector,
-  @StringRes title: Int,
-  @StringRes subtitleAvailableItems: Int,
   modifier: Modifier = Modifier,
+  @StringRes title: Int,
+  @StringRes subtitle: Int? = null,
+  @StringRes subtitleAvailableItems: Int? = null,
   showMoveButtons: Boolean = false,
 ) {
   if (show.value) {
@@ -68,16 +70,25 @@ fun <T : IdTitleItem> ListSelectorDialog(
       title = { Text(text = stringResource(title)) },
       text = {
         LazyColumn {
+          subtitle?.let {
+            item(key = -1) {
+              Text(
+                text = stringResource(it),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+              )
+            }
+          }
           itemsIndexed(
             items = selected,
-            key = { _, item -> item.id },
+            key = { _, item -> getId(item) },
           ) { index, item ->
             Row(
               verticalAlignment = Alignment.CenterVertically,
               modifier = Modifier.animateItem(),
             ) {
               Text(
-                text = item.title,
+                text = getTitle(item),
                 modifier = Modifier.weight(1f),
               )
               if (showMoveButtons) {
@@ -97,29 +108,31 @@ fun <T : IdTitleItem> ListSelectorDialog(
               }
             }
           }
-          if ((entireList - selected).isNotEmpty()) {
-            item(key = 0) {
-              Column(modifier = Modifier.animateItem()) {
-                HorizontalDivider()
-                Text(
-                  text = stringResource(subtitleAvailableItems),
-                  fontStyle = FontStyle.Italic,
-                  textAlign = TextAlign.Center,
-                  modifier = Modifier.fillMaxWidth(),
-                )
+          subtitleAvailableItems?.let {
+            if ((entireList - selected).isNotEmpty()) {
+              item(key = 0) {
+                Column(modifier = Modifier.animateItem()) {
+                  HorizontalDivider()
+                  Text(
+                    text = stringResource(it),
+                    fontStyle = FontStyle.Italic,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                  )
+                }
               }
             }
           }
           items(
             items = entireList - selected,
-            key = { it.id },
+            key = getId,
           ) {
             Row(
               verticalAlignment = Alignment.CenterVertically,
               modifier = Modifier.animateItem(),
             ) {
               Text(
-                text = it.title,
+                text = getTitle(it),
                 modifier = Modifier.weight(1f),
               )
               IconButton(onClick = { selected.add(it) }) {

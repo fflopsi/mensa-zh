@@ -8,12 +8,12 @@ import kotlin.uuid.Uuid
 @Serializable
 @Parcelize
 data class Mensa(
-  override val id: Uuid,
-  override val title: String,
+  val id: Uuid,
+  val title: String,
   val mealTime: String,
   val url: String,
   val imagePath: String? = null,
-) : IdTitleItem, Parcelable {
+) : Parcelable {
   override fun toString() = title
 
   fun toMensaState() = MensaState(mensa = this)
