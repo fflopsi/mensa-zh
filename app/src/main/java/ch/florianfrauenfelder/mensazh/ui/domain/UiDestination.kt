@@ -1,4 +1,4 @@
-package ch.florianfrauenfelder.mensazh.ui.navigation
+package ch.florianfrauenfelder.mensazh.ui.domain
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons

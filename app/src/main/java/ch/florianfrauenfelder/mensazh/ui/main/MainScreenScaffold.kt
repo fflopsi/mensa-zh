@@ -67,10 +67,10 @@ import ch.florianfrauenfelder.mensazh.domain.preferences.DetailSettings
 import ch.florianfrauenfelder.mensazh.domain.preferences.Setting
 import ch.florianfrauenfelder.mensazh.domain.preferences.VisibilitySettings
 import ch.florianfrauenfelder.mensazh.domain.value.Event
+import ch.florianfrauenfelder.mensazh.ui.Route
+import ch.florianfrauenfelder.mensazh.ui.domain.label
 import ch.florianfrauenfelder.mensazh.ui.main.detail.MenuList
 import ch.florianfrauenfelder.mensazh.ui.main.list.LocationList
-import ch.florianfrauenfelder.mensazh.ui.navigation.Route
-import ch.florianfrauenfelder.mensazh.ui.navigation.label
 import kotlinx.coroutines.flow.Flow
 
 @Composable

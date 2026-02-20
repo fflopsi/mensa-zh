@@ -1,4 +1,4 @@
-package ch.florianfrauenfelder.mensazh.ui.navigation
+package ch.florianfrauenfelder.mensazh.ui
 
 import androidx.navigation3.runtime.NavKey
 import ch.florianfrauenfelder.mensazh.domain.model.Mensa
@@ -17,4 +17,3 @@ sealed interface Route : NavKey {
   @Serializable
   data object Settings : Route
 }
-

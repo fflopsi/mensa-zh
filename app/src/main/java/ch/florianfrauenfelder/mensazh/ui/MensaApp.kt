@@ -31,7 +31,6 @@ import ch.florianfrauenfelder.mensazh.domain.preferences.ThemeSettings
 import ch.florianfrauenfelder.mensazh.domain.value.Theme
 import ch.florianfrauenfelder.mensazh.ui.main.MainScreen
 import ch.florianfrauenfelder.mensazh.ui.main.MainViewModel
-import ch.florianfrauenfelder.mensazh.ui.navigation.Route
 import ch.florianfrauenfelder.mensazh.ui.settings.SettingsScreen
 import ch.florianfrauenfelder.mensazh.ui.settings.SettingsViewModel
 import ch.florianfrauenfelder.mensazh.ui.theme.MensaZHTheme
