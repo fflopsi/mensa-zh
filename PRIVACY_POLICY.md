@@ -27,7 +27,7 @@ I reserve the right to update or change my Privacy Policy at any time and you sh
 
 ## Contact Information
 
-For any questions or concerns regarding the privacy policy, please send me an email to florian.l.frauenfelder(at)gmail.com.
+For any questions or concerns regarding the privacy policy, please [contact me](https://florian-frauenfelder.ch/contact/).
 
 
 ## Source
