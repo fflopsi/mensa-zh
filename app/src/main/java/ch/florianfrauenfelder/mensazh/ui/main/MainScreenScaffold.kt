@@ -30,6 +30,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -40,6 +41,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -71,7 +73,9 @@ import ch.florianfrauenfelder.mensazh.ui.Route
 import ch.florianfrauenfelder.mensazh.ui.domain.label
 import ch.florianfrauenfelder.mensazh.ui.main.detail.MenuList
 import ch.florianfrauenfelder.mensazh.ui.main.list.LocationList
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 
 @Composable
 fun MainScreenScaffold(
@@ -116,17 +120,40 @@ fun MainScreenScaffold(
 
   val noInternetMessage = stringResource(R.string.no_internet)
   val apiErrorMessage = stringResource(R.string.api_error)
+  val slowInternetMessage = stringResource(R.string.slow_internet)
+  val cancelMessage = stringResource(R.string.cancel)
+  val slowInternetSnackbarJobs = remember { mutableStateListOf<Job?>() }
   LaunchedEffect(Unit) {
-    events.collect {
-      when (it) {
+    events.collect { event ->
+      when (event) {
         Event.NoInternet -> {
           snackbarState.showSnackbar(message = noInternetMessage, withDismissAction = true)
         }
         Event.ApiError -> {
           snackbarState.showSnackbar(message = apiErrorMessage, withDismissAction = true)
         }
+        is Event.SlowInternet -> {
+          slowInternetSnackbarJobs.add(
+            launch {
+              val result = snackbarState.showSnackbar(
+                message = slowInternetMessage,
+                actionLabel = cancelMessage,
+              )
+              if (result == SnackbarResult.ActionPerformed) {
+                event.onCancel()
+              }
+            }
+          )
+        }
+        Event.DismissSlowInternet -> {
+          slowInternetSnackbarJobs.firstOrNull { it?.isActive == true }?.cancel()
+        }
       }
     }
+  }
+
+  LaunchedEffect(slowInternetSnackbarJobs) {
+    slowInternetSnackbarJobs.removeIf { it?.isActive == false }
   }
 
   Scaffold(

@@ -76,4 +76,5 @@
   <string name="select_menu_types">Menutypen anzeigen oder ausblenden…</string>
   <string name="select_menu_types_desc">Wenn alle ausgeblendet sind, wird die Standard-Sortierung vom Provider benutzt.</string>
   <string name="hidden_menu_types">Ausgeblendete Menutypen</string>
+  <string name="slow_internet">Langsames Internet</string>
 </resources>

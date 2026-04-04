@@ -14,6 +14,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.sync.Mutex
@@ -52,6 +54,7 @@ class MensaRepository(
 
   val eventChannel = Channel<Event>()
   private val noInternetSent = AtomicBoolean(false)
+  private val slowInternetSent = AtomicBoolean(false)
   private val handler = CoroutineExceptionHandler { _, throwable ->
     when (throwable) {
       is IOException -> {
@@ -84,19 +87,43 @@ class MensaRepository(
   ): Flow<List<Menu>> =
     menuDao.getMenus(mensaId, language, date).map { list -> list.map { it.toMenu() } }
 
-  suspend fun forceRefresh(destination: Destination, language: Language) = supervisorScope {
-    noInternetSent.store(false)
-    providers.forEach { (institution, _) ->
-      launch(handler) { refresh(institution, destination, language) }
-    }
+  suspend fun forceRefresh(destination: Destination, language: Language) =
+    refreshFiltered(destination, language)
+
+  suspend fun refreshIfNeeded(destination: Destination, language: Language) {
+    refreshFiltered(destination, language) { shouldRefresh(it, destination, language) }
   }
 
-  suspend fun refreshIfNeeded(destination: Destination, language: Language) = supervisorScope {
+  private suspend fun refreshFiltered(
+    destination: Destination,
+    language: Language,
+    filter: suspend (Institution) -> Boolean = { true },
+  ) = supervisorScope {
     noInternetSent.store(false)
-    providers.forEach { (institution, _) ->
-      if (shouldRefresh(institution, destination, language)) {
+    slowInternetSent.store(false)
+
+    val refreshes = providers
+      .filter { (institution, _) ->
+        filter(institution)
+      }
+      .map { (institution, _) ->
         launch(handler) { refresh(institution, destination, language) }
       }
+
+    val timeoutJob = launch {
+      delay(5000)
+      if (refreshes.any { it.isActive }) {
+        if (slowInternetSent.compareAndSet(expectedValue = false, newValue = true)) {
+          eventChannel.send(Event.SlowInternet { refreshes.forEach { it.cancel() } })
+        }
+      }
+    }
+
+    refreshes.joinAll()
+    timeoutJob.cancel()
+
+    if (slowInternetSent.load()) {
+      eventChannel.send(Event.DismissSlowInternet)
     }
   }
 
@@ -110,7 +137,7 @@ class MensaRepository(
   /**
    * @throws IOException Menus could not be fetched
    * @throws IllegalStateException Call already executed
-   * @throws [SerializationException] Menus could not be parsed
+   * @throws SerializationException Menus could not be parsed
    * @throws IllegalArgumentException Menus could not be parsed
    * */
   private suspend fun refresh(

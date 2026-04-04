@@ -81,4 +81,5 @@
   <string name="select_menu_types">Show or hide menu types…</string>
   <string name="select_menu_types_desc">If all are hidden, the default sorting from the provider is used.</string>
   <string name="hidden_menu_types">Hidden menu types</string>
+  <string name="slow_internet">Slow internet</string>
 </resources>
