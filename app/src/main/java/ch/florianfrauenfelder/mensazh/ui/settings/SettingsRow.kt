@@ -38,7 +38,7 @@ fun SettingsRow(
         .weight(1f),
     ) {
       Text(text = title, style = MaterialTheme.typography.titleLarge)
-      subtitles?.map {
+      subtitles?.forEach {
         Text(
           text = it,
           maxLines = 2,
