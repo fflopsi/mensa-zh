@@ -8,14 +8,19 @@ import ch.florianfrauenfelder.mensazh.domain.model.Mensa
 import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
 import ch.florianfrauenfelder.mensazh.domain.value.Institution
 import ch.florianfrauenfelder.mensazh.domain.value.Language
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.headers
+import io.ktor.client.request.setBody
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
+import io.ktor.http.URLProtocol
+import io.ktor.http.path
+import io.ktor.util.reflect.typeInfo
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.plus
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.Locale
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
@@ -30,10 +35,28 @@ class UZHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
   override val institution = Institution.UZH
   override val locationsFile = "uzh/locations_zfv.json"
   override val locationSerializer = UzhLocation.serializer()
-  override val apiRootSerializer = UzhApi.Root.serializer()
+  override val apiRootTypeInfo = typeInfo<UzhApi.Root>()
   override val oneLanguagePerCall = false
 
-  override fun buildRequest(destination: Destination, language: Language): Request {
+  override fun HttpRequestBuilder.request(destination: Destination, language: Language) {
+    method = HttpMethod.Post
+    url {
+      protocol = URLProtocol.HTTPS
+      host = "api.zfv.ch"
+      path("graphql")
+    }
+    headers {
+      append(HttpHeaders.Accept, "*/*")
+      append(HttpHeaders.ContentType, "application/json")
+      append(
+        "api-key",
+        "Y21nMGdleDdkN2xwbXM2MHRhemIyZWl1MjpBS0dLVkdPSnM5RjJEeDdrVUdySnZGaGZ4dWtpUUN2UHBaRjJrNUt5RENEQldObHRNNUZJUk84MU5JMkdCdmc3"
+      )
+    }
+    setBody(buildQuery(destination))
+  }
+
+  private fun buildQuery(destination: Destination): String {
     val date =
       Clock.System
         .now()
@@ -52,7 +75,7 @@ class UZHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
         "    }" +
         "  }" +
         "}"
-    val requestBody = when (destination) {
+    return when (destination) {
       Destination.Today, Destination.Tomorrow -> {
         "{\"query\":\"query Client {" +
           "organisation(where: {id: \\\"cm1tjaby3002o72q4lhhak996\\\", tenantId: \\\"zfv\\\"}) {" +
@@ -73,18 +96,6 @@ class UZHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
           "}\",\"operationName\":\"Client\"}"
       }
     }
-
-    return Request
-      .Builder()
-      .url("https://api.zfv.ch/graphql")
-      .post(requestBody.toRequestBody("application/json".toMediaType()))
-      .header("Accept", "*/*")
-      .header("Content-Type", "application/json")
-      .header(
-        "api-key",
-        "Y21nMGdleDdkN2xwbXM2MHRhemIyZWl1MjpBS0dLVkdPSnM5RjJEeDdrVUdySnZGaGZ4dWtpUUN2UHBaRjJrNUt5RENEQldObHRNNUZJUk84MU5JMkdCdmc3",
-      )
-      .build()
   }
 
   override fun extractMenus(root: UzhApi.Root, monday: LocalDate, language: Language) =

@@ -8,6 +8,11 @@ import ch.florianfrauenfelder.mensazh.domain.model.Mensa
 import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
 import ch.florianfrauenfelder.mensazh.domain.value.Institution
 import ch.florianfrauenfelder.mensazh.domain.value.Language
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.http.HttpMethod
+import io.ktor.http.URLProtocol
+import io.ktor.http.path
+import io.ktor.util.reflect.typeInfo
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -16,7 +21,6 @@ import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import okhttp3.Request
 import java.util.Locale
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
@@ -30,10 +34,10 @@ class ETHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
   override val institution = Institution.ETH
   override val locationsFile = "eth/locations.json"
   override val locationSerializer = EthLocation.serializer()
-  override val apiRootSerializer = EthApi.Root.serializer()
+  override val apiRootTypeInfo = typeInfo<EthApi.Root>()
   override val oneLanguagePerCall = true
 
-  override fun buildRequest(destination: Destination, language: Language): Request {
+  override fun HttpRequestBuilder.request(destination: Destination, language: Language) {
     val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
     val monday = today.minus(today.dayOfWeek.ordinal, DateTimeUnit.DAY).run {
       if (destination == Destination.NextWeek) {
@@ -41,14 +45,17 @@ class ETHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
       } else this
     }
 
-    return Request
-      .Builder()
-      .url(
-        "https://idapps.ethz.ch/cookpit-pub-services/v1/weeklyrotas" +
-          "?client-id=ethz-wcms&lang=${language.code}&rs-first=0&rs-size=150&valid-after=$monday",
-      )
-      .get()
-      .build()
+    method = HttpMethod.Get
+    url {
+      protocol = URLProtocol.HTTPS
+      host = "idapps.ethz.ch"
+      path("cookpit-pub-services/v1/weeklyrotas")
+      parameters.append("client-id", "ethz-wcms")
+      parameters.append("lang", language.code)
+      parameters.append("rs-first", "0")
+      parameters.append("rs-size", "150")
+      parameters.append("valid-after", monday.toString())
+    }
   }
 
   override fun extractMenus(root: EthApi.Root, monday: LocalDate, language: Language) =

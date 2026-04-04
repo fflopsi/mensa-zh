@@ -11,10 +11,15 @@ import ch.florianfrauenfelder.mensazh.domain.model.Mensa
 import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
 import ch.florianfrauenfelder.mensazh.domain.value.Institution
 import ch.florianfrauenfelder.mensazh.domain.value.Language
-import kotlinx.coroutines.Dispatchers
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.request
+import io.ktor.serialization.kotlinx.json.json
+import io.ktor.util.reflect.TypeInfo
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
-import kotlinx.coroutines.withContext
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -25,10 +30,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.ListSerializer
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import java.io.IOException
-import java.util.concurrent.TimeUnit
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
 
@@ -40,15 +42,15 @@ sealed class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.A
   abstract val institution: Institution
   protected abstract val locationsFile: String
   protected abstract val locationSerializer: KSerializer<L>
-  protected abstract val apiRootSerializer: KSerializer<R>
+  protected abstract val apiRootTypeInfo: TypeInfo
   private val _apiMensas = mutableListOf<M>()
   protected val apiMensas: List<M> = _apiMensas
   protected abstract val oneLanguagePerCall: Boolean
-  protected val client = OkHttpClient
-    .Builder()
-    .connectTimeout(5, TimeUnit.SECONDS)
-    .readTimeout(5, TimeUnit.SECONDS)
-    .build()
+  protected val client = HttpClient {
+    install(ContentNegotiation) {
+      json(json = SerializationService.safeJson)
+    }
+  }
 
   suspend fun getLocations(): List<Location> {
     val json: String = assetService.readStringFile(locationsFile) ?: return emptyList()
@@ -72,7 +74,7 @@ sealed class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.A
   /**
    * @throws IOException Menus could not be fetched
    * @throws IllegalStateException Call already executed
-   * @throws [SerializationException] Menus could not be parsed
+   * @throws SerializationException Menus could not be parsed
    * @throws IllegalArgumentException Menus could not be parsed
    * */
   suspend fun fetchMenus(
@@ -88,15 +90,13 @@ sealed class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.A
 
     supervisorScope {
       launch {
-        val json = fetchJson(destination, language) ?: return@launch
+        val root = fetchJson(destination, language) ?: return@launch
         updateFetchInfo(destination, language)
-        val root = SerializationService.safeJson.decodeFromString(apiRootSerializer, json)
         menuDao.insertMenus(extractMenus(root, monday, language))
       }
       if (oneLanguagePerCall) launch {
-        val json = fetchJson(destination, !language) ?: return@launch
+        val root = fetchJson(destination, !language) ?: return@launch
         updateFetchInfo(destination, !language)
-        val root = SerializationService.safeJson.decodeFromString(apiRootSerializer, json)
         menuDao.insertMenus(extractMenus(root, monday, !language))
       }
     }
@@ -104,20 +104,19 @@ sealed class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.A
   }
 
   /**
-   * @throws IOException Json could not be fetched
+   * @throws IOException JSON could not be fetched
    * @throws IllegalStateException Call already executed
    * */
-  private suspend fun fetchJson(destination: Destination, language: Language): String? {
-    val request = buildRequest(destination, language)
-    return withContext(Dispatchers.IO) {
-      client.newCall(request).execute().use {
-        if (it.isSuccessful) it.body.string()
-        else null
-      }
+  private suspend fun fetchJson(destination: Destination, language: Language): R? {
+    val response = client.request {
+      request(destination, language)
     }
+    return if (response.status.value in 200..299) {
+      response.body(apiRootTypeInfo)
+    } else null
   }
 
-  protected abstract fun buildRequest(destination: Destination, language: Language): Request
+  protected abstract fun HttpRequestBuilder.request(destination: Destination, language: Language)
 
   protected abstract fun extractMenus(
     root: R,
@@ -168,6 +167,7 @@ sealed class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.A
   }
 
   object Api {
+    @Serializable
     sealed class Root
   }
 }

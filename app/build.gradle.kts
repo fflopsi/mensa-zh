@@ -84,8 +84,9 @@ dependencies {
   implementation(libs.androidx.adaptive.navigation.suite)
   implementation(libs.kotlinx.serialization.json)
   implementation(libs.kotlinx.datetime)
-  implementation(platform(libs.okhttp.bom))
-  implementation(libs.okhttp)
+  implementation(platform(libs.ktor.bom))
+  implementation(libs.bundles.ktor)
+  implementation(libs.ktor.client.okhttp)
   implementation(libs.coil.compose)
   implementation(libs.coil.network)
 
