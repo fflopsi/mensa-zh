@@ -82,4 +82,15 @@
   <string name="select_menu_types_desc">If all are hidden, the default sorting from the provider is used.</string>
   <string name="hidden_menu_types">Hidden menu types</string>
   <string name="slow_internet">Slow internet</string>
+  <string name="energy">energy</string>
+  <string name="fat">fat</string>
+  <string name="saturated_fatty_acids">saturated fatty acids</string>
+  <string name="carbohydrates">carbohydrates</string>
+  <string name="sugar">sugar</string>
+  <string name="fiber">fiber</string>
+  <string name="protein">protein</string>
+  <string name="salt">salt</string>
+  <string name="per">per</string>
+  <string name="serving">serving</string>
+  <string name="one_hundred_grams" translatable="false">100g</string>
 </resources>

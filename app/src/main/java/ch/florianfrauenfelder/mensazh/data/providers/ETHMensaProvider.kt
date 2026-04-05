@@ -8,6 +8,7 @@ import ch.florianfrauenfelder.mensazh.domain.model.Mensa
 import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
 import ch.florianfrauenfelder.mensazh.domain.value.Institution
 import ch.florianfrauenfelder.mensazh.domain.value.Language
+import ch.florianfrauenfelder.mensazh.domain.value.NutrientsPer
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.http.HttpMethod
 import io.ktor.http.URLProtocol
@@ -107,6 +108,15 @@ class ETHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
         line.meal.description.replace("\\s+".toRegex(), " ")
       }",
       price = line.meal.mealPriceArray.orEmpty().map { String.format(Locale.US, "%.2f", it.price) },
+      energy = line.meal.energyOutdated?.toDoubleOrNull(),
+      fat = line.meal.fat?.toDoubleOrNull(),
+      saturatedFattyAcids = line.meal.saturatedFattyAcids?.toDoubleOrNull(),
+      carbohydrates = line.meal.carbohydrates?.toDoubleOrNull(),
+      sugar = line.meal.sugar?.toDoubleOrNull(),
+      fiber = null,
+      protein = line.meal.protein?.toDoubleOrNull(),
+      salt = line.meal.salt?.toDoubleOrNull(),
+      nutrientsPer = NutrientsPer.OneHundredGrams,
       allergens = line.meal.allergenArray?.joinToString(separator = ", ") { it.desc },
       isVegetarian = line.meal.mealClassArray?.any { it.desc.contains("vegetari", true) } ?: false,
       isVegan = line.meal.mealClassArray?.any { it.desc.contains("vegan", true) } ?: false,
@@ -200,6 +210,14 @@ class ETHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
       @SerialName("line-id") val lineId: Int,
       val name: String,
       val description: String,
+      val energy: String? = null,
+      @SerialName("energy-outdated") val energyOutdated: String? = null,
+      val protein: String? = null,
+      val fat: String? = null,
+      @SerialName("saturated-fatty-acids") val saturatedFattyAcids: String? = null,
+      val carbohydrates: String? = null,
+      val sugar: String? = null,
+      val salt: String? = null,
       @SerialName("price-unit-code") val priceUnitCode: Int,
       @SerialName("price-unit-desc") val priceUnitDesc: String,
       @SerialName("price-unit-desc-short") val priceUnitDescShort: String,

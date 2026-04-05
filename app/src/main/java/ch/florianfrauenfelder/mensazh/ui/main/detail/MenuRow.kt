@@ -47,6 +47,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ch.florianfrauenfelder.mensazh.R
 import ch.florianfrauenfelder.mensazh.domain.model.Menu
+import ch.florianfrauenfelder.mensazh.domain.value.NutrientsPer
 import coil3.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.launch
 
@@ -145,6 +146,10 @@ fun MenuRow(
                 .fillMaxWidth(),
             )
           }
+          Nutrients(
+            menu = menu,
+            modifier = Modifier.fillMaxWidth(),
+          )
         }
         AnimatedVisibility(showMore) {
           Column(verticalArrangement = Arrangement.Bottom) {
@@ -207,4 +212,31 @@ fun MenuRow(
       }
     }
   }
+}
+
+@Composable
+fun Nutrients(menu: Menu, modifier: Modifier = Modifier) {
+  if (menu.energy == null && menu.fat == null && menu.saturatedFattyAcids == null
+    && menu.carbohydrates == null && menu.sugar == null && menu.fiber == null
+    && menu.protein == null && menu.salt == null
+  ) return
+  Text(
+    text = "(${stringResource(R.string.per)} ${
+      when (menu.nutrientsPer) {
+        NutrientsPer.Serving -> stringResource(R.string.serving)
+        NutrientsPer.OneHundredGrams -> stringResource(R.string.one_hundred_grams)
+      }
+    }) " +
+      (menu.energy?.let { "${stringResource(R.string.energy)}: ${it}kcal, " } ?: "") +
+      (menu.fat?.let { "${stringResource(R.string.fat)}: ${it}g, " } ?: "") +
+      (menu.saturatedFattyAcids?.let { "${stringResource(R.string.saturated_fatty_acids)}: ${it}g, " }
+        ?: "") +
+      (menu.carbohydrates?.let { "${stringResource(R.string.carbohydrates)}: ${it}g, " } ?: "") +
+      (menu.sugar?.let { "${stringResource(R.string.sugar)}: ${it}g, " } ?: "") +
+      (menu.fiber?.let { "${stringResource(R.string.fiber)}: ${it}g, " } ?: "") +
+      (menu.protein?.let { "${stringResource(R.string.protein)}: ${it}g, " } ?: "") +
+      (menu.salt?.let { "${stringResource(R.string.salt)}: ${it}g" } ?: ""),
+    style = MaterialTheme.typography.bodySmall,
+    modifier = modifier.padding(top = 8.dp),
+  )
 }

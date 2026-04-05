@@ -5,6 +5,7 @@ import ch.florianfrauenfelder.mensazh.data.util.SerializationService
 import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
 import ch.florianfrauenfelder.mensazh.domain.value.Institution
 import ch.florianfrauenfelder.mensazh.domain.value.Language
+import ch.florianfrauenfelder.mensazh.domain.value.NutrientsPer
 import kotlinx.datetime.LocalDate
 import kotlin.uuid.Uuid
 
@@ -42,4 +43,10 @@ class Converters {
   @TypeConverter
   fun stringToStringList(string: String?): List<String>? =
     string?.let(SerializationService::deserializeList)
+
+  @TypeConverter
+  fun nutrientsPerToString(nutrientsPer: NutrientsPer?) = nutrientsPer?.code
+
+  @TypeConverter
+  fun stringToNutrientsPer(string: String?) = string?.let(NutrientsPer::fromCode)
 }

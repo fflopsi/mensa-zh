@@ -8,6 +8,7 @@ import ch.florianfrauenfelder.mensazh.domain.model.Mensa
 import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
 import ch.florianfrauenfelder.mensazh.domain.value.Institution
 import ch.florianfrauenfelder.mensazh.domain.value.Language
+import ch.florianfrauenfelder.mensazh.domain.value.NutrientsPer
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.headers
 import io.ktor.client.request.setBody
@@ -50,7 +51,7 @@ class UZHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
       append(HttpHeaders.ContentType, "application/json")
       append(
         "api-key",
-        "Y21nMGdleDdkN2xwbXM2MHRhemIyZWl1MjpBS0dLVkdPSnM5RjJEeDdrVUdySnZGaGZ4dWtpUUN2UHBaRjJrNUt5RENEQldObHRNNUZJUk84MU5JMkdCdmc3"
+        "Y21nMGdleDdkN2xwbXM2MHRhemIyZWl1MjpBS0dLVkdPSnM5RjJEeDdrVUdySnZGaGZ4dWtpUUN2UHBaRjJrNUt5RENEQldObHRNNUZJUk84MU5JMkdCdmc3",
       )
     }
     setBody(buildQuery(destination))
@@ -68,8 +69,17 @@ class UZHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
         "  ... on OutletMenuItemDish {" +
         "    category { name path }" +
         "    dish {" +
-        "      allergens { allergen { name } }" +
         "      name_i18n { label locale }" +
+        "      stats {" +
+        "        energy { amount }" +
+        "        fat { amount }" +
+        "        carbohydrates { amount }" +
+        "        sugar { amount }" +
+        "        fibers { amount }" +
+        "        protein { amount }" +
+        "        salt { amount }" +
+        "      }" +
+        "      allergens { allergen { name } }" +
         "      media { media { url } }" +
         "      isVegetarian isVegan" +
         "    }" +
@@ -141,6 +151,15 @@ class UZHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
       description = i18nName.label.replaceFirst(",", "\n").replace("\n ", "\n"),
       price = menuItem.prices?.mapNotNull { it.amount?.toFloat() }?.sorted()
         ?.map { String.format(Locale.US, "%.2f", it) } ?: emptyList(),
+      energy = menuItem.dish.stats?.energy?.amount?.toDouble(),
+      fat = menuItem.dish.stats?.fat?.amount?.toDouble(),
+      saturatedFattyAcids = null,
+      carbohydrates = menuItem.dish.stats?.carbohydrates?.amount?.toDouble(),
+      sugar = menuItem.dish.stats?.sugar?.amount?.toDouble(),
+      fiber = menuItem.dish.stats?.fibers?.amount?.toDouble(),
+      protein = menuItem.dish.stats?.protein?.amount?.toDouble(),
+      salt = menuItem.dish.stats?.salt?.amount?.toDouble(),
+      nutrientsPer = NutrientsPer.Serving,
       allergens = menuItem.dish.allergens?.mapNotNull { it.allergen?.name }
         ?.joinToString(separator = ", "),
       isVegetarian = menuItem.dish.isVegetarian ?: false,
@@ -217,6 +236,7 @@ class UZHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
     @Serializable
     data class Dish(
       @SerialName("name_i18n") val nameI18n: List<I18nName>? = null,
+      val stats: Stats? = null,
       val allergens: List<AllergenContainer>? = null,
       val media: List<MediaContainer>? = null,
       val isVegetarian: Boolean? = null,
@@ -225,6 +245,20 @@ class UZHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
 
     @Serializable
     data class I18nName(val label: String? = null, val locale: String? = null)
+
+    @Serializable
+    data class Stats(
+      val energy: Stat? = null,
+      val fat: Stat? = null,
+      val carbohydrates: Stat? = null,
+      val sugar: Stat? = null,
+      val fibers: Stat? = null,
+      val protein: Stat? = null,
+      val salt: Stat? = null,
+    )
+
+    @Serializable
+    data class Stat(val amount: Int? = null)
 
     @Serializable
     data class AllergenContainer(val allergen: Allergen? = null)

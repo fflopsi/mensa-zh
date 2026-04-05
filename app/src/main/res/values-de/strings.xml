@@ -77,4 +77,14 @@
   <string name="select_menu_types_desc">Wenn alle ausgeblendet sind, wird die Standard-Sortierung vom Provider benutzt.</string>
   <string name="hidden_menu_types">Ausgeblendete Menutypen</string>
   <string name="slow_internet">Langsames Internet</string>
+  <string name="energy">Energie</string>
+  <string name="fat">Fett</string>
+  <string name="saturated_fatty_acids">gesättigte Fettsäuren</string>
+  <string name="carbohydrates">Kohlenhydrate</string>
+  <string name="sugar">Zucker</string>
+  <string name="fiber">Ballaststoffe</string>
+  <string name="protein">Protein</string>
+  <string name="salt">Salz</string>
+  <string name="per">pro</string>
+  <string name="serving">Portion</string>
 </resources>
