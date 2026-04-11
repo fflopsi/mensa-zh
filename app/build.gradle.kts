@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
   alias(libs.plugins.android.application)
@@ -23,6 +24,14 @@ android {
     versionName = "2.1.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+    val apiProperties = Properties()
+    apiProperties.load(rootProject.file("api.properties").inputStream())
+    buildConfigField(
+      type = "String",
+      name = "ZFV_API_KEY",
+      value = apiProperties.getProperty("ZFV_API_KEY"),
+    )
   }
 
   androidResources {
@@ -51,6 +60,7 @@ android {
   }
   buildFeatures {
     compose = true
+    buildConfig = true
   }
 }
 

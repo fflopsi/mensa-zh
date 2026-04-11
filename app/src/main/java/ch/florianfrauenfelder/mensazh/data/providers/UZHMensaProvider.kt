@@ -1,5 +1,6 @@
 package ch.florianfrauenfelder.mensazh.data.providers
 
+import ch.florianfrauenfelder.mensazh.BuildConfig
 import ch.florianfrauenfelder.mensazh.data.local.room.FetchInfoDao
 import ch.florianfrauenfelder.mensazh.data.local.room.MenuDao
 import ch.florianfrauenfelder.mensazh.data.local.room.RoomMenu
@@ -49,10 +50,7 @@ class UZHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
     headers {
       append(HttpHeaders.Accept, "*/*")
       append(HttpHeaders.ContentType, "application/json")
-      append(
-        "api-key",
-        "Y21nMGdleDdkN2xwbXM2MHRhemIyZWl1MjpBS0dLVkdPSnM5RjJEeDdrVUdySnZGaGZ4dWtpUUN2UHBaRjJrNUt5RENEQldObHRNNUZJUk84MU5JMkdCdmc3",
-      )
+      append("api-key", BuildConfig.ZFV_API_KEY)
     }
     setBody(buildQuery(destination))
   }
