@@ -1,0 +1,9 @@
+Neue Funktionen und Fehlerbehebungen!
+
+<em>Aufgrund von API- und Architektur-Einschränkungen lädt die F-Droid-Version dieser App derzeit keine Menüs der UZH-Mensen. Bitte nutze die Version von <a href="https://github.com/fflopsi/mensa-zh/releases/latest/">GitHub</a>.</em>
+
+* Ein Banner warnt vor einer langsamen Internetverbindung, wenn das Laden länger als fünf Sekunden dauert.
+  * Du kannst den Vorgang abbrechen oder warten.
+  * Behebt das Problem, bei dem die App das Laden beendet, wenn die Internetverbindung langsam ist.
+* In der Detailansicht werden die Nährwerte jedes Menüs angezeigt (sofern verfügbar).
+* Der Menütyp Standard heißt nun passenderweise Fleisch/Fisch.
