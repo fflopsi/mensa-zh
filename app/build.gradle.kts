@@ -26,11 +26,18 @@ android {
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     val apiProperties = Properties()
-    apiProperties.load(rootProject.file("api.properties").inputStream())
+    val zfvApiKey = try {
+      apiProperties.let {
+        it.load(rootProject.file("api.properties").inputStream())
+        it.getProperty("ZFV_API_KEY")
+      }
+    } catch (_: Exception) {
+      "\"\""
+    }
     buildConfigField(
       type = "String",
       name = "ZFV_API_KEY",
-      value = apiProperties.getProperty("ZFV_API_KEY"),
+      value = zfvApiKey,
     )
   }
 
