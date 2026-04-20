@@ -13,13 +13,13 @@ plugins {
 android {
   namespace = "ch.florianfrauenfelder.mensazh"
   compileSdk {
-    version = release(36)
+    version = release(37)
   }
 
   defaultConfig {
     applicationId = "ch.famoser.mensa"
     minSdk = 26
-    targetSdk = 36
+    targetSdk = 37
     versionCode = 60
     versionName = "2.1.0"
 

@@ -230,7 +230,7 @@ fun MainScreenScaffold(
       }
       NavDisplay(
         backStack = backStack,
-        sceneStrategy = sceneStrategy,
+        sceneStrategies = listOf(sceneStrategy),
         transitionSpec = {
           slideInHorizontally(initialOffsetX = { it }) togetherWith
             slideOutHorizontally(targetOffsetX = { -it })

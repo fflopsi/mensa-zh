@@ -66,7 +66,7 @@ fun MensaApp(theme: ThemeSettings) {
     Surface {
       NavDisplay(
         backStack = backStack,
-        sceneStrategy = sceneStrategy,
+        sceneStrategies = listOf(sceneStrategy),
         entryDecorators = listOf(
           rememberSaveableStateHolderNavEntryDecorator(),
           rememberViewModelStoreNavEntryDecorator(),
