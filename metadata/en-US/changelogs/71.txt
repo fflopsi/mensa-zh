@@ -1,0 +1,11 @@
+Patch: Fixed menu parsing error for ETH mensas. Last minor:
+
+New features and bugfixes!
+
+<em>Due to API and architecture restrictions, the F-Droid version of this app currently does not load menus from UZH mensas. Please use the version from <a href="https://github.com/fflopsi/mensa-zh/releases/latest/">GitHub</a>.</em>
+
+* A banner will warn of slow internet after loading for more than five seconds.
+  * You can cancel the process or wait.
+  * Fixes the issue where the app stops loading when experiencing slow internet.
+* In detail view, each menu's nutrients are shown (if available).
+* The Standard menu type is now more appropriately called Meat/Fish.
