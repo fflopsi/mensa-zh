@@ -170,9 +170,9 @@ class ETHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
     data class WeeklyRota(
       @SerialName("weekly-rota-id") val weeklyRotaId: Int,
       @SerialName("facility-id") val facilityId: Int,
-      @SerialName("valid-from") val validFrom: String,
+      @SerialName("valid-from") val validFrom: String = "2025-12-31",
       @SerialName("day-of-week-array") val dayOfWeekArray: List<DayOfWeek>,
-      @SerialName("valid-to") val validTo: String,
+      @SerialName("valid-to") val validTo: String = "2025-12-31",
     )
 
     @Serializable
