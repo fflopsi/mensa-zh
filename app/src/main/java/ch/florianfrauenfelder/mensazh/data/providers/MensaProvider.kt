@@ -1,5 +1,6 @@
 package ch.florianfrauenfelder.mensazh.data.providers
 
+import android.util.Log
 import ch.florianfrauenfelder.mensazh.data.local.room.FetchInfo
 import ch.florianfrauenfelder.mensazh.data.local.room.FetchInfoDao
 import ch.florianfrauenfelder.mensazh.data.local.room.MenuDao
@@ -14,6 +15,9 @@ import ch.florianfrauenfelder.mensazh.domain.value.Language
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.request
 import io.ktor.serialization.kotlinx.json.json
@@ -49,6 +53,19 @@ sealed class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.A
   protected val client = HttpClient {
     install(ContentNegotiation) {
       json(json = SerializationService.safeJson)
+    }
+  }
+  protected val debugClient = HttpClient {
+    install(ContentNegotiation) {
+      json(json = SerializationService.safeJson)
+    }
+    install(Logging) {
+      logger = object : Logger {
+        override fun log(message: String) {
+          Log.d("$institution MensaProvider", message)
+        }
+      }
+      level = LogLevel.ALL
     }
   }
 
@@ -108,7 +125,8 @@ sealed class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.A
    * @throws IllegalStateException Call already executed
    * */
   private suspend fun fetchJson(destination: Destination, language: Language): R? {
-    val response = client.request {
+//    val response = debugClient.request { // Use debug client to see logs
+    val response = client.request { // Use client in production
       request(destination, language)
     }
     return if (response.status.value in 200..299) {
