@@ -52,7 +52,7 @@ fun ImageDialog(
           .aspectRatio(ratio)
           .fillMaxWidth(),
       ) {
-        val state = rememberTransformableState { zoomChange, panChange, _ ->
+        val state = rememberTransformableState { _, zoomChange, panChange, _ ->
           scale = (scale * zoomChange).coerceIn(1f..5f)
           val extraWidth = (scale - 1) * constraints.maxWidth
           val extraHeight = (scale - 1) * constraints.maxHeight
