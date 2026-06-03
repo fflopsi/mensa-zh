@@ -49,7 +49,6 @@ android {
   buildTypes {
     debug {
       isMinifyEnabled = false
-      isShrinkResources = false
       isDebuggable = true
     }
     release {
@@ -75,7 +74,6 @@ kotlin {
   compilerOptions {
     jvmTarget = JvmTarget.JVM_17
     optIn.addAll(
-      "kotlin.uuid.ExperimentalUuidApi",
       "kotlinx.coroutines.ExperimentalCoroutinesApi",
       "kotlin.concurrent.atomics.ExperimentalAtomicApi",
       "androidx.compose.material3.ExperimentalMaterial3Api",
