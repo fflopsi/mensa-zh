@@ -25,7 +25,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
@@ -49,9 +49,8 @@ class MainViewModel(
   private val mensaRepository: MensaRepository,
   private val preferencesRepository: PreferencesRepository,
 ) : ViewModel() {
-  private val _params =
-    MutableStateFlow(Params(destination = Destination.Today, weekday = currentWeekday()))
-  val params = _params.asStateFlow()
+  val params: StateFlow<Params>
+    field = MutableStateFlow(Params(destination = Destination.Today, weekday = currentWeekday()))
 
   val events = mensaRepository.eventChannel.receiveAsFlow()
 
@@ -176,7 +175,7 @@ class MainViewModel(
     initialValue = false,
   )
 
-  fun setParams(transform: (Params) -> Params) = _params.update(transform)
+  fun setParams(transform: (Params) -> Params) = params.update(transform)
 
   fun updateSetting(setting: Setting) = viewModelScope.launch {
     preferencesRepository.updateSetting(setting)
