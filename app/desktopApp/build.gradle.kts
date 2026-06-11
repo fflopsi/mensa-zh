@@ -12,10 +12,6 @@ dependencies {
   implementation(compose.desktop.currentOs)
   implementation(libs.kotlinx.coroutinesSwing)
 
-  implementation(libs.androidx.lifecycle.viewmodelCompose)
-  implementation(libs.androidx.datastore)
-  implementation(libs.androidx.room.runtime)
-
   implementation(libs.compose.uiToolingPreview)
 }
 
@@ -24,7 +20,7 @@ compose.desktop {
     mainClass = "ch.florianfrauenfelder.mensazh.MainKt"
 
     nativeDistributions {
-      targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm, TargetFormat.AppImage)
+      targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm)
       packageName = "MensaZH"
       packageVersion = "2.2.1"
       modules("jdk.unsupported", "jdk.unsupported.desktop") // Necessary for room in compiled app
