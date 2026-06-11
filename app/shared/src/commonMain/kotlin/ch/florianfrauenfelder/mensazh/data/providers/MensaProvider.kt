@@ -1,0 +1,194 @@
+package ch.florianfrauenfelder.mensazh.data.providers
+
+import ch.florianfrauenfelder.mensazh.data.local.room.FetchInfo
+import ch.florianfrauenfelder.mensazh.data.local.room.FetchInfoDao
+import ch.florianfrauenfelder.mensazh.data.local.room.MenuDao
+import ch.florianfrauenfelder.mensazh.data.local.room.RoomMenu
+import ch.florianfrauenfelder.mensazh.data.util.AppLogger
+import ch.florianfrauenfelder.mensazh.data.util.SerializationService
+import ch.florianfrauenfelder.mensazh.domain.model.Location
+import ch.florianfrauenfelder.mensazh.domain.model.Mensa
+import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
+import ch.florianfrauenfelder.mensazh.domain.value.Institution
+import ch.florianfrauenfelder.mensazh.domain.value.Language
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.request
+import io.ktor.serialization.kotlinx.json.json
+import io.ktor.util.reflect.TypeInfo
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.minus
+import kotlinx.datetime.plus
+import kotlinx.datetime.todayIn
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
+import mensazh.app.shared.generated.resources.Res
+import kotlin.math.roundToInt
+import kotlin.time.Clock
+import kotlin.uuid.Uuid
+
+sealed class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.ApiMensa, R : MensaProvider.Api.Root>(
+  private val menuDao: MenuDao,
+  private val fetchInfoDao: FetchInfoDao,
+) {
+  abstract val institution: Institution
+  protected abstract val locationsFile: String
+  protected abstract val locationSerializer: KSerializer<L>
+  protected abstract val apiRootTypeInfo: TypeInfo
+  private val _apiMensas = mutableListOf<M>()
+  protected val apiMensas: List<M> = _apiMensas
+  protected abstract val oneLanguagePerCall: Boolean
+  protected val client = HttpClient {
+    install(ContentNegotiation) {
+      json(json = SerializationService.safeJson)
+    }
+  }
+  protected val debugClient = HttpClient {
+    install(ContentNegotiation) {
+      json(json = SerializationService.safeJson)
+    }
+    install(Logging) {
+      logger = object : Logger {
+        override fun log(message: String) {
+          AppLogger.d("$institution MensaProvider", message)
+        }
+      }
+      level = LogLevel.ALL
+    }
+  }
+
+  suspend fun getLocations(): List<Location> {
+    val json: String = Res.readBytes("files/$locationsFile").decodeToString()
+    return SerializationService.safeJson
+      .decodeFromString(
+        ListSerializer(locationSerializer),
+        json,
+      ) // Should not throw during normal operation
+      .map { apiLocation ->
+        Location(
+          id = Uuid.parse(apiLocation.id),
+          title = apiLocation.title,
+          mensas = apiLocation.mensas.map {
+            _apiMensas += it
+            it.toMensa().toMensaState()
+          },
+        )
+      }
+  }
+
+  /**
+   * @throws kotlinx.io.IOException JSON could not be fetched
+   * @throws io.ktor.serialization.JsonConvertException JSON could not be converted to object
+   * @throws Exception Other error, should not happen
+   * */
+  suspend fun fetchMenus(
+    destination: Destination,
+    language: Language,
+  ) {
+    val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+    val monday = today.minus(today.dayOfWeek.ordinal, DateTimeUnit.DAY).run {
+      if (destination == Destination.NextWeek) {
+        plus(7, DateTimeUnit.DAY)
+      } else this
+    }
+
+    supervisorScope {
+      launch {
+        val root = fetchJson(destination, language) ?: return@launch
+        updateFetchInfo(destination, language)
+        menuDao.insertMenus(extractMenus(root, monday, language))
+      }
+      if (oneLanguagePerCall) launch {
+        val root = fetchJson(destination, !language) ?: return@launch
+        updateFetchInfo(destination, !language)
+        menuDao.insertMenus(extractMenus(root, monday, !language))
+      }
+    }
+
+  }
+
+  /**
+   * @throws kotlinx.io.IOException JSON could not be fetched
+   * @throws io.ktor.serialization.JsonConvertException JSON could not be converted to object
+   * @throws Exception Other error, should not happen
+   * */
+  private suspend fun fetchJson(destination: Destination, language: Language): R? {
+//    val response = debugClient.request { // Use debug client to see logs
+    val response = client.request { // Use client in production
+      request(destination, language)
+    }
+    return if (response.status.value in 200..299) {
+      response.body(apiRootTypeInfo)
+    } else null
+  }
+
+  protected abstract fun HttpRequestBuilder.request(destination: Destination, language: Language)
+
+  protected abstract fun extractMenus(
+    root: R,
+    monday: LocalDate,
+    language: Language,
+  ): List<RoomMenu>
+
+  protected abstract suspend fun updateFetchInfo(destination: Destination, language: Language)
+
+  protected suspend fun insertFetchInfo(destination: Destination, language: Language) =
+    fetchInfoDao.insertFetchInfo(
+      FetchInfo(
+        institution = institution,
+        destination = destination,
+        language = language,
+      ),
+    )
+
+  protected val RoomMenu.hasClosedNotice: Boolean
+    get() = listOf(
+      "We look forward to serving you this menu again soon!",
+      "Dieses Menu servieren wir Ihnen gerne bald wieder!",
+      "closed",
+      "geschlossen",
+      "kein Abendessen",
+      "no dinner",
+      "novalue",
+      "Wir sind ab Vollsemester",
+      "Betriebsferien",
+    )
+      .onEach { it.lowercase() }
+      .any { description.lowercase().contains(it) || title.lowercase() == it }
+      || description.isBlank()
+
+  protected fun Double.formatPrice(): String {
+    val rounded = (this * 100).roundToInt()
+    return "${rounded / 100}.${(rounded % 100).toString().padStart(2, '0')}"
+  }
+
+  @Serializable
+  sealed class ApiLocation<M : ApiMensa> {
+    abstract val id: String
+    abstract val title: String
+    abstract val mensas: List<M>
+  }
+
+  @Serializable
+  sealed class ApiMensa {
+    abstract val id: String
+    abstract val title: String
+    abstract val mealTime: String
+    abstract fun toMensa(): Mensa
+  }
+
+  object Api {
+    @Serializable
+    sealed class Root
+  }
+}

@@ -1,0 +1,85 @@
+package ch.florianfrauenfelder.mensazh.ui.main.list
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import ch.florianfrauenfelder.mensazh.domain.model.Menu
+import ch.florianfrauenfelder.mensazh.domain.preferences.DetailSettings
+import mensazh.app.shared.generated.resources.Res
+import mensazh.app.shared.generated.resources.price
+import mensazh.app.shared.generated.resources.vegan_short
+import mensazh.app.shared.generated.resources.vegetarian_short
+import org.jetbrains.compose.resources.stringResource
+
+@Composable
+fun MenuRow(
+  menu: Menu,
+  detail: DetailSettings,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  Row(
+    modifier = modifier
+      .clickable(onClick = onClick)
+      .focusable(),
+  ) {
+    Column(
+      modifier = Modifier
+        .padding(8.dp)
+        .weight(1f),
+    ) {
+      Text(
+        text = menu.description,
+        style = MaterialTheme.typography.bodyMedium,
+        maxLines = if (detail.listUseShortDescription) 2 else 3,
+      )
+      if (detail.listShowAllergens && menu.allergens?.isNotBlank() == true) {
+        Text(
+          text = menu.allergens,
+          style = MaterialTheme.typography.bodySmall,
+          fontStyle = FontStyle.Italic,
+          maxLines = 1,
+        )
+      }
+    }
+    Column(
+      horizontalAlignment = Alignment.End,
+      modifier = Modifier.padding(8.dp),
+    ) {
+      Row {
+        Text(
+          text = menu.title,
+          fontWeight = FontWeight.Bold,
+        )
+        if (menu.isVegan || menu.isVegetarian) {
+          Spacer(modifier = Modifier.width(8.dp))
+          Text(
+            text = stringResource(if (menu.isVegan) Res.string.vegan_short else Res.string.vegetarian_short),
+            color = Color(0xFF22AA22),
+            fontWeight = FontWeight.Bold,
+          )
+        }
+      }
+      if (menu.price.isNotEmpty()) {
+        Text(
+          text = stringResource(Res.string.price, menu.price.first()),
+          textAlign = TextAlign.End,
+        )
+      }
+    }
+  }
+}
