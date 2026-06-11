@@ -41,11 +41,12 @@ class MainActivity : ComponentActivity() {
       }
     }
 
+    val container = (applicationContext as MensaApplication).container
     setContent {
-      val appViewModel: AppViewModel = viewModel(factory = AppViewModel.Factory)
+      val appViewModel: AppViewModel = viewModel(factory = AppViewModel.Factory(container))
       val theme by appViewModel.themeSettings.collectAsStateWithLifecycle()
 
-      MensaApp(theme = theme)
+      MensaApp(container = container, theme = theme)
     }
   }
 }
