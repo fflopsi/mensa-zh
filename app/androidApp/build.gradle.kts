@@ -8,9 +8,6 @@ dependencies {
   implementation(projects.app.shared)
 
   implementation(libs.androidx.activity.compose)
-  implementation(libs.androidx.lifecycle.viewmodelCompose)
-  implementation(libs.androidx.datastore)
-  implementation(libs.androidx.room.runtime)
 
   implementation(libs.compose.uiToolingPreview)
   debugImplementation(libs.compose.uiTooling)
