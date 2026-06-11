@@ -25,6 +25,22 @@ kotlin {
     freeCompilerArgs.add("-Xexpect-actual-classes")
   }
 
+  android {
+    namespace = "ch.florianfrauenfelder.mensazh.app.shared"
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
+    minSdk = libs.versions.android.minSdk.get().toInt()
+
+    compilerOptions {
+      jvmTarget = JvmTarget.JVM_17
+    }
+    androidResources {
+      enable = true
+    }
+    withHostTest {
+      isIncludeAndroidResources = true
+    }
+  }
+
   jvm()
 
   listOf(
@@ -45,22 +61,6 @@ kotlin {
 //  wasmJs {
 //    browser()
 //  }
-
-  android {
-    namespace = "ch.florianfrauenfelder.mensazh.app.shared"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-    minSdk = libs.versions.android.minSdk.get().toInt()
-
-    compilerOptions {
-      jvmTarget = JvmTarget.JVM_17
-    }
-    androidResources {
-      enable = true
-    }
-    withHostTest {
-      isIncludeAndroidResources = true
-    }
-  }
 
   sourceSets {
     commonMain.dependencies {
@@ -131,7 +131,6 @@ val zfvApiKey: String = try {
 
 buildkonfig {
   packageName = "ch.florianfrauenfelder.mensazh"
-
   defaultConfigs {
     buildConfigField(FieldSpec.Type.STRING, "ZFV_API_KEY", zfvApiKey)
   }
