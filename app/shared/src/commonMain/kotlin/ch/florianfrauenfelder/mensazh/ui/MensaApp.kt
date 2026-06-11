@@ -23,7 +23,6 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import ch.florianfrauenfelder.mensazh.AppContainer
-import ch.florianfrauenfelder.mensazh.domain.preferences.ThemeSettings
 import ch.florianfrauenfelder.mensazh.domain.value.Theme
 import ch.florianfrauenfelder.mensazh.ui.main.MainScreen
 import ch.florianfrauenfelder.mensazh.ui.main.MainViewModel
@@ -32,7 +31,10 @@ import ch.florianfrauenfelder.mensazh.ui.settings.SettingsViewModel
 import ch.florianfrauenfelder.mensazh.ui.theme.MensaZHTheme
 
 @Composable
-fun MensaApp(container: AppContainer, theme: ThemeSettings) {
+fun MensaApp(container: AppContainer) {
+  val appViewModel: AppViewModel = viewModel(factory = AppViewModel.Factory(container))
+  val theme by appViewModel.themeSettings.collectAsStateWithLifecycle()
+
   val backStack = rememberNavBackStack(routeConfig, Route.Main)
   val sceneStrategy = rememberListDetailSceneStrategy<NavKey>(
     paneExpansionDragHandle = {
