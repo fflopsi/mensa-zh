@@ -24,4 +24,4 @@ abstract class CacheDatabase : RoomDatabase() {
 fun getRoomDatabase(builder: RoomDatabase.Builder<CacheDatabase>): CacheDatabase =
   builder.setDriver(BundledSQLiteDriver()).setQueryCoroutineContext(Dispatchers.IO).build()
 
-internal const val databaseName = "cache-database.db"
+internal const val databaseName = "cache-database"
