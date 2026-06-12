@@ -25,7 +25,7 @@ fun createDataStore(): DataStore<Preferences> = createDataStore(
         create = false,
         error = null,
       )
-      (requireNotNull(documentDirectory).path + "/$dataStoreFileName").toPath()
+      (requireNotNull(documentDirectory).path + "/$dataStoreFile").toPath()
     },
   ),
 )
