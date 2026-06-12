@@ -10,6 +10,6 @@ import java.io.File
 fun createDataStore(): DataStore<Preferences> = createDataStore(
   storage = FileStorage(
     serializer = PreferencesFileSerializer,
-    produceFile = { File(getAppDirectory(), dataStoreFileName) }
+    produceFile = { File(getAppDirectory(), dataStoreFile) }
   )
 )
