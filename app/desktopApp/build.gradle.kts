@@ -20,7 +20,13 @@ compose.desktop {
     mainClass = "ch.florianfrauenfelder.mensazh.MainKt"
 
     nativeDistributions {
-      targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm)
+      targetFormats(
+        TargetFormat.Rpm,
+        TargetFormat.Deb,
+        TargetFormat.AppImage,
+        TargetFormat.Msi,
+        TargetFormat.Dmg,
+      )
       packageName = "MensaZH"
       packageVersion = "2.2.1"
       description = "Menus of the mensas at ETH and UZH in Zürich"
