@@ -23,7 +23,25 @@ compose.desktop {
       targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm)
       packageName = "MensaZH"
       packageVersion = "2.2.1"
+      description = "Menus of the mensas at ETH and UZH in Zürich"
+      copyright = "© 2026 Florian Frauenfelder."
+      vendor = "Florian Frauenfelder"
+      licenseFile.set(rootProject.file("LICENSE.md"))
       modules("jdk.unsupported", "jdk.unsupported.desktop") // Necessary for room in compiled app
+
+      linux {
+        iconFile.set(rootProject.file("icons/ic_launcher.png"))
+        debMaintainer = "florian.l.frauenfelder@gmail.com"
+        rpmLicenseType = "MIT"
+      }
+      windows {
+        iconFile.set(rootProject.file("icons/ic_launcher.ico"))
+        upgradeUuid = "B3BA5958-98E6-4356-9653-9C1239B62299"
+      }
+      macOS {
+        iconFile.set(rootProject.file("icons/ic_launcher.icns"))
+        // TODO: Signing and notarizing
+      }
     }
   }
 }
