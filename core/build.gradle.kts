@@ -1,48 +1,43 @@
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidMultiplatformLibrary)
+  alias(libs.plugins.kotlin.multiplatform)
+  alias(libs.plugins.android.multiplatformLibrary)
 }
 
 kotlin {
-    iosArm64()
-    iosSimulatorArm64()
+  iosArm64()
+  iosSimulatorArm64()
 
-    jvm()
+  jvm()
 
-    js {
-        browser()
+//  js {
+//    browser()
+//  }
+
+//  @OptIn(ExperimentalWasmDsl::class)
+//  wasmJs {
+//    browser()
+//  }
+
+  android {
+    namespace = "ch.florianfrauenfelder.mensazh.core"
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
+    minSdk = libs.versions.android.minSdk.get().toInt()
+
+    compilerOptions.jvmTarget = JvmTarget.JVM_11
+    androidResources.enable = true
+    withHostTest {
+      isIncludeAndroidResources = true
     }
+  }
 
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
+  sourceSets {
+    commonMain.dependencies {
+      // put your Multiplatform dependencies here
     }
-
-    android {
-       namespace = "ch.florianfrauenfelder.mensazh.core"
-       compileSdk = libs.versions.android.compileSdk.get().toInt()
-       minSdk = libs.versions.android.minSdk.get().toInt()
-
-       compilerOptions {
-           jvmTarget = JvmTarget.JVM_11
-       }
-       androidResources {
-           enable = true
-       }
-       withHostTest {
-           isIncludeAndroidResources = true
-       }
+    commonTest.dependencies {
+      implementation(libs.kotlin.test)
     }
-
-    sourceSets {
-        commonMain.dependencies {
-            // put your Multiplatform dependencies here
-        }
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
-        }
-    }
+  }
 }

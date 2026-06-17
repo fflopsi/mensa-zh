@@ -1,7 +1,7 @@
 plugins {
-  alias(libs.plugins.androidApplication)
-  alias(libs.plugins.composeMultiplatform)
-  alias(libs.plugins.composeCompiler)
+  alias(libs.plugins.compose.multiplatform)
+  alias(libs.plugins.compose.compiler)
+  alias(libs.plugins.android.application)
 }
 
 dependencies {
@@ -9,8 +9,8 @@ dependencies {
 
   implementation(libs.androidx.activity.compose)
 
-  implementation(libs.compose.uiToolingPreview)
-  debugImplementation(libs.compose.uiTooling)
+  implementation(libs.compose.ui.toolingPreview)
+  debugImplementation(libs.compose.ui.tooling)
 }
 
 android {
@@ -32,11 +32,7 @@ android {
     localeFilters += setOf("en", "de")
   }
 
-  packaging {
-    resources {
-      excludes += "/META-INF/{AL2.0,LGPL2.1}"
-    }
-  }
+  packaging.resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
 
   buildTypes {
     debug {
