@@ -2,6 +2,7 @@
 .kotlin
 .gradle
 **/build/
+dist/
 app/androidApp/release/
 xcuserdata
 !src/**/build/
