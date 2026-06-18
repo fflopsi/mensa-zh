@@ -54,3 +54,18 @@ android {
     targetCompatibility = JavaVersion.VERSION_17
   }
 }
+
+tasks.register<Copy>("copyApkToDist") {
+  from(layout.buildDirectory.dir("outputs/apk"))
+  into(rootProject.layout.projectDirectory.dir("dist/apk"))
+  include("**/*.apk")
+}
+
+tasks.register<Copy>("copyAabToDist") {
+  from(layout.buildDirectory.dir("outputs/bundle"))
+  into(rootProject.layout.projectDirectory.dir("dist/aab"))
+  include("**/*.aab")
+}
+
+tasks.matching { it.name.startsWith("assemble") }.configureEach { finalizedBy("copyApkToDist") }
+tasks.matching { it.name.startsWith("bundle") }.configureEach { finalizedBy("copyAabToDist") }
