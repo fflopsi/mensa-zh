@@ -161,10 +161,12 @@ sealed class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.A
       "no dinner",
       "novalue",
       "Wir sind ab Vollsemester",
+      "Wir freuen uns",
       "Betriebsferien",
+      "Sommerferien",
     )
-      .onEach { it.lowercase() }
-      .any { description.lowercase().contains(it) || title.lowercase() == it }
+      .map { it.lowercase() }
+      .any { description.lowercase().contains(it) || title.lowercase().contains(it) }
       || description.isBlank()
 
   protected fun Double.formatPrice(): String {
