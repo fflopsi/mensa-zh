@@ -149,14 +149,14 @@ class UZHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
       description = i18nName.label.replaceFirst(",", "\n").replace("\n ", "\n"),
       price = menuItem.prices?.mapNotNull { it.amount?.toFloat() }?.sorted()
         ?.map { String.format(Locale.US, "%.2f", it) } ?: emptyList(),
-      energy = menuItem.dish.stats?.energy?.amount?.toDouble(),
-      fat = menuItem.dish.stats?.fat?.amount?.toDouble(),
+      energy = menuItem.dish.stats?.energy?.amount,
+      fat = menuItem.dish.stats?.fat?.amount,
       saturatedFattyAcids = null,
-      carbohydrates = menuItem.dish.stats?.carbohydrates?.amount?.toDouble(),
-      sugar = menuItem.dish.stats?.sugar?.amount?.toDouble(),
-      fiber = menuItem.dish.stats?.fibers?.amount?.toDouble(),
-      protein = menuItem.dish.stats?.protein?.amount?.toDouble(),
-      salt = menuItem.dish.stats?.salt?.amount?.toDouble(),
+      carbohydrates = menuItem.dish.stats?.carbohydrates?.amount,
+      sugar = menuItem.dish.stats?.sugar?.amount,
+      fiber = menuItem.dish.stats?.fibers?.amount,
+      protein = menuItem.dish.stats?.protein?.amount,
+      salt = menuItem.dish.stats?.salt?.amount,
       nutrientsPer = NutrientsPer.Serving,
       allergens = menuItem.dish.allergens?.mapNotNull { it.allergen?.name }
         ?.joinToString(separator = ", "),
@@ -256,7 +256,7 @@ class UZHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao, assetServic
     )
 
     @Serializable
-    data class Stat(val amount: Int? = null)
+    data class Stat(val amount: Double? = null)
 
     @Serializable
     data class AllergenContainer(val allergen: Allergen? = null)
