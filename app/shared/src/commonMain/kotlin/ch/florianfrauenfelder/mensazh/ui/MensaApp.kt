@@ -61,8 +61,8 @@ import ch.florianfrauenfelder.mensazh.domain.value.Event
 import ch.florianfrauenfelder.mensazh.domain.value.Theme
 import ch.florianfrauenfelder.mensazh.ui.domain.label
 import ch.florianfrauenfelder.mensazh.ui.domain.ui
-import ch.florianfrauenfelder.mensazh.ui.main.OpenInBrowserButton
-import ch.florianfrauenfelder.mensazh.ui.main.SettingsDropdown
+import ch.florianfrauenfelder.mensazh.ui.shared.OpenInBrowserButton
+import ch.florianfrauenfelder.mensazh.ui.shared.SettingsDropdown
 import ch.florianfrauenfelder.mensazh.ui.theme.MensaZHTheme
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch

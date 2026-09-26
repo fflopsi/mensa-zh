@@ -38,10 +38,10 @@ import ch.florianfrauenfelder.mensazh.domain.model.Menu
 import ch.florianfrauenfelder.mensazh.domain.preferences.DestinationSettings
 import ch.florianfrauenfelder.mensazh.domain.preferences.DetailSettings
 import ch.florianfrauenfelder.mensazh.domain.preferences.Setting
-import ch.florianfrauenfelder.mensazh.ui.main.detail.MenuList
-import ch.florianfrauenfelder.mensazh.ui.main.list.LocationList
-import ch.florianfrauenfelder.mensazh.ui.settings.SettingsList
-import ch.florianfrauenfelder.mensazh.ui.settings.SettingsViewModel
+import ch.florianfrauenfelder.mensazh.ui.panes.detail.MenuList
+import ch.florianfrauenfelder.mensazh.ui.panes.list.LocationList
+import ch.florianfrauenfelder.mensazh.ui.panes.settings.SettingsList
+import ch.florianfrauenfelder.mensazh.ui.panes.settings.SettingsViewModel
 
 @Composable
 fun MensaAppNavDisplay(
