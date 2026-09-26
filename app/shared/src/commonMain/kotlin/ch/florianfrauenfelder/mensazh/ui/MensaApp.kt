@@ -1,136 +1,336 @@
 package ch.florianfrauenfelder.mensazh.ui
 
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.LocalMinimumInteractiveComponentSize
-import androidx.compose.material3.Surface
-import androidx.compose.material3.VerticalDragHandle
-import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
-import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SecondaryTabRow
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldValue
+import androidx.compose.material3.adaptive.navigationsuite.rememberNavigationSuiteScaffoldState
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
-import androidx.navigation3.runtime.NavKey
-import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
-import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
-import androidx.navigation3.ui.NavDisplay
 import ch.florianfrauenfelder.mensazh.AppContainer
+import ch.florianfrauenfelder.mensazh.domain.navigation.Destination
+import ch.florianfrauenfelder.mensazh.domain.navigation.Weekday
+import ch.florianfrauenfelder.mensazh.domain.preferences.Setting
+import ch.florianfrauenfelder.mensazh.domain.value.Event
 import ch.florianfrauenfelder.mensazh.domain.value.Theme
-import ch.florianfrauenfelder.mensazh.ui.main.MainScreen
-import ch.florianfrauenfelder.mensazh.ui.main.MainViewModel
-import ch.florianfrauenfelder.mensazh.ui.settings.SettingsScreen
-import ch.florianfrauenfelder.mensazh.ui.settings.SettingsViewModel
+import ch.florianfrauenfelder.mensazh.ui.domain.label
+import ch.florianfrauenfelder.mensazh.ui.domain.ui
+import ch.florianfrauenfelder.mensazh.ui.main.OpenInBrowserButton
+import ch.florianfrauenfelder.mensazh.ui.main.SettingsDropdown
 import ch.florianfrauenfelder.mensazh.ui.theme.MensaZHTheme
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import mensazh.app.shared.generated.resources.Res
+import mensazh.app.shared.generated.resources.api_error
+import mensazh.app.shared.generated.resources.app_name
+import mensazh.app.shared.generated.resources.back
+import mensazh.app.shared.generated.resources.cancel
+import mensazh.app.shared.generated.resources.ic_arrow_back_24
+import mensazh.app.shared.generated.resources.ic_open_in_browser_24
+import mensazh.app.shared.generated.resources.ic_refresh_24
+import mensazh.app.shared.generated.resources.no_internet
+import mensazh.app.shared.generated.resources.open_in_browser
+import mensazh.app.shared.generated.resources.refresh
+import mensazh.app.shared.generated.resources.slow_internet
+import mensazh.app.shared.generated.resources.unknown_error
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun MensaApp(container: AppContainer) {
-  val appViewModel: AppViewModel = viewModel(factory = AppViewModel.Factory(container))
-  val theme by appViewModel.themeSettings.collectAsStateWithLifecycle()
+  val density = LocalDensity.current
+  val layoutDirection = LocalLayoutDirection.current
 
-  val backStack = rememberNavBackStack(routeConfig, Route.Main)
-  val sceneStrategy = rememberListDetailSceneStrategy<NavKey>(
-    paneExpansionDragHandle = {
-      val interactionSource = remember { MutableInteractionSource() }
-      VerticalDragHandle(
-        interactionSource = interactionSource,
-        modifier = Modifier.paneExpansionDraggable(
-          state = it,
-          minTouchTargetSize = LocalMinimumInteractiveComponentSize.current,
-          interactionSource = interactionSource
-        ),
-      )
-    },
+  val appViewModel: AppViewModel = viewModel(factory = AppViewModel.Factory(container))
+  val params by appViewModel.params.collectAsStateWithLifecycle()
+  val locations by appViewModel.locations.collectAsStateWithLifecycle()
+  val isRefreshing by appViewModel.isRefreshing.collectAsStateWithLifecycle()
+  val visibilitySettings by appViewModel.visibilitySettings.collectAsStateWithLifecycle()
+  val destinationSettings by appViewModel.destinationSettings.collectAsStateWithLifecycle()
+  val detailSettings by appViewModel.detailSettings.collectAsStateWithLifecycle()
+  val themeSettings by appViewModel.themeSettings.collectAsStateWithLifecycle()
+  fun updateSetting(setting: Setting) = appViewModel.updateSetting(setting)
+
+  val backStack = rememberNavBackStack(routeConfig, Route.Main.List)
+
+  val selectedMensa by remember(locations, backStack) {
+    derivedStateOf {
+      locations
+        .flatMap { it.mensas }
+        .firstOrNull { mensaState ->
+          mensaState.mensa.id ==
+            (backStack.lastOrNull { it is Route.Main.Detail } as? Route.Main.Detail)?.mensa?.id
+        }
+    }
+  }
+  val selectedMenu by remember(locations, backStack) {
+    derivedStateOf {
+      selectedMensa
+        ?.menus
+        ?.elementAtOrNull(
+          (backStack.lastOrNull { it is Route.Main.Detail } as? Route.Main.Detail)?.menuIndex
+            ?: return@derivedStateOf null
+        )
+    }
+  }
+
+  val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+  val snackbarState = remember { SnackbarHostState() }
+  var tabRowSize by remember { mutableStateOf(IntSize.Zero) }
+  val navSuiteScaffoldState = rememberNavigationSuiteScaffoldState(
+    initialValue = if (destinationSettings.showAny) {
+      NavigationSuiteScaffoldValue.Visible
+    } else {
+      NavigationSuiteScaffoldValue.Hidden
+    }
   )
+  LaunchedEffect(destinationSettings.showAny) {
+    if (destinationSettings.showAny) {
+      navSuiteScaffoldState.show()
+    } else {
+      navSuiteScaffoldState.hide()
+    }
+  }
+
+  val noInternetMessage = stringResource(Res.string.no_internet)
+  val apiErrorMessage = stringResource(Res.string.api_error)
+  val unknownErrorMessage = stringResource(Res.string.unknown_error)
+  val slowInternetMessage = stringResource(Res.string.slow_internet)
+  val cancelMessage = stringResource(Res.string.cancel)
+  val slowInternetSnackbarJobs = remember { mutableStateListOf<Job?>() }
+  LaunchedEffect(Unit) {
+    appViewModel.events.collect { event ->
+      when (event) {
+        Event.NoInternet -> {
+          snackbarState.showSnackbar(message = noInternetMessage, withDismissAction = true)
+        }
+        Event.ApiError -> {
+          snackbarState.showSnackbar(message = apiErrorMessage, withDismissAction = true)
+        }
+        Event.UnknownError -> {
+          snackbarState.showSnackbar(message = unknownErrorMessage, withDismissAction = true)
+        }
+        is Event.SlowInternet -> {
+          slowInternetSnackbarJobs.add(
+            launch {
+              val result = snackbarState.showSnackbar(
+                message = slowInternetMessage,
+                actionLabel = cancelMessage,
+              )
+              if (result == SnackbarResult.ActionPerformed) {
+                event.onCancel()
+              }
+            }
+          )
+        }
+        Event.DismissSlowInternet -> {
+          slowInternetSnackbarJobs.firstOrNull { it?.isActive == true }?.cancel()
+        }
+      }
+    }
+  }
+
+  LaunchedEffect(slowInternetSnackbarJobs) {
+    slowInternetSnackbarJobs.forEach {
+      if (it?.isActive == false) slowInternetSnackbarJobs.remove(it)
+    }
+  }
 
   MensaZHTheme(
-    darkTheme = when (theme.theme) {
+    darkTheme = when (themeSettings.theme) {
       Theme.Auto -> isSystemInDarkTheme()
       Theme.Light -> false
       Theme.Dark -> true
     },
-    dynamicColor = theme.useDynamicColor,
+    dynamicColor = themeSettings.useDynamicColor,
   ) {
-    Surface {
-      NavDisplay(
-        backStack = backStack,
-        sceneStrategies = listOf(sceneStrategy),
-        entryDecorators = listOf(
-          rememberSaveableStateHolderNavEntryDecorator(),
-          rememberViewModelStoreNavEntryDecorator(),
-        ),
-        transitionSpec = {
-          slideInHorizontally(initialOffsetX = { it }) togetherWith
-            slideOutHorizontally(targetOffsetX = { -it })
-        },
-        popTransitionSpec = {
-          slideInHorizontally(initialOffsetX = { -it }) togetherWith
-            slideOutHorizontally(targetOffsetX = { it })
-        },
-        predictivePopTransitionSpec = {
-          slideInHorizontally(initialOffsetX = { -it }) togetherWith
-            slideOutHorizontally(targetOffsetX = { it })
-        },
-        entryProvider = entryProvider {
-          entry<Route.Main>(metadata = ListDetailSceneStrategy.listPane() + ListDetailSceneStrategy.detailPane()) {
-            val viewModel: MainViewModel = viewModel(factory = MainViewModel.Factory(container))
-            val params by viewModel.params.collectAsStateWithLifecycle()
-            val locations by viewModel.locations.collectAsStateWithLifecycle()
-            val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
-            val visibilitySettings by viewModel.visibilitySettings.collectAsStateWithLifecycle()
-            val destinationSettings by viewModel.destinationSettings.collectAsStateWithLifecycle()
-            val detailSettings by viewModel.detailSettings.collectAsStateWithLifecycle()
-
-            MainScreen(
-              params = params,
-              locations = locations,
-              isRefreshing = isRefreshing,
-              events = viewModel.events,
-              visibilitySettings = visibilitySettings,
-              destinationSettings = destinationSettings,
-              detailSettings = detailSettings,
-              sceneStrategy = sceneStrategy,
-              refresh = viewModel::forceRefresh,
-              setParams = viewModel::setParams,
-              updateSetting = viewModel::updateSetting,
+    Scaffold(
+      topBar = {
+        TopAppBar(
+          title = {
+            Text(text = selectedMensa?.mensa?.title ?: stringResource(Res.string.app_name))
+          },
+          navigationIcon = {
+            AnimatedVisibility(
+              visible = backStack.size > 1,
+              enter = fadeIn() + expandHorizontally(),
+              exit = fadeOut() + shrinkHorizontally(),
+            ) {
+              IconButton(onClick = { backStack.removeLastOrNull() }) {
+                Icon(
+                  painterResource(Res.drawable.ic_arrow_back_24),
+                  stringResource(Res.string.back),
+                )
+              }
+            }
+          },
+          actions = {
+            AnimatedVisibility(visible = (backStack.last() as? Route.Main.Detail) != null) {
+              OpenInBrowserButton(selectedMensa = selectedMensa) {
+                Icon(
+                  painterResource(Res.drawable.ic_open_in_browser_24),
+                  stringResource(Res.string.open_in_browser),
+                )
+              }
+            }
+            IconButton(onClick = appViewModel::forceRefresh) {
+              Icon(painterResource(Res.drawable.ic_refresh_24), stringResource(Res.string.refresh))
+            }
+            SettingsDropdown(
+              visibility = visibilitySettings,
+              setShowOnlyOpenMensas = { updateSetting(Setting.SetShowOnlyOpenMensas(it)) },
+              setShowOnlyExpandedMensas = { updateSetting(Setting.SetShowOnlyExpandedMensas(it)) },
+              setLanguage = { updateSetting(Setting.SetMenusLanguage(it)) },
               navigateToSettings = { backStack.add(Route.Settings) },
             )
-          }
-          entry<Route.Settings>(metadata = ListDetailSceneStrategy.extraPane()) {
-            val viewModel: SettingsViewModel =
-              viewModel(factory = SettingsViewModel.Factory(container))
-            val visibility by viewModel.visibilitySettings.collectAsStateWithLifecycle()
-            val destination by viewModel.destinationSettings.collectAsStateWithLifecycle()
-            val detail by viewModel.detailSettings.collectAsStateWithLifecycle()
-            val theme by viewModel.themeSettings.collectAsStateWithLifecycle()
-            val baseLocations by viewModel.baseLocations.collectAsStateWithLifecycle()
-            val shownLocations by viewModel.shownLocations.collectAsStateWithLifecycle()
-            val hiddenMensas by viewModel.hiddenMensas.collectAsStateWithLifecycle()
-            val favoriteMensas by viewModel.favoriteMensas.collectAsStateWithLifecycle()
-
-            SettingsScreen(
-              visibility = visibility,
-              destination = destination,
-              detail = detail,
-              theme = theme,
-              baseLocations = baseLocations,
-              shownLocations = shownLocations,
-              hiddenMensas = hiddenMensas,
-              favoriteMensas = favoriteMensas,
-              update = viewModel::updateSetting,
-              clearCache = viewModel::clearCache,
-              navigateUp = { backStack.removeLastOrNull() },
-            )
-          }
-        },
+          },
+          scrollBehavior = scrollBehavior,
+        )
+      },
+      snackbarHost = {
+        SnackbarHost(
+          hostState = snackbarState,
+          modifier = Modifier.padding(bottom = with(density) { tabRowSize.height.toDp() }),
+        )
+      },
+      contentWindowInsets = WindowInsets.safeDrawing,
+      modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+    ) { innerPadding ->
+      val animatedBottomPadding by animateDpAsState(
+        targetValue = if (destinationSettings.showAny) {
+          innerPadding.calculateBottomPadding()
+        } else {
+          0.dp
+        }
       )
+      val effectiveInnerPadding = PaddingValues(
+        top = innerPadding.calculateTopPadding(),
+        bottom = animatedBottomPadding,
+        start = innerPadding.calculateStartPadding(layoutDirection),
+        end = innerPadding.calculateEndPadding(layoutDirection),
+      )
+
+      PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = appViewModel::forceRefresh,
+        enabled = thisPlatform.isMobile,
+        modifier = Modifier
+          .padding(effectiveInnerPadding)
+          .consumeWindowInsets(innerPadding),
+      ) {
+        AnimatedVisibility(
+          visible = isRefreshing,
+          enter = fadeIn() + expandVertically(),
+          exit = fadeOut() + shrinkVertically(),
+          modifier = Modifier.align(Alignment.TopCenter),
+        ) {
+          LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
+        NavigationSuiteScaffold(
+          state = navSuiteScaffoldState,
+          navigationItems = {
+            buildList {
+              add(Destination.Today)
+              if (destinationSettings.showTomorrow) add(Destination.Tomorrow)
+              if (destinationSettings.showThisWeek) add(Destination.ThisWeek)
+              if (destinationSettings.showNextWeek) add(Destination.NextWeek)
+            }.forEach { destination ->
+              NavigationSuiteItem(
+                icon = {
+                  Icon(painterResource(destination.ui.icon), stringResource(destination.ui.label))
+                },
+                label = { Text(stringResource(destination.ui.label)) },
+                selected = destination == params.destination,
+                onClick = {
+                  if (destination != params.destination) {
+                    appViewModel.setParams { it.copy(destination = destination) }
+                  } else if (backStack.size > 1) {
+                    backStack.removeLastOrNull()
+                  }
+                },
+              )
+            }
+          },
+        ) {
+          AnimatedVisibility(
+            visible = params.destination in listOf(Destination.ThisWeek, Destination.NextWeek),
+            enter = expandVertically(),
+            exit = shrinkVertically(),
+            modifier = Modifier
+              .onSizeChanged { tabRowSize = it }
+              .align(Alignment.BottomCenter),
+          ) {
+            SecondaryTabRow(selectedTabIndex = params.weekday.ordinal) {
+              Weekday.entries.forEach { weekday ->
+                Tab(
+                  selected = params.weekday == weekday,
+                  onClick = { appViewModel.setParams { it.copy(weekday = weekday) } },
+                  text = { Text(text = stringResource(weekday.label)) },
+                )
+              }
+            }
+          }
+          MensaAppNavDisplay(
+            backStack = backStack,
+            density = density,
+            tabRowSize = tabRowSize,
+            container = container,
+            locations = locations,
+            selectedMensa = selectedMensa,
+            selectedMenu = selectedMenu,
+            destinationSettings = destinationSettings,
+            detailSettings = detailSettings,
+            updateSetting = ::updateSetting,
+            innerPadding = innerPadding,
+          )
+        }
+      }
     }
   }
 }
