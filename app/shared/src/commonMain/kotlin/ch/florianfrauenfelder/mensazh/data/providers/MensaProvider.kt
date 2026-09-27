@@ -4,7 +4,6 @@ import ch.florianfrauenfelder.mensazh.data.local.room.FetchInfo
 import ch.florianfrauenfelder.mensazh.data.local.room.FetchInfoDao
 import ch.florianfrauenfelder.mensazh.data.local.room.MenuDao
 import ch.florianfrauenfelder.mensazh.data.local.room.RoomMenu
-import ch.florianfrauenfelder.mensazh.data.util.AppLogger
 import ch.florianfrauenfelder.mensazh.data.util.SerializationService
 import ch.florianfrauenfelder.mensazh.domain.model.Location
 import ch.florianfrauenfelder.mensazh.domain.model.Mensa
@@ -14,9 +13,6 @@ import ch.florianfrauenfelder.mensazh.domain.value.Language
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logger
-import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.request
 import io.ktor.serialization.kotlinx.json.json
@@ -24,6 +20,7 @@ import io.ktor.util.reflect.TypeInfo
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
@@ -90,13 +87,7 @@ sealed class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.A
     destination: Destination,
     language: Language,
   ) {
-    val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
-    val monday = today.minus(today.dayOfWeek.ordinal, DateTimeUnit.DAY).run {
-      if (destination == Destination.NextWeek) {
-        plus(7, DateTimeUnit.DAY)
-      } else this
-    }
-
+    val monday = calculateMonday(destination)
     supervisorScope {
       launch {
         val root = fetchJson(destination, language) ?: return@launch
@@ -109,7 +100,6 @@ sealed class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.A
         menuDao.insertMenus(extractMenus(root, monday, !language))
       }
     }
-
   }
 
   /**
@@ -144,6 +134,18 @@ sealed class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.A
         language = language,
       ),
     )
+
+  protected fun calculateMonday(destination: Destination): LocalDate {
+    val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+    val monday = today.minus(today.dayOfWeek.ordinal, DateTimeUnit.DAY)
+    if (
+      destination == Destination.NextWeek
+      || (destination == Destination.Tomorrow && today.dayOfWeek == DayOfWeek.SUNDAY)
+    ) {
+      return monday.plus(7, DateTimeUnit.DAY)
+    }
+    return monday
+  }
 
   protected val RoomMenu.hasClosedNotice: Boolean
     get() = listOf(

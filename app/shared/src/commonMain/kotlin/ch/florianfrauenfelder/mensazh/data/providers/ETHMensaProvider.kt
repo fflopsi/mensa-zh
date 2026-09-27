@@ -14,9 +14,9 @@ import io.ktor.http.URLProtocol
 import io.ktor.http.path
 import io.ktor.util.reflect.typeInfo
 import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
 import kotlinx.serialization.SerialName
@@ -36,13 +36,7 @@ class ETHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao) :
   override val oneLanguagePerCall = true
 
   override fun HttpRequestBuilder.request(destination: Destination, language: Language) {
-    val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
-    val monday = today.minus(today.dayOfWeek.ordinal, DateTimeUnit.DAY).run {
-      if (destination == Destination.NextWeek) {
-        plus(7, DateTimeUnit.DAY)
-      } else this
-    }
-
+    val monday = calculateMonday(destination)
     method = HttpMethod.Get
     url {
       protocol = URLProtocol.HTTPS
@@ -122,12 +116,37 @@ class ETHMensaProvider(menuDao: MenuDao, fetchInfoDao: FetchInfoDao) :
     ).run { if (hasClosedNotice) null else this }
 
   override suspend fun updateFetchInfo(destination: Destination, language: Language) {
-    if (destination != Destination.NextWeek) {
-      listOf(Destination.Today, Destination.Tomorrow, Destination.ThisWeek).forEach {
-        insertFetchInfo(it, language)
+    val today = Clock.System.todayIn(TimeZone.currentSystemDefault()).dayOfWeek
+    when (destination) {
+      Destination.Today -> {
+        insertFetchInfo(Destination.Today, language)
+        insertFetchInfo(Destination.ThisWeek, language)
+        if (today != DayOfWeek.SUNDAY) {
+          insertFetchInfo(Destination.Tomorrow, language)
+        }
       }
-    } else {
-      insertFetchInfo(destination, language)
+      Destination.Tomorrow -> {
+        insertFetchInfo(Destination.Tomorrow, language)
+        if (today != DayOfWeek.SUNDAY) {
+          insertFetchInfo(Destination.Today, language)
+          insertFetchInfo(Destination.ThisWeek, language)
+        } else {
+          insertFetchInfo(Destination.NextWeek, language)
+        }
+      }
+      Destination.ThisWeek -> {
+        insertFetchInfo(Destination.ThisWeek, language)
+        insertFetchInfo(Destination.Today, language)
+        if (today != DayOfWeek.SUNDAY) {
+          insertFetchInfo(Destination.Tomorrow, language)
+        }
+      }
+      Destination.NextWeek -> {
+        insertFetchInfo(Destination.NextWeek, language)
+        if (today == DayOfWeek.SUNDAY) {
+          insertFetchInfo(Destination.Tomorrow, language)
+        }
+      }
     }
   }
 
