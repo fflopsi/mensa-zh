@@ -52,19 +52,14 @@ sealed class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.A
     install(ContentNegotiation) {
       json(json = SerializationService.safeJson)
     }
-  }
-  protected val debugClient = HttpClient {
-    install(ContentNegotiation) {
-      json(json = SerializationService.safeJson)
-    }
-    install(Logging) {
-      logger = object : Logger {
-        override fun log(message: String) {
-          AppLogger.d("$institution MensaProvider", message)
-        }
-      }
-      level = LogLevel.ALL
-    }
+//    install(Logging) { // Uncomment for logging
+//      logger = object : Logger {
+//        override fun log(message: String) {
+//          AppLogger.d("$institution MensaProvider", message)
+//        }
+//      }
+//      level = LogLevel.ALL
+//    }
   }
 
   suspend fun getLocations(): List<Location> {
@@ -123,8 +118,7 @@ sealed class MensaProvider<L : MensaProvider.ApiLocation<M>, M : MensaProvider.A
    * @throws Exception Other error, should not happen
    * */
   private suspend fun fetchJson(destination: Destination, language: Language): R? {
-//    val response = debugClient.request { // Use debug client to see logs
-    val response = client.request { // Use client in production
+    val response = client.request {
       request(destination, language)
     }
     return if (response.status.value in 200..299) {
