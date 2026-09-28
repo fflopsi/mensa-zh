@@ -1,7 +1,6 @@
 package ch.florianfrauenfelder.mensazh.ui
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -9,14 +8,12 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -49,7 +46,6 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -190,114 +186,105 @@ fun MensaApp(container: AppContainer) {
     },
     dynamicColor = themeSettings.useDynamicColor,
   ) {
-    Scaffold(
-      topBar = {
-        TopAppBar(
-          title = {
-            Text(text = selectedMensa?.mensa?.title ?: stringResource(Res.string.app_name))
-          },
-          navigationIcon = {
-            AnimatedVisibility(
-              visible = backStack.size > 1,
-              enter = fadeIn() + expandHorizontally(),
-              exit = fadeOut() + shrinkHorizontally(),
-            ) {
-              IconButton(onClick = { backStack.removeLastOrNull() }) {
+    NavigationSuiteScaffold(
+      state = navSuiteScaffoldState,
+      navigationItems = {
+        buildList {
+          add(Destination.Today)
+          if (destinationSettings.showTomorrow) add(Destination.Tomorrow)
+          if (destinationSettings.showThisWeek) add(Destination.ThisWeek)
+          if (destinationSettings.showNextWeek) add(Destination.NextWeek)
+        }.forEach { destination ->
+          NavigationSuiteItem(
+            icon = { Icon(painterResource(destination.ui.icon), null) },
+            label = { Text(stringResource(destination.ui.label)) },
+            selected = destination == params.destination,
+            onClick = {
+              if (destination != params.destination) {
+                appViewModel.setParams { it.copy(destination = destination) }
+              } else if (backStack.size > 1) {
+                backStack.removeLastOrNull()
+              }
+            },
+          )
+        }
+      },
+    ) {
+      Scaffold(
+        topBar = {
+          TopAppBar(
+            title = {
+              Text(text = selectedMensa?.mensa?.title ?: stringResource(Res.string.app_name))
+            },
+            navigationIcon = {
+              AnimatedVisibility(
+                visible = backStack.size > 1,
+                enter = fadeIn() + expandHorizontally(),
+                exit = fadeOut() + shrinkHorizontally(),
+              ) {
+                IconButton(onClick = { backStack.removeLastOrNull() }) {
+                  Icon(
+                    painterResource(Res.drawable.ic_arrow_back_24),
+                    stringResource(Res.string.back),
+                  )
+                }
+              }
+            },
+            actions = {
+              AnimatedVisibility(visible = (backStack.last() as? Route.Main.Detail) != null) {
+                OpenInBrowserButton(selectedMensa = selectedMensa) {
+                  Icon(
+                    painterResource(Res.drawable.ic_open_in_browser_24),
+                    stringResource(Res.string.open_in_browser),
+                  )
+                }
+              }
+              IconButton(onClick = appViewModel::forceRefresh) {
                 Icon(
-                  painterResource(Res.drawable.ic_arrow_back_24),
-                  stringResource(Res.string.back),
+                  painterResource(Res.drawable.ic_refresh_24),
+                  stringResource(Res.string.refresh),
                 )
               }
-            }
-          },
-          actions = {
-            AnimatedVisibility(visible = (backStack.last() as? Route.Main.Detail) != null) {
-              OpenInBrowserButton(selectedMensa = selectedMensa) {
-                Icon(
-                  painterResource(Res.drawable.ic_open_in_browser_24),
-                  stringResource(Res.string.open_in_browser),
-                )
-              }
-            }
-            IconButton(onClick = appViewModel::forceRefresh) {
-              Icon(painterResource(Res.drawable.ic_refresh_24), stringResource(Res.string.refresh))
-            }
-            SettingsDropdown(
-              visibility = visibilitySettings,
-              setShowOnlyOpenMensas = { updateSetting(Setting.SetShowOnlyOpenMensas(it)) },
-              setShowOnlyExpandedMensas = { updateSetting(Setting.SetShowOnlyExpandedMensas(it)) },
-              setLanguage = { updateSetting(Setting.SetMenusLanguage(it)) },
-              navigateToSettings = { backStack.add(Route.Settings) },
-            )
-          },
-          scrollBehavior = scrollBehavior,
-        )
-      },
-      snackbarHost = {
-        SnackbarHost(
-          hostState = snackbarState,
-          modifier = Modifier.padding(bottom = with(density) { tabRowSize.height.toDp() }),
-        )
-      },
-      contentWindowInsets = WindowInsets.safeDrawing,
-      modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-    ) { innerPadding ->
-      val animatedBottomPadding by animateDpAsState(
-        targetValue = if (destinationSettings.showAny) {
-          innerPadding.calculateBottomPadding()
-        } else {
-          0.dp
-        }
-      )
-      val effectiveInnerPadding = PaddingValues(
-        top = innerPadding.calculateTopPadding(),
-        bottom = animatedBottomPadding,
-        start = innerPadding.calculateStartPadding(layoutDirection),
-        end = innerPadding.calculateEndPadding(layoutDirection),
-      )
-
-      PullToRefreshBox(
-        isRefreshing = isRefreshing,
-        onRefresh = appViewModel::forceRefresh,
-        enabled = thisPlatform.isMobile,
-        modifier = Modifier
-          .padding(effectiveInnerPadding)
-          .consumeWindowInsets(innerPadding),
-      ) {
-        AnimatedVisibility(
-          visible = isRefreshing,
-          enter = fadeIn() + expandVertically(),
-          exit = fadeOut() + shrinkVertically(),
-          modifier = Modifier.align(Alignment.TopCenter),
-        ) {
-          LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-        }
-        NavigationSuiteScaffold(
-          state = navSuiteScaffoldState,
-          navigationItems = {
-            buildList {
-              add(Destination.Today)
-              if (destinationSettings.showTomorrow) add(Destination.Tomorrow)
-              if (destinationSettings.showThisWeek) add(Destination.ThisWeek)
-              if (destinationSettings.showNextWeek) add(Destination.NextWeek)
-            }.forEach { destination ->
-              NavigationSuiteItem(
-                icon = {
-                  Icon(painterResource(destination.ui.icon), stringResource(destination.ui.label))
-                },
-                label = { Text(stringResource(destination.ui.label)) },
-                selected = destination == params.destination,
-                onClick = {
-                  if (destination != params.destination) {
-                    appViewModel.setParams { it.copy(destination = destination) }
-                  } else if (backStack.size > 1) {
-                    backStack.removeLastOrNull()
-                  }
-                },
+              SettingsDropdown(
+                visibility = visibilitySettings,
+                setShowOnlyOpenMensas = { updateSetting(Setting.SetShowOnlyOpenMensas(it)) },
+                setShowOnlyExpandedMensas = { updateSetting(Setting.SetShowOnlyExpandedMensas(it)) },
+                setLanguage = { updateSetting(Setting.SetMenusLanguage(it)) },
+                navigateToSettings = { backStack.add(Route.Settings) },
               )
-            }
-          },
+            },
+            scrollBehavior = scrollBehavior,
+          )
+        },
+        snackbarHost = {
+          SnackbarHost(
+            hostState = snackbarState,
+            modifier = Modifier.padding(bottom = with(density) { tabRowSize.height.toDp() }),
+          )
+        },
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+      ) { innerPadding ->
+        PullToRefreshBox(
+          isRefreshing = isRefreshing,
+          onRefresh = appViewModel::forceRefresh,
+          enabled = thisPlatform.isMobile,
+          modifier = Modifier
+            .fillMaxSize()
+            .padding(
+              start = innerPadding.calculateStartPadding(layoutDirection),
+              top = innerPadding.calculateTopPadding(),
+              end = innerPadding.calculateEndPadding(layoutDirection),
+            )
+            .consumeWindowInsets(innerPadding),
         ) {
+          AnimatedVisibility(
+            visible = isRefreshing,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically(),
+            modifier = Modifier.align(Alignment.TopCenter),
+          ) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+          }
           AnimatedVisibility(
             visible = params.destination in listOf(Destination.ThisWeek, Destination.NextWeek),
             enter = expandVertically(),
@@ -324,7 +311,6 @@ fun MensaApp(container: AppContainer) {
             locations = locations,
             selectedMensa = selectedMensa,
             selectedMenu = selectedMenu,
-            destinationSettings = destinationSettings,
             detailSettings = detailSettings,
             updateSetting = ::updateSetting,
             innerPadding = innerPadding,

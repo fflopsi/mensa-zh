@@ -1,6 +1,5 @@
 package ch.florianfrauenfelder.mensazh.ui
 
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -22,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -35,7 +33,6 @@ import ch.florianfrauenfelder.mensazh.AppContainer
 import ch.florianfrauenfelder.mensazh.domain.model.Location
 import ch.florianfrauenfelder.mensazh.domain.model.MensaState
 import ch.florianfrauenfelder.mensazh.domain.model.Menu
-import ch.florianfrauenfelder.mensazh.domain.preferences.DestinationSettings
 import ch.florianfrauenfelder.mensazh.domain.preferences.DetailSettings
 import ch.florianfrauenfelder.mensazh.domain.preferences.Setting
 import ch.florianfrauenfelder.mensazh.ui.panes.detail.MenuList
@@ -52,7 +49,6 @@ fun MensaAppNavDisplay(
   locations: List<Location>,
   selectedMensa: MensaState?,
   selectedMenu: Menu?,
-  destinationSettings: DestinationSettings,
   detailSettings: DetailSettings,
   updateSetting: (Setting) -> Unit,
   innerPadding: PaddingValues,
@@ -72,13 +68,7 @@ fun MensaAppNavDisplay(
     },
   )
 
-  val animatedBottomPadding by animateDpAsState(
-    targetValue = if (destinationSettings.showAny) {
-      0.dp
-    } else {
-      innerPadding.calculateBottomPadding()
-    }
-  )
+  val listPadding = PaddingValues(bottom = innerPadding.calculateBottomPadding())
 
   NavDisplay(
     backStack = backStack,
@@ -121,7 +111,7 @@ fun MensaAppNavDisplay(
           toggleExpandedMensa = { updateSetting(Setting.SetIsExpandedMensa(it)) },
           toggleFavoriteMensa = { updateSetting(Setting.SetIsFavoriteMensa(it)) },
           hideMensa = { updateSetting(Setting.SetIsHiddenMensa(it)) },
-          contentPadding = PaddingValues(bottom = animatedBottomPadding),
+          contentPadding = listPadding,
           modifier = Modifier.fillMaxWidth(),
         )
       }
@@ -134,7 +124,7 @@ fun MensaAppNavDisplay(
               backStack.add(Route.Main.Detail(mensa.mensa, mensa.menus.indexOf(menu)))
             },
             autoShowImage = detailSettings.autoShowImage,
-            contentPadding = PaddingValues(bottom = animatedBottomPadding),
+            contentPadding = listPadding,
             modifier = Modifier.fillMaxWidth(),
           )
         }
@@ -162,7 +152,7 @@ fun MensaAppNavDisplay(
           favoriteMensas = favoriteMensas,
           update = viewModel::updateSetting,
           clearCache = viewModel::clearCache,
-          contentPadding = PaddingValues(bottom = animatedBottomPadding),
+          contentPadding = listPadding,
           modifier = Modifier.fillMaxWidth(),
         )
       }
