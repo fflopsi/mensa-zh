@@ -33,7 +33,6 @@ import androidx.compose.material3.adaptive.navigationsuite.rememberNavigationSui
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -73,6 +72,7 @@ import mensazh.app.shared.generated.resources.ic_refresh_24
 import mensazh.app.shared.generated.resources.no_internet
 import mensazh.app.shared.generated.resources.open_in_browser
 import mensazh.app.shared.generated.resources.refresh
+import mensazh.app.shared.generated.resources.settings
 import mensazh.app.shared.generated.resources.slow_internet
 import mensazh.app.shared.generated.resources.unknown_error
 import org.jetbrains.compose.resources.painterResource
@@ -85,7 +85,9 @@ fun MensaApp(container: AppContainer) {
 
   val appViewModel: AppViewModel = viewModel(factory = AppViewModel.Factory(container))
   val params by appViewModel.params.collectAsStateWithLifecycle()
+  val menuIndices by appViewModel.menuIndices.collectAsStateWithLifecycle()
   val locations by appViewModel.locations.collectAsStateWithLifecycle()
+  val mensasById by appViewModel.mensasById.collectAsStateWithLifecycle()
   val isRefreshing by appViewModel.isRefreshing.collectAsStateWithLifecycle()
   val visibilitySettings by appViewModel.visibilitySettings.collectAsStateWithLifecycle()
   val destinationSettings by appViewModel.destinationSettings.collectAsStateWithLifecycle()
@@ -93,32 +95,14 @@ fun MensaApp(container: AppContainer) {
   val themeSettings by appViewModel.themeSettings.collectAsStateWithLifecycle()
   fun updateSetting(setting: Setting) = appViewModel.updateSetting(setting)
 
-  val backStack = rememberNavBackStack(routeConfig, Route.Main.List)
-
-  val selectedMensa by remember(locations, backStack) {
-    derivedStateOf {
-      locations
-        .flatMap { it.mensas }
-        .firstOrNull { mensaState ->
-          mensaState.mensa.id ==
-            (backStack.lastOrNull { it is Route.Main.Detail } as? Route.Main.Detail)?.mensa?.id
-        }
-    }
-  }
-  val selectedMenu by remember(locations, backStack) {
-    derivedStateOf {
-      selectedMensa
-        ?.menus
-        ?.elementAtOrNull(
-          (backStack.lastOrNull { it is Route.Main.Detail } as? Route.Main.Detail)?.menuIndex
-            ?: return@derivedStateOf null
-        )
-    }
-  }
+  val backStack = rememberNavBackStack(routeConfig, Route.List)
+  val selectedMensa =
+    (backStack.lastOrNull { it is Route.Detail } as? Route.Detail)?.let { mensasById[it.mensaId] }
 
   val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
   val snackbarState = remember { SnackbarHostState() }
   var tabRowSize by remember { mutableStateOf(IntSize.Zero) }
+  val tabRowPadding = remember { with(density) { tabRowSize.height.toDp() } }
   val navSuiteScaffoldState = rememberNavigationSuiteScaffoldState(
     initialValue = if (destinationSettings.showAny) {
       NavigationSuiteScaffoldValue.Visible
@@ -214,7 +198,15 @@ fun MensaApp(container: AppContainer) {
         topBar = {
           TopAppBar(
             title = {
-              Text(text = selectedMensa?.mensa?.title ?: stringResource(Res.string.app_name))
+              Text(
+                text = when (backStack.lastOrNull()) {
+                  is Route.Detail -> {
+                    selectedMensa?.mensa?.title ?: stringResource(Res.string.app_name)
+                  }
+                  Route.Settings -> stringResource(Res.string.settings)
+                  else -> stringResource(Res.string.app_name)
+                },
+              )
             },
             navigationIcon = {
               AnimatedVisibility(
@@ -231,7 +223,7 @@ fun MensaApp(container: AppContainer) {
               }
             },
             actions = {
-              AnimatedVisibility(visible = (backStack.last() as? Route.Main.Detail) != null) {
+              AnimatedVisibility(visible = (backStack.lastOrNull() as? Route.Detail) != null) {
                 OpenInBrowserButton(selectedMensa = selectedMensa) {
                   Icon(
                     painterResource(Res.drawable.ic_open_in_browser_24),
@@ -245,13 +237,15 @@ fun MensaApp(container: AppContainer) {
                   stringResource(Res.string.refresh),
                 )
               }
-              SettingsDropdown(
-                visibility = visibilitySettings,
-                setShowOnlyOpenMensas = { updateSetting(Setting.SetShowOnlyOpenMensas(it)) },
-                setShowOnlyExpandedMensas = { updateSetting(Setting.SetShowOnlyExpandedMensas(it)) },
-                setLanguage = { updateSetting(Setting.SetMenusLanguage(it)) },
-                navigateToSettings = { backStack.add(Route.Settings) },
-              )
+              AnimatedVisibility(visible = (backStack.lastOrNull() as? Route.Settings) == null) {
+                SettingsDropdown(
+                  visibility = visibilitySettings,
+                  setShowOnlyOpenMensas = { updateSetting(Setting.SetShowOnlyOpenMensas(it)) },
+                  setShowOnlyExpandedMensas = { updateSetting(Setting.SetShowOnlyExpandedMensas(it)) },
+                  setLanguage = { updateSetting(Setting.SetMenusLanguage(it)) },
+                  navigateToSettings = { backStack.moveToTopOrAdd(Route.Settings) },
+                )
+              }
             },
             scrollBehavior = scrollBehavior,
           )
@@ -259,7 +253,7 @@ fun MensaApp(container: AppContainer) {
         snackbarHost = {
           SnackbarHost(
             hostState = snackbarState,
-            modifier = Modifier.padding(bottom = with(density) { tabRowSize.height.toDp() }),
+            modifier = Modifier.padding(bottom = tabRowPadding),
           )
         },
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -305,15 +299,15 @@ fun MensaApp(container: AppContainer) {
           }
           MensaAppNavDisplay(
             backStack = backStack,
-            density = density,
-            tabRowSize = tabRowSize,
             container = container,
             locations = locations,
-            selectedMensa = selectedMensa,
-            selectedMenu = selectedMenu,
+            mensasById = mensasById,
+            menuIndices = menuIndices,
+            selectMenu = appViewModel::selectMenu,
             detailSettings = detailSettings,
             updateSetting = ::updateSetting,
             innerPadding = innerPadding,
+            tabRowPadding = tabRowPadding,
           )
         }
       }

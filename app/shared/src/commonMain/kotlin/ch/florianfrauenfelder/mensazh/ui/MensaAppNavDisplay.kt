@@ -19,8 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.Dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -32,26 +31,30 @@ import androidx.navigation3.ui.NavDisplay
 import ch.florianfrauenfelder.mensazh.AppContainer
 import ch.florianfrauenfelder.mensazh.domain.model.Location
 import ch.florianfrauenfelder.mensazh.domain.model.MensaState
-import ch.florianfrauenfelder.mensazh.domain.model.Menu
 import ch.florianfrauenfelder.mensazh.domain.preferences.DetailSettings
 import ch.florianfrauenfelder.mensazh.domain.preferences.Setting
 import ch.florianfrauenfelder.mensazh.ui.panes.detail.MenuList
 import ch.florianfrauenfelder.mensazh.ui.panes.list.LocationList
 import ch.florianfrauenfelder.mensazh.ui.panes.settings.SettingsList
 import ch.florianfrauenfelder.mensazh.ui.panes.settings.SettingsViewModel
+import mensazh.app.shared.generated.resources.Res
+import mensazh.app.shared.generated.resources.no_menus
+import mensazh.app.shared.generated.resources.select_a_menu
+import org.jetbrains.compose.resources.stringResource
+import kotlin.uuid.Uuid
 
 @Composable
 fun MensaAppNavDisplay(
   backStack: NavBackStack<NavKey>,
-  density: Density,
-  tabRowSize: IntSize,
   container: AppContainer,
   locations: List<Location>,
-  selectedMensa: MensaState?,
-  selectedMenu: Menu?,
+  mensasById: Map<Uuid, MensaState>,
+  menuIndices: Map<Uuid, Int>,
+  selectMenu: (Uuid, Int) -> Unit,
   detailSettings: DetailSettings,
   updateSetting: (Setting) -> Unit,
   innerPadding: PaddingValues,
+  tabRowPadding: Dp,
   modifier: Modifier = Modifier,
 ) {
   val sceneStrategy = rememberListDetailSceneStrategy<NavKey>(
@@ -67,7 +70,6 @@ fun MensaAppNavDisplay(
       )
     },
   )
-
   val listPadding = PaddingValues(bottom = innerPadding.calculateBottomPadding())
 
   NavDisplay(
@@ -90,14 +92,17 @@ fun MensaAppNavDisplay(
         slideOutHorizontally(targetOffsetX = { it })
     },
     modifier = modifier
-      .padding(bottom = with(density) { tabRowSize.height.toDp() })
+      .padding(bottom = tabRowPadding)
       .fillMaxSize(),
     entryProvider = entryProvider {
-      entry<Route.Main.List>(
+      entry<Route.List>(
         metadata = ListDetailSceneStrategy.listPane(
           detailPlaceholder = {
             Box(modifier = Modifier.fillMaxSize()) {
-              Text("Select a menu", modifier = Modifier.align(Alignment.Center))
+              Text(
+                text = stringResource(Res.string.select_a_menu),
+                modifier = Modifier.align(Alignment.Center),
+              )
             }
           },
         ),
@@ -106,7 +111,8 @@ fun MensaAppNavDisplay(
           locations = locations,
           detail = detailSettings,
           onMenuClick = { mensa, menu ->
-            backStack.add(Route.Main.Detail(mensa.mensa, mensa.menus.indexOf(menu)))
+            selectMenu(mensa.mensa.id, menu.index)
+            backStack.moveToTopOrAdd(Route.Detail(mensa.mensa.id))
           },
           toggleExpandedMensa = { updateSetting(Setting.SetIsExpandedMensa(it)) },
           toggleFavoriteMensa = { updateSetting(Setting.SetIsFavoriteMensa(it)) },
@@ -115,18 +121,24 @@ fun MensaAppNavDisplay(
           modifier = Modifier.fillMaxWidth(),
         )
       }
-      entry<Route.Main.Detail>(metadata = ListDetailSceneStrategy.detailPane()) {
-        selectedMensa?.let { mensa ->
+      entry<Route.Detail>(metadata = ListDetailSceneStrategy.detailPane()) { detail ->
+        val mensa = mensasById[detail.mensaId]
+        if (mensa != null) {
           MenuList(
             menus = mensa.menus,
-            selectedMenu = selectedMenu,
-            selectMenu = { menu ->
-              backStack.add(Route.Main.Detail(mensa.mensa, mensa.menus.indexOf(menu)))
-            },
+            selectedMenuIndex = menuIndices[mensa.mensa.id],
+            selectMenu = { selectMenu(mensa.mensa.id, it.index) },
             autoShowImage = detailSettings.autoShowImage,
             contentPadding = listPadding,
             modifier = Modifier.fillMaxWidth(),
           )
+        } else {
+          Box(modifier = Modifier.fillMaxSize()) {
+            Text(
+              text = stringResource(Res.string.no_menus),
+              modifier = Modifier.align(Alignment.Center),
+            )
+          }
         }
       }
       entry<Route.Settings>(metadata = ListDetailSceneStrategy.extraPane()) {

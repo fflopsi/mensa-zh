@@ -88,4 +88,6 @@
   <string name="per">pro</string>
   <string name="serving">Portion</string>
   <string name="unknown_error">Unbekannter Fehler, Meldung willkommen</string>
+  <string name="select_a_menu">Menu auswählen</string>
+  <string name="no_menus">Keine Menus</string>
 </resources>

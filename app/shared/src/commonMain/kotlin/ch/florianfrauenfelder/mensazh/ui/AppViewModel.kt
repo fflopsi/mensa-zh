@@ -45,6 +45,7 @@ import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
 import kotlin.time.Clock
+import kotlin.uuid.Uuid
 
 class AppViewModel(
   private val mensaRepository: MensaRepository,
@@ -52,6 +53,9 @@ class AppViewModel(
 ) : ViewModel() {
   val params: StateFlow<Params>
     field = MutableStateFlow(Params(destination = Destination.Today, weekday = currentWeekday()))
+
+  val menuIndices: StateFlow<Map<Uuid, Int>>
+    field = MutableStateFlow(emptyMap())
 
   val events = mensaRepository.eventChannel.receiveAsFlow()
 
@@ -176,6 +180,16 @@ class AppViewModel(
       initialValue = emptyList(),
     )
 
+  val mensasById = locations
+    .map { locs ->
+      locs.flatMap { it.mensas }.associateBy { it.mensa.id }
+    }
+    .stateIn(
+      scope = viewModelScope,
+      started = SharingStarted.WhileSubscribed(5000),
+      initialValue = emptyMap(),
+    )
+
   val isRefreshing = mensaRepository.isRefreshing.stateIn(
     scope = viewModelScope,
     started = SharingStarted.WhileSubscribed(5000),
@@ -183,6 +197,8 @@ class AppViewModel(
   )
 
   fun setParams(transform: (Params) -> Params) = params.update(transform)
+
+  fun selectMenu(mensaId: Uuid, menuIndex: Int) = menuIndices.update { it + (mensaId to menuIndex) }
 
   fun updateSetting(setting: Setting) = viewModelScope.launch {
     preferencesRepository.updateSetting(setting)
