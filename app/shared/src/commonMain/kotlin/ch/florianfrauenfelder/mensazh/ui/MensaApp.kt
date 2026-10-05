@@ -138,7 +138,7 @@ fun MensaApp(container: AppContainer) {
         }
         is Event.SlowInternet -> {
           slowInternetSnackbarJobs.add(
-            launch {
+            this@LaunchedEffect.launch {
               val result = snackbarState.showSnackbar(
                 message = slowInternetMessage,
                 actionLabel = cancelMessage,
@@ -271,6 +271,18 @@ fun MensaApp(container: AppContainer) {
             )
             .consumeWindowInsets(innerPadding),
         ) {
+          MensaAppNavDisplay(
+            backStack = backStack,
+            container = container,
+            locations = locations,
+            mensasById = mensasById,
+            menuIndices = menuIndices,
+            selectMenu = appViewModel::selectMenu,
+            detailSettings = detailSettings,
+            updateSetting = ::updateSetting,
+            innerPadding = innerPadding,
+            tabRowPadding = tabRowPadding,
+          )
           AnimatedVisibility(
             visible = isRefreshing,
             enter = fadeIn() + expandVertically(),
@@ -297,18 +309,6 @@ fun MensaApp(container: AppContainer) {
               }
             }
           }
-          MensaAppNavDisplay(
-            backStack = backStack,
-            container = container,
-            locations = locations,
-            mensasById = mensasById,
-            menuIndices = menuIndices,
-            selectMenu = appViewModel::selectMenu,
-            detailSettings = detailSettings,
-            updateSetting = ::updateSetting,
-            innerPadding = innerPadding,
-            tabRowPadding = tabRowPadding,
-          )
         }
       }
     }
