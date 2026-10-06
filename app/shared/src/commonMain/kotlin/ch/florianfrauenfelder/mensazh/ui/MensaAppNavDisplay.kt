@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDragHandle
@@ -19,7 +18,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -54,7 +52,6 @@ fun MensaAppNavDisplay(
   detailSettings: DetailSettings,
   updateSetting: (Setting) -> Unit,
   innerPadding: PaddingValues,
-  tabRowPadding: Dp,
   modifier: Modifier = Modifier,
 ) {
   val sceneStrategy = rememberListDetailSceneStrategy<NavKey>(
@@ -91,9 +88,7 @@ fun MensaAppNavDisplay(
       slideInHorizontally(initialOffsetX = { -it }) togetherWith
         slideOutHorizontally(targetOffsetX = { it })
     },
-    modifier = modifier
-      .padding(bottom = tabRowPadding)
-      .fillMaxSize(),
+    modifier = modifier.fillMaxSize(),
     entryProvider = entryProvider {
       entry<Route.List>(
         metadata = ListDetailSceneStrategy.listPane(

@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -35,16 +36,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -80,7 +76,6 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun MensaApp(container: AppContainer) {
-  val density = LocalDensity.current
   val layoutDirection = LocalLayoutDirection.current
 
   val appViewModel: AppViewModel = viewModel(factory = AppViewModel.Factory(container))
@@ -101,8 +96,6 @@ fun MensaApp(container: AppContainer) {
 
   val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
   val snackbarState = remember { SnackbarHostState() }
-  var tabRowSize by remember { mutableStateOf(IntSize.Zero) }
-  val tabRowPadding = remember { with(density) { tabRowSize.height.toDp() } }
   val navSuiteScaffoldState = rememberNavigationSuiteScaffoldState(
     initialValue = if (destinationSettings.showAny) {
       NavigationSuiteScaffoldValue.Visible
@@ -250,18 +243,9 @@ fun MensaApp(container: AppContainer) {
             scrollBehavior = scrollBehavior,
           )
         },
-        snackbarHost = {
-          SnackbarHost(
-            hostState = snackbarState,
-            modifier = Modifier.padding(bottom = tabRowPadding),
-          )
-        },
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
       ) { innerPadding ->
-        PullToRefreshBox(
-          isRefreshing = isRefreshing,
-          onRefresh = appViewModel::forceRefresh,
-          enabled = thisPlatform.isMobile,
+        Column(
           modifier = Modifier
             .fillMaxSize()
             .padding(
@@ -271,33 +255,42 @@ fun MensaApp(container: AppContainer) {
             )
             .consumeWindowInsets(innerPadding),
         ) {
-          MensaAppNavDisplay(
-            backStack = backStack,
-            container = container,
-            locations = locations,
-            mensasById = mensasById,
-            menuIndices = menuIndices,
-            selectMenu = appViewModel::selectMenu,
-            detailSettings = detailSettings,
-            updateSetting = ::updateSetting,
-            innerPadding = innerPadding,
-            tabRowPadding = tabRowPadding,
-          )
-          AnimatedVisibility(
-            visible = isRefreshing,
-            enter = fadeIn() + expandVertically(),
-            exit = fadeOut() + shrinkVertically(),
-            modifier = Modifier.align(Alignment.TopCenter),
+          PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = appViewModel::forceRefresh,
+            enabled = thisPlatform.isMobile,
+            modifier = Modifier.weight(1f).fillMaxSize()
           ) {
-            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            MensaAppNavDisplay(
+              backStack = backStack,
+              container = container,
+              locations = locations,
+              mensasById = mensasById,
+              menuIndices = menuIndices,
+              selectMenu = appViewModel::selectMenu,
+              detailSettings = detailSettings,
+              updateSetting = ::updateSetting,
+              innerPadding = innerPadding,
+            )
+            androidx.compose.animation.AnimatedVisibility(
+              visible = isRefreshing,
+              enter = fadeIn() + expandVertically(),
+              exit = fadeOut() + shrinkVertically(),
+              modifier = Modifier.align(Alignment.TopCenter),
+            ) {
+              LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            }
+            SnackbarHost(
+              hostState = snackbarState,
+              modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = innerPadding.calculateBottomPadding()),
+            )
           }
           AnimatedVisibility(
             visible = params.destination in listOf(Destination.ThisWeek, Destination.NextWeek),
             enter = expandVertically(),
             exit = shrinkVertically(),
-            modifier = Modifier
-              .onSizeChanged { tabRowSize = it }
-              .align(Alignment.BottomCenter),
           ) {
             SecondaryTabRow(selectedTabIndex = params.weekday.ordinal) {
               Weekday.entries.forEach { weekday ->
