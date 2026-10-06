@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.SnackbarHost
@@ -32,6 +33,8 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldValue
 import androidx.compose.material3.adaptive.navigationsuite.rememberNavigationSuiteScaffoldState
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -255,11 +258,20 @@ fun MensaApp(container: AppContainer) {
             )
             .consumeWindowInsets(innerPadding),
         ) {
+          val state = rememberPullToRefreshState()
           PullToRefreshBox(
             isRefreshing = isRefreshing,
             onRefresh = appViewModel::forceRefresh,
             enabled = thisPlatform.isMobile,
-            modifier = Modifier.weight(1f).fillMaxSize()
+            state = state,
+            indicator = {
+              PullToRefreshDefaults.LoadingIndicator(
+                state = state,
+                isRefreshing = isRefreshing,
+                modifier = Modifier.align(Alignment.TopCenter),
+              )
+            },
+            modifier = Modifier.weight(1f).fillMaxSize(),
           ) {
             MensaAppNavDisplay(
               backStack = backStack,
@@ -278,7 +290,7 @@ fun MensaApp(container: AppContainer) {
               exit = fadeOut() + shrinkVertically(),
               modifier = Modifier.align(Alignment.TopCenter),
             ) {
-              LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+              LinearWavyProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
             SnackbarHost(
               hostState = snackbarState,
