@@ -1,18 +1,25 @@
 package ch.florianfrauenfelder.mensazh.ui.panes.settings
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonGroup
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,7 +27,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import ch.florianfrauenfelder.mensazh.domain.model.Location
 import ch.florianfrauenfelder.mensazh.domain.model.Mensa
@@ -56,7 +65,6 @@ import mensazh.app.shared.generated.resources.ic_hotel_class_24
 import mensazh.app.shared.generated.resources.ic_keyboard_arrow_down_24
 import mensazh.app.shared.generated.resources.ic_keyboard_arrow_up_24
 import mensazh.app.shared.generated.resources.ic_light_mode_24
-import mensazh.app.shared.generated.resources.ic_more_vert_24
 import mensazh.app.shared.generated.resources.ic_no_meals_24
 import mensazh.app.shared.generated.resources.light
 import mensazh.app.shared.generated.resources.more_settings
@@ -99,6 +107,8 @@ fun SettingsList(
   modifier: Modifier = Modifier.Companion,
   contentPadding: PaddingValues = PaddingValues(),
 ) {
+  val layoutDirection = LocalLayoutDirection.current
+
   val showLocationSelector = remember { mutableStateOf(false) }
   val showFavoriteMensaSelector = remember { mutableStateOf(false) }
   val showHiddenMensaSelector = remember { mutableStateOf(false) }
@@ -338,7 +348,6 @@ fun SettingsList(
     }
     if (showMoreSettings) {
       item(key = 18) {
-        var themeSelectorExpanded by remember { mutableStateOf(false) }
         SettingsRow(
           title = stringResource(Res.string.theme),
           subtitle = stringResource(
@@ -348,68 +357,62 @@ fun SettingsList(
               Theme.Dark -> Res.string.dark
             },
           ),
-          onClick = { themeSelectorExpanded = true },
+          weightTitle = false,
           modifier = Modifier.animateItem(),
         ) {
-          Box {
-            Icon(painterResource(Res.drawable.ic_more_vert_24), null)
-            DropdownMenu(
-              expanded = themeSelectorExpanded,
-              onDismissRequest = { themeSelectorExpanded = false },
-            ) {
-              DropdownMenuItem(
-                text = { Text(text = stringResource(Res.string.auto)) },
-                onClick = { update(Setting.SetTheme(Theme.Auto)) },
-                leadingIcon = {
-                  Icon(
-                    painterResource(Res.drawable.ic_brightness_auto_24),
-                    null
-                  )
-                },
-                trailingIcon = {
-                  if (theme.theme == Theme.Auto) {
-                    Icon(
-                      painterResource(Res.drawable.ic_check_24),
-                      stringResource(Res.string.active)
+          val contentPadding = ButtonDefaults.ButtonWithIconContentPadding
+          val icons = listOf(
+            Res.drawable.ic_brightness_auto_24,
+            Res.drawable.ic_light_mode_24,
+            Res.drawable.ic_dark_mode_24,
+          )
+          val labels = listOf(Res.string.auto, Res.string.light, Res.string.dark)
+          val interactionSources = remember { List(3) { MutableInteractionSource() } }
+
+          ButtonGroup(overflowIndicator = { ButtonGroupDefaults.OverflowIndicator(it) }) {
+            Theme.entries.forEach { entry ->
+              customItem(
+                buttonGroupContent = {
+                  ToggleButton(
+                    checked = theme.theme == entry,
+                    onCheckedChange = { update(Setting.SetTheme(entry)) },
+                    shapes = when (entry) {
+                      Theme.Auto -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                      Theme.Light -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                      Theme.Dark -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                    },
+                    contentPadding = contentPadding,
+                    interactionSource = interactionSources[entry.code],
+                    modifier = Modifier.animateWidth(
+                      interactionSource = interactionSources[entry.code],
+                      compressionLimit = contentPadding.calculateEndPadding(layoutDirection),
+                    ),
+                  ) {
+                    Icon(painterResource(icons[entry.code]), null)
+                    Spacer(modifier = Modifier.size(ToggleButtonDefaults.IconSpacing))
+                    Text(
+                      text = stringResource(labels[entry.code]),
+                      softWrap = false,
+                      maxLines = 1,
+                      overflow = TextOverflow.Visible,
                     )
                   }
                 },
-              )
-              HorizontalDivider()
-              DropdownMenuItem(
-                text = { Text(text = stringResource(Res.string.light)) },
-                onClick = { update(Setting.SetTheme(Theme.Light)) },
-                leadingIcon = {
-                  Icon(
-                    painterResource(Res.drawable.ic_light_mode_24),
-                    null
+                menuContent = {
+                  DropdownMenuItem(
+                    leadingIcon = { Icon(painterResource(icons[entry.code]), null) },
+                    text = { Text(text = stringResource(labels[entry.code])) },
+                    trailingIcon = {
+                      if (theme.theme == entry) {
+                        Icon(
+                          painterResource(Res.drawable.ic_check_24),
+                          stringResource(Res.string.active),
+                        )
+                      }
+                    },
+                    onClick = { update(Setting.SetTheme(entry)) },
+                    interactionSource = interactionSources[entry.code],
                   )
-                },
-                trailingIcon = {
-                  if (theme.theme == Theme.Light) {
-                    Icon(
-                      painterResource(Res.drawable.ic_check_24),
-                      stringResource(Res.string.active)
-                    )
-                  }
-                },
-              )
-              DropdownMenuItem(
-                text = { Text(text = stringResource(Res.string.dark)) },
-                onClick = { update(Setting.SetTheme(Theme.Dark)) },
-                leadingIcon = {
-                  Icon(
-                    painterResource(Res.drawable.ic_dark_mode_24),
-                    null
-                  )
-                },
-                trailingIcon = {
-                  if (theme.theme == Theme.Dark) {
-                    Icon(
-                      painterResource(Res.drawable.ic_check_24),
-                      stringResource(Res.string.active)
-                    )
-                  }
                 },
               )
             }

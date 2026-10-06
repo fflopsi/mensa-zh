@@ -1,9 +1,11 @@
 package ch.florianfrauenfelder.mensazh.ui.panes.settings
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -19,23 +21,26 @@ fun SettingsRow(
   title: String,
   modifier: Modifier = Modifier,
   subtitles: List<String>? = null,
+  weightTitle: Boolean = true,
   enabled: Boolean = true,
   onClick: (() -> Unit)? = null,
   content: @Composable (RowScope.() -> Unit) = {},
 ) {
   val newModifier = if (enabled && onClick != null) {
     modifier.clickable(onClick = onClick)
-  } else {
+  } else if (!enabled) {
     modifier.alpha(0.4f)
+  } else {
+    modifier
   }
   Row(
     verticalAlignment = Alignment.CenterVertically,
-    modifier = newModifier.padding(16.dp),
+    horizontalArrangement = Arrangement.SpaceBetween,
+    modifier = newModifier.padding(16.dp).fillMaxWidth(),
   ) {
     Column(
-      modifier = Modifier
-        .padding(end = 16.dp)
-        .weight(1f),
+      modifier = (if (weightTitle) Modifier.weight(1f) else Modifier)
+        .padding(end = 16.dp),
     ) {
       Text(text = title, style = MaterialTheme.typography.titleLarge)
       subtitles?.forEach {
@@ -56,6 +61,7 @@ fun SettingsRow(
   title: String,
   modifier: Modifier = Modifier,
   subtitle: String,
+  weightTitle: Boolean = true,
   enabled: Boolean = true,
   onClick: (() -> Unit)? = null,
   content: @Composable (RowScope.() -> Unit) = {},
@@ -63,6 +69,7 @@ fun SettingsRow(
   title = title,
   modifier = modifier,
   subtitles = listOf(subtitle),
+  weightTitle = weightTitle,
   enabled = enabled,
   onClick = onClick,
   content = content,
