@@ -31,7 +31,7 @@ coroutines-swing = "1.11.0"
 #kotlin-wrappers = "2026.6.3"
 
 # Server
-logback = "1.6.3"
+logback = "1.6.5"
 
 # Test
 junit = "4.13.2"
