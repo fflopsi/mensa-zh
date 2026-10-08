@@ -90,6 +90,8 @@ import mensazh.app.shared.generated.resources.show_this_week_desc
 import mensazh.app.shared.generated.resources.show_tomorrow
 import mensazh.app.shared.generated.resources.show_tomorrow_desc
 import mensazh.app.shared.generated.resources.theme
+import mensazh.app.shared.generated.resources.use_expressive_animations
+import mensazh.app.shared.generated.resources.use_expressive_animations_desc
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -421,6 +423,16 @@ fun SettingsList(
         }
       }
       dynamicColorSetting(theme, update)
+      item(key = 181) {
+        SettingsRow(
+          title = stringResource(Res.string.use_expressive_animations),
+          subtitle = stringResource(Res.string.use_expressive_animations_desc),
+          onClick = { update(Setting.SetUseExpressiveAnimations(!theme.useExpressiveAnimations)) },
+          modifier = Modifier.animateItemModifier(),
+        ) {
+          Switch(checked = theme.useExpressiveAnimations, onCheckedChange = null)
+        }
+      }
       item(key = 20) { HorizontalDivider(modifier = Modifier.animateItemModifier()) }
       item(key = 21) {
         SettingsRow(

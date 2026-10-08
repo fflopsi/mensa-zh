@@ -145,3 +145,10 @@ suspend fun DataStore<Preferences>.saveUseDynamicColor(useDynamicColor: Boolean)
 
 val DataStore<Preferences>.useDynamicColorFlow
   get() = data.map { it[Keys.USE_DYNAMIC_COLOR] ?: Defaults.USE_DYNAMIC_COLOR }
+
+suspend fun DataStore<Preferences>.saveUseExpressiveAnimations(useExpressiveAnimations: Boolean) {
+  edit { it[Keys.USE_EXPRESSIVE_ANIMATIONS] = useExpressiveAnimations }
+}
+
+val DataStore<Preferences>.useExpressiveAnimationsFlow
+  get() = data.map { it[Keys.USE_EXPRESSIVE_ANIMATIONS] ?: Defaults.USE_EXPRESSIVE_ANIMATIONS }

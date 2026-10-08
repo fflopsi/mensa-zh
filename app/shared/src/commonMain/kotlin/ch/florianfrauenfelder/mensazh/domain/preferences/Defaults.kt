@@ -33,4 +33,5 @@ object Defaults {
 
   val THEME = Theme.default
   const val USE_DYNAMIC_COLOR = true
+  const val USE_EXPRESSIVE_ANIMATIONS = true
 }

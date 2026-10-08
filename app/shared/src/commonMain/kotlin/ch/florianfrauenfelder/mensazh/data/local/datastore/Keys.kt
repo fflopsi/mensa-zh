@@ -25,4 +25,5 @@ object Keys {
 
   val THEME = intPreferencesKey("theme")
   val USE_DYNAMIC_COLOR = booleanPreferencesKey("dyanmic_color")
+  val USE_EXPRESSIVE_ANIMATIONS = booleanPreferencesKey("expressive_animations")
 }

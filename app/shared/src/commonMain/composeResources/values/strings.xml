@@ -96,4 +96,6 @@
   <string name="unknown_error">Unknown error, report appreciated</string>
   <string name="select_a_menu">Select a menu</string>
   <string name="no_menus">No menus</string>
+  <string name="use_expressive_animations">Use expressive animations</string>
+  <string name="use_expressive_animations_desc">Bouncier animations throughout the app</string>
 </resources>

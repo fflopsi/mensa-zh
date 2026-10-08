@@ -13,10 +13,11 @@ import androidx.compose.ui.Modifier
 fun MensaZHTheme(
   darkTheme: Boolean = isSystemInDarkTheme(),
   dynamicColor: Boolean = true,
+  expressiveAnimations: Boolean = true,
   content: @Composable () -> Unit,
 ) = MaterialExpressiveTheme(
   colorScheme = colorScheme(darkTheme, dynamicColor),
-  motionScheme = MotionScheme.expressive(),
+  motionScheme = if (expressiveAnimations) MotionScheme.expressive() else MotionScheme.standard(),
   content = content,
 )
 

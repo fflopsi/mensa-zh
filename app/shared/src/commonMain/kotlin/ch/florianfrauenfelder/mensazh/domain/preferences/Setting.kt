@@ -29,4 +29,5 @@ sealed interface Setting {
 
   data class SetTheme(val theme: Theme) : Setting
   data class SetUseDynamicColor(val enabled: Boolean) : Setting
+  data class SetUseExpressiveAnimations(val enabled: Boolean) : Setting
 }

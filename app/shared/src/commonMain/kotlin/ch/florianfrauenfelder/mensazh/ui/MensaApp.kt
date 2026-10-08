@@ -164,6 +164,7 @@ fun MensaApp(container: AppContainer) {
       Theme.Dark -> true
     },
     dynamicColor = themeSettings.useDynamicColor,
+    expressiveAnimations = themeSettings.useExpressiveAnimations,
   ) {
     NavigationSuiteScaffold(
       state = navSuiteScaffoldState,

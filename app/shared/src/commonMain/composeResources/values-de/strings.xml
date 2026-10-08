@@ -90,4 +90,6 @@
   <string name="unknown_error">Unbekannter Fehler, Meldung willkommen</string>
   <string name="select_a_menu">Menu auswählen</string>
   <string name="no_menus">Keine Menus</string>
+  <string name="use_expressive_animations">Expressive Animationen benutzen</string>
+  <string name="use_expressive_animations_desc">Elastischere Animationen in der ganzen App</string>
 </resources>

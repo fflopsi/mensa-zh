@@ -25,6 +25,7 @@ import ch.florianfrauenfelder.mensazh.data.local.datastore.saveShowTomorrow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveShownLocations
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveTheme
 import ch.florianfrauenfelder.mensazh.data.local.datastore.saveUseDynamicColor
+import ch.florianfrauenfelder.mensazh.data.local.datastore.saveUseExpressiveAnimations
 import ch.florianfrauenfelder.mensazh.data.local.datastore.showNextWeekFlow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.showOnlyExpandedMensasFlow
 import ch.florianfrauenfelder.mensazh.data.local.datastore.showOnlyOpenMensasFlow
@@ -36,6 +37,7 @@ import ch.florianfrauenfelder.mensazh.data.local.datastore.toggleExpandedMensa
 import ch.florianfrauenfelder.mensazh.data.local.datastore.toggleFavoriteMensa
 import ch.florianfrauenfelder.mensazh.data.local.datastore.toggleHiddenMensa
 import ch.florianfrauenfelder.mensazh.data.local.datastore.useDynamicColorFlow
+import ch.florianfrauenfelder.mensazh.data.local.datastore.useExpressiveAnimationsFlow
 import ch.florianfrauenfelder.mensazh.domain.preferences.DestinationSettings
 import ch.florianfrauenfelder.mensazh.domain.preferences.DetailSettings
 import ch.florianfrauenfelder.mensazh.domain.preferences.SelectionSettings
@@ -101,10 +103,12 @@ class PreferencesRepository(val dataStore: DataStore<Preferences>) {
   val themeSettings = combine(
     dataStore.themeFlow,
     dataStore.useDynamicColorFlow,
-  ) { theme, useDynamicColor ->
+    dataStore.useExpressiveAnimationsFlow,
+  ) { theme, useDynamicColor, useExpressiveAnimations ->
     ThemeSettings(
       theme = theme,
       useDynamicColor = useDynamicColor,
+      useExpressiveAnimations = useExpressiveAnimations,
     )
   }
 
@@ -132,6 +136,7 @@ class PreferencesRepository(val dataStore: DataStore<Preferences>) {
 
       is Setting.SetTheme -> dataStore.saveTheme(s.theme)
       is Setting.SetUseDynamicColor -> dataStore.saveUseDynamicColor(s.enabled)
+      is Setting.SetUseExpressiveAnimations -> dataStore.saveUseExpressiveAnimations(s.enabled)
     }
   }
 }
