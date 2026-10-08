@@ -14,19 +14,19 @@ class Converters {
   fun institutionToString(institution: Institution?): String? = institution?.code
 
   @TypeConverter
-  fun stringToInstitution(code: String?): Institution? = code?.let(Institution.Companion::fromCode)
+  fun stringToInstitution(code: String?): Institution? = code?.let(Institution::fromCode)
 
   @TypeConverter
   fun destinationToString(destination: Destination?): String? = destination?.code
 
   @TypeConverter
-  fun stringToDestination(code: String?): Destination? = code?.let(Destination.Companion::fromCode)
+  fun stringToDestination(code: String?): Destination? = code?.let(Destination::fromCode)
 
   @TypeConverter
   fun languageToString(language: Language?): String? = language?.code
 
   @TypeConverter
-  fun stringToLanguage(code: String?): Language? = code?.let(Language.Companion::fromCode)
+  fun stringToLanguage(code: String?): Language? = code?.let(Language::fromCode)
 
   @TypeConverter
   fun dateToString(date: LocalDate?): String? = date?.toString()
@@ -48,5 +48,5 @@ class Converters {
   fun nutrientsPerToString(nutrientsPer: NutrientsPer?) = nutrientsPer?.code
 
   @TypeConverter
-  fun stringToNutrientsPer(string: String?) = string?.let(NutrientsPer.Companion::fromCode)
+  fun stringToNutrientsPer(string: String?) = string?.let(NutrientsPer::fromCode)
 }

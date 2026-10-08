@@ -105,7 +105,7 @@ fun SettingsList(
   favoriteMensas: List<Mensa>,
   update: (Setting) -> Unit,
   clearCache: () -> Unit,
-  modifier: Modifier = Modifier.Companion,
+  modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
 ) {
   val layoutDirection = LocalLayoutDirection.current
