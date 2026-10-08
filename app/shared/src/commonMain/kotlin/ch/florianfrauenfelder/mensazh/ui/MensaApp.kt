@@ -3,8 +3,6 @@ package ch.florianfrauenfelder.mensazh.ui
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -17,8 +15,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LinearWavyProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.SnackbarHost
@@ -58,6 +56,7 @@ import ch.florianfrauenfelder.mensazh.ui.domain.ui
 import ch.florianfrauenfelder.mensazh.ui.shared.OpenInBrowserButton
 import ch.florianfrauenfelder.mensazh.ui.shared.SettingsDropdown
 import ch.florianfrauenfelder.mensazh.ui.theme.MensaZHTheme
+import ch.florianfrauenfelder.mensazh.ui.theme.myMotionSpec
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import mensazh.app.shared.generated.resources.Res
@@ -207,8 +206,8 @@ fun MensaApp(container: AppContainer) {
             navigationIcon = {
               AnimatedVisibility(
                 visible = backStack.size > 1,
-                enter = fadeIn() + expandHorizontally(),
-                exit = fadeOut() + shrinkHorizontally(),
+                enter = expandHorizontally(MaterialTheme.motionScheme.defaultSpatialSpec()),
+                exit = shrinkHorizontally(MaterialTheme.motionScheme.defaultSpatialSpec()),
               ) {
                 IconButton(onClick = { backStack.removeLastOrNull() }) {
                   Icon(
@@ -219,7 +218,11 @@ fun MensaApp(container: AppContainer) {
               }
             },
             actions = {
-              AnimatedVisibility(visible = (backStack.lastOrNull() as? Route.Detail) != null) {
+              AnimatedVisibility(
+                visible = (backStack.lastOrNull() as? Route.Detail) != null,
+                enter = expandHorizontally(MaterialTheme.motionScheme.defaultSpatialSpec()),
+                exit = shrinkHorizontally(MaterialTheme.motionScheme.defaultSpatialSpec()),
+              ) {
                 OpenInBrowserButton(selectedMensa = selectedMensa) {
                   Icon(
                     painterResource(Res.drawable.ic_open_in_browser_24),
@@ -233,7 +236,11 @@ fun MensaApp(container: AppContainer) {
                   stringResource(Res.string.refresh),
                 )
               }
-              AnimatedVisibility(visible = (backStack.lastOrNull() as? Route.Settings) == null) {
+              AnimatedVisibility(
+                visible = (backStack.lastOrNull() as? Route.Settings) == null,
+                enter = expandHorizontally(MaterialTheme.motionScheme.defaultSpatialSpec()),
+                exit = shrinkHorizontally(MaterialTheme.motionScheme.defaultSpatialSpec()),
+              ) {
                 SettingsDropdown(
                   visibility = visibilitySettings,
                   setShowOnlyOpenMensas = { updateSetting(Setting.SetShowOnlyOpenMensas(it)) },
@@ -286,8 +293,8 @@ fun MensaApp(container: AppContainer) {
             )
             androidx.compose.animation.AnimatedVisibility(
               visible = isRefreshing,
-              enter = fadeIn() + expandVertically(),
-              exit = fadeOut() + shrinkVertically(),
+              enter = expandVertically(myMotionSpec()),
+              exit = shrinkVertically(myMotionSpec()),
               modifier = Modifier.align(Alignment.TopCenter),
             ) {
               LinearWavyProgressIndicator(modifier = Modifier.fillMaxWidth())
@@ -301,8 +308,8 @@ fun MensaApp(container: AppContainer) {
           }
           AnimatedVisibility(
             visible = params.destination in listOf(Destination.ThisWeek, Destination.NextWeek),
-            enter = expandVertically(),
-            exit = shrinkVertically(),
+            enter = expandVertically(myMotionSpec()),
+            exit = shrinkVertically(myMotionSpec()),
           ) {
             SecondaryTabRow(selectedTabIndex = params.weekday.ordinal) {
               Weekday.entries.forEach { weekday ->

@@ -42,6 +42,7 @@ import ch.florianfrauenfelder.mensazh.domain.value.MenuType
 import ch.florianfrauenfelder.mensazh.domain.value.Theme
 import ch.florianfrauenfelder.mensazh.ui.domain.label
 import ch.florianfrauenfelder.mensazh.ui.shared.InfoLinks
+import ch.florianfrauenfelder.mensazh.ui.theme.animateItemModifier
 import mensazh.app.shared.generated.resources.Res
 import mensazh.app.shared.generated.resources.active
 import mensazh.app.shared.generated.resources.auto
@@ -175,7 +176,7 @@ fun SettingsList(
         title = stringResource(Res.string.show_only_open),
         subtitle = stringResource(Res.string.show_only_open_desc),
         onClick = { update(Setting.SetShowOnlyOpenMensas(!visibility.showOnlyOpenMensas)) },
-        modifier = Modifier.animateItem(),
+        modifier = Modifier.animateItemModifier(),
       ) {
         Switch(checked = visibility.showOnlyOpenMensas, onCheckedChange = null)
       }
@@ -187,7 +188,7 @@ fun SettingsList(
         onClick = {
           update(Setting.SetShowOnlyExpandedMensas(!visibility.showOnlyExpandedMensas))
         },
-        modifier = Modifier.animateItem(),
+        modifier = Modifier.animateItemModifier(),
       ) {
         Switch(checked = visibility.showOnlyExpandedMensas, onCheckedChange = null)
       }
@@ -197,12 +198,12 @@ fun SettingsList(
         title = stringResource(Res.string.show_menus_in_german),
         subtitle = stringResource(Res.string.show_menus_in_german_desc),
         onClick = { update(Setting.SetMenusLanguage(!visibility.language)) },
-        modifier = Modifier.animateItem(),
+        modifier = Modifier.animateItemModifier(),
       ) {
         Switch(checked = visibility.language.showMenusInGerman, onCheckedChange = null)
       }
     }
-    item(key = 3) { HorizontalDivider(modifier = Modifier.animateItem()) }
+    item(key = 3) { HorizontalDivider(modifier = Modifier.animateItemModifier()) }
     item(key = 4) {
       SettingsRow(
         title = stringResource(Res.string.select_locations),
@@ -211,7 +212,7 @@ fun SettingsList(
           .ifEmpty { stringResource(Res.string.none_selected) }
           .toString(),
         onClick = { showLocationSelector.value = true },
-        modifier = Modifier.animateItem(),
+        modifier = Modifier.animateItemModifier(),
       ) {
         Icon(painterResource(Res.drawable.ic_arrow_next_24), null)
       }
@@ -224,7 +225,7 @@ fun SettingsList(
           .ifEmpty { stringResource(Res.string.none_selected) }
           .toString(),
         onClick = { showFavoriteMensaSelector.value = true },
-        modifier = Modifier.animateItem(),
+        modifier = Modifier.animateItemModifier(),
       ) {
         Icon(painterResource(Res.drawable.ic_arrow_next_24), null)
       }
@@ -237,7 +238,7 @@ fun SettingsList(
           .ifEmpty { stringResource(Res.string.none_selected) }
           .toString(),
         onClick = { showHiddenMensaSelector.value = true },
-        modifier = Modifier.animateItem(),
+        modifier = Modifier.animateItemModifier(),
       ) {
         Icon(painterResource(Res.drawable.ic_arrow_next_24), null)
       }
@@ -251,18 +252,18 @@ fun SettingsList(
           .ifEmpty { stringResource(Res.string.none_selected) }
           .toString(),
         onClick = { showMenuTypeSelector.value = true },
-        modifier = Modifier.animateItem(),
+        modifier = Modifier.animateItemModifier(),
       ) {
         Icon(painterResource(Res.drawable.ic_arrow_next_24), null)
       }
     }
-    item(key = 8) { HorizontalDivider(modifier = Modifier.animateItem()) }
+    item(key = 8) { HorizontalDivider(modifier = Modifier.animateItemModifier()) }
     item(key = 9) {
       SettingsRow(
         title = stringResource(Res.string.show_tomorrow),
         subtitle = stringResource(Res.string.show_tomorrow_desc),
         onClick = { update(Setting.SetShowTomorrow(!destination.showTomorrow)) },
-        modifier = Modifier.animateItem(),
+        modifier = Modifier.animateItemModifier(),
       ) {
         Switch(checked = destination.showTomorrow, onCheckedChange = null)
       }
@@ -272,7 +273,7 @@ fun SettingsList(
         title = stringResource(Res.string.show_this_week),
         subtitle = stringResource(Res.string.show_this_week_desc),
         onClick = { update(Setting.SetShowThisWeek(!destination.showThisWeek)) },
-        modifier = Modifier.animateItem(),
+        modifier = Modifier.animateItemModifier(),
       ) {
         Switch(checked = destination.showThisWeek, onCheckedChange = null)
       }
@@ -282,18 +283,18 @@ fun SettingsList(
         title = stringResource(Res.string.show_next_week),
         subtitle = stringResource(Res.string.show_next_week_desc),
         onClick = { update(Setting.SetShowNextWeek(!destination.showNextWeek)) },
-        modifier = Modifier.animateItem(),
+        modifier = Modifier.animateItemModifier(),
       ) {
         Switch(checked = destination.showNextWeek, onCheckedChange = null)
       }
     }
-    item(key = 12) { HorizontalDivider(modifier = Modifier.animateItem()) }
+    item(key = 12) { HorizontalDivider(modifier = Modifier.animateItemModifier()) }
     item(key = 13) {
       SettingsRow(
         title = stringResource(Res.string.short_description_overview),
         subtitle = stringResource(Res.string.short_description_overview_desc),
         onClick = { update(Setting.SetListUseShortDescription(!detail.listUseShortDescription)) },
-        modifier = Modifier.animateItem(),
+        modifier = Modifier.animateItemModifier(),
       ) {
         Switch(checked = detail.listUseShortDescription, onCheckedChange = null)
       }
@@ -303,7 +304,7 @@ fun SettingsList(
         title = stringResource(Res.string.show_allergens_overview),
         subtitle = stringResource(Res.string.show_allergens_overview_desc),
         onClick = { update(Setting.SetListShowAllergens(!detail.listShowAllergens)) },
-        modifier = Modifier.animateItem(),
+        modifier = Modifier.animateItemModifier(),
       ) {
         Switch(checked = detail.listShowAllergens, onCheckedChange = null)
       }
@@ -313,17 +314,17 @@ fun SettingsList(
         title = stringResource(Res.string.auto_show_image),
         subtitle = stringResource(Res.string.auto_show_image_desc),
         onClick = { update(Setting.SetAutoShowImage(!detail.autoShowImage)) },
-        modifier = Modifier.animateItem(),
+        modifier = Modifier.animateItemModifier(),
       ) {
         Switch(checked = detail.autoShowImage, onCheckedChange = null)
       }
     }
-    item(key = 16) { HorizontalDivider(modifier = Modifier.animateItem()) }
+    item(key = 16) { HorizontalDivider(modifier = Modifier.animateItemModifier()) }
     item(key = 17) {
       Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-          .animateItem()
+          .animateItemModifier()
           .clickable { showMoreSettings = !showMoreSettings }
           .padding(horizontal = 16.dp, vertical = 8.dp),
       ) {
@@ -358,7 +359,7 @@ fun SettingsList(
             },
           ),
           weightTitle = false,
-          modifier = Modifier.animateItem(),
+          modifier = Modifier.animateItemModifier(),
         ) {
           val contentPadding = ButtonDefaults.ButtonWithIconContentPadding
           val icons = listOf(
@@ -420,22 +421,22 @@ fun SettingsList(
         }
       }
       dynamicColorSetting(theme, update)
-      item(key = 20) { HorizontalDivider(modifier = Modifier.animateItem()) }
+      item(key = 20) { HorizontalDivider(modifier = Modifier.animateItemModifier()) }
       item(key = 21) {
         SettingsRow(
           title = stringResource(Res.string.clear_app_cache),
           subtitle = stringResource(Res.string.clear_app_cache_desc),
           onClick = clearCache,
-          modifier = Modifier.animateItem(),
+          modifier = Modifier.animateItemModifier(),
         )
       }
       openSystemSettingsSetting()
     }
-    item(key = 23) { HorizontalDivider(modifier = Modifier.animateItem()) }
+    item(key = 23) { HorizontalDivider(modifier = Modifier.animateItemModifier()) }
     item(key = 24) {
       InfoLinks(
         modifier = Modifier
-          .animateItem()
+          .animateItemModifier()
           .padding(16.dp)
           .fillMaxWidth(),
       )

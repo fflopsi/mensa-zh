@@ -1,6 +1,8 @@
 package ch.florianfrauenfelder.mensazh.ui.panes.settings
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,6 +23,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
+import ch.florianfrauenfelder.mensazh.ui.theme.animateItemModifier
+import ch.florianfrauenfelder.mensazh.ui.theme.myMotionSpec
 import mensazh.app.shared.generated.resources.Res
 import mensazh.app.shared.generated.resources.add
 import mensazh.app.shared.generated.resources.cancel
@@ -91,14 +95,18 @@ fun <T> ListSelectorDialog(
           ) { index, item ->
             Row(
               verticalAlignment = Alignment.CenterVertically,
-              modifier = Modifier.animateItem(),
+              modifier = Modifier.animateItemModifier(),
             ) {
               Text(
                 text = getTitle(item),
                 modifier = Modifier.weight(1f),
               )
               if (showMoveButtons) {
-                AnimatedVisibility(visible = index < selected.lastIndex) {
+                AnimatedVisibility(
+                  visible = index < selected.lastIndex,
+                  enter = expandHorizontally(myMotionSpec()),
+                  exit = shrinkHorizontally(myMotionSpec()),
+                ) {
                   IconButton(onClick = { selected.add(index + 1, selected.removeAt(index)) }) {
                     Icon(
                       painterResource(Res.drawable.ic_keyboard_arrow_down_24),
@@ -106,7 +114,11 @@ fun <T> ListSelectorDialog(
                     )
                   }
                 }
-                AnimatedVisibility(visible = index > 0) {
+                AnimatedVisibility(
+                  visible = index > 0,
+                  enter = expandHorizontally(myMotionSpec()),
+                  exit = shrinkHorizontally(myMotionSpec()),
+                ) {
                   IconButton(onClick = { selected.add(index - 1, selected.removeAt(index)) }) {
                     Icon(
                       painterResource(Res.drawable.ic_keyboard_arrow_up_24),
@@ -123,7 +135,7 @@ fun <T> ListSelectorDialog(
           subtitleAvailableItems?.let {
             if ((entireList - selected).isNotEmpty()) {
               item(key = 0) {
-                Column(modifier = Modifier.animateItem()) {
+                Column(modifier = Modifier.animateItemModifier()) {
                   HorizontalDivider()
                   Text(
                     text = stringResource(it),
@@ -141,7 +153,7 @@ fun <T> ListSelectorDialog(
           ) {
             Row(
               verticalAlignment = Alignment.CenterVertically,
-              modifier = Modifier.animateItem(),
+              modifier = Modifier.animateItemModifier(),
             ) {
               Text(
                 text = getTitle(it),

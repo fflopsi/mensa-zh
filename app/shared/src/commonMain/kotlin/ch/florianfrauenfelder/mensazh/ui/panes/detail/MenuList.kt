@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import ch.florianfrauenfelder.mensazh.domain.model.Menu
+import ch.florianfrauenfelder.mensazh.ui.theme.animateItemModifier
 
 @Composable
 fun MenuList(
@@ -30,7 +31,7 @@ fun MenuList(
         selected = it.index == selectedMenuIndex,
         select = selectMenu,
         autoShowImage = autoShowImage,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.animateItemModifier().fillMaxWidth(),
       )
     }
   }

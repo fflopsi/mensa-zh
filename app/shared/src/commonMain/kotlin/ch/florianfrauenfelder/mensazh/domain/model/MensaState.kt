@@ -6,7 +6,12 @@ data class MensaState(
   val state: State = State.Initial,
   val favorite: Boolean = false,
 ) {
-  enum class State { Initial, Closed, Available, Expanded }
+  enum class State {
+    Initial, Closed, Available, Expanded;
+
+    val active
+      get() = this == Available || this == Expanded
+  }
 
   companion object {
     val dummy = MensaState(

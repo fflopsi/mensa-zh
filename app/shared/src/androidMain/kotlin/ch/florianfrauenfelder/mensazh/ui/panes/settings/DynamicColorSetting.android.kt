@@ -6,6 +6,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.ui.Modifier
 import ch.florianfrauenfelder.mensazh.domain.preferences.Setting
 import ch.florianfrauenfelder.mensazh.domain.preferences.ThemeSettings
+import ch.florianfrauenfelder.mensazh.ui.theme.animateItemModifier
 import mensazh.app.shared.generated.resources.Res
 import mensazh.app.shared.generated.resources.use_dynamic_colors
 import org.jetbrains.compose.resources.stringResource
@@ -16,7 +17,7 @@ actual fun LazyListScope.dynamicColorSetting(theme: ThemeSettings, update: (Sett
       SettingsRow(
         title = stringResource(Res.string.use_dynamic_colors),
         onClick = { update(Setting.SetUseDynamicColor(!theme.useDynamicColor)) },
-        modifier = Modifier.animateItem(),
+        modifier = Modifier.animateItemModifier(),
       ) {
         Switch(checked = theme.useDynamicColor, onCheckedChange = null)
       }

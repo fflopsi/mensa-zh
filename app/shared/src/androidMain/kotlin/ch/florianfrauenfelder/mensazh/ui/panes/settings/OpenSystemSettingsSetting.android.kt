@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.Icon
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import ch.florianfrauenfelder.mensazh.ui.theme.animateItemModifier
 import mensazh.app.shared.generated.resources.Res
 import mensazh.app.shared.generated.resources.ic_arrow_next_24
 import mensazh.app.shared.generated.resources.more_settings
@@ -28,7 +29,7 @@ actual fun LazyListScope.openSystemSettingsSetting() {
         ).apply { context.startActivity(this) }
 
       },
-      modifier = Modifier.animateItem(),
+      modifier = Modifier.animateItemModifier(),
     ) {
       Icon(painterResource(Res.drawable.ic_arrow_next_24), null)
     }

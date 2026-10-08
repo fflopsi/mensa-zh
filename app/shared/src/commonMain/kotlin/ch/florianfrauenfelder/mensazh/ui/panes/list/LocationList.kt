@@ -1,7 +1,5 @@
 package ch.florianfrauenfelder.mensazh.ui.panes.list
 
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -18,6 +16,7 @@ import ch.florianfrauenfelder.mensazh.domain.model.MensaState
 import ch.florianfrauenfelder.mensazh.domain.model.Menu
 import ch.florianfrauenfelder.mensazh.domain.preferences.DetailSettings
 import ch.florianfrauenfelder.mensazh.ui.shared.InfoLinks
+import ch.florianfrauenfelder.mensazh.ui.theme.animateItemModifier
 import mensazh.app.shared.generated.resources.Res
 import mensazh.app.shared.generated.resources.no_expanded_canteens
 import org.jetbrains.compose.resources.stringResource
@@ -42,11 +41,7 @@ fun LocationList(
         Row(
           horizontalArrangement = Arrangement.Center,
           modifier = Modifier
-            .animateItem(
-              fadeInSpec = spring(stiffness = Spring.StiffnessHigh),
-              fadeOutSpec = spring(stiffness = Spring.StiffnessHigh),
-              placementSpec = spring(stiffness = Spring.StiffnessHigh),
-            )
+            .animateItemModifier()
             .fillMaxWidth(),
         ) {
           Text(text = stringResource(Res.string.no_expanded_canteens))
@@ -72,11 +67,7 @@ fun LocationList(
             top = 32.dp,
             bottom = 16.dp,
           )
-          .animateItem(
-            fadeInSpec = spring(stiffness = Spring.StiffnessHigh),
-            fadeOutSpec = spring(stiffness = Spring.StiffnessHigh),
-            placementSpec = spring(stiffness = Spring.StiffnessHigh),
-          )
+          .animateItemModifier()
           .fillMaxWidth(),
       )
     }

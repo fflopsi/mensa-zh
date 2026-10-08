@@ -1,7 +1,6 @@
 package ch.florianfrauenfelder.mensazh.ui
 
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -9,6 +8,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDragHandle
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
@@ -54,6 +54,8 @@ fun MensaAppNavDisplay(
   innerPadding: PaddingValues,
   modifier: Modifier = Modifier,
 ) {
+  val motion = MaterialTheme.motionScheme
+
   val sceneStrategy = rememberListDetailSceneStrategy<NavKey>(
     paneExpansionDragHandle = {
       val interactionSource = remember { MutableInteractionSource() }
@@ -77,16 +79,34 @@ fun MensaAppNavDisplay(
       rememberViewModelStoreNavEntryDecorator(),
     ),
     transitionSpec = {
-      slideInHorizontally(initialOffsetX = { it }) togetherWith
-        slideOutHorizontally(targetOffsetX = { -it })
+      slideIntoContainer(
+        towards = AnimatedContentTransitionScope.SlideDirection.Start,
+        animationSpec = motion.defaultSpatialSpec(),
+      ) togetherWith
+        slideOutOfContainer(
+          towards = AnimatedContentTransitionScope.SlideDirection.Start,
+          animationSpec = motion.defaultSpatialSpec(),
+        )
     },
     popTransitionSpec = {
-      slideInHorizontally(initialOffsetX = { -it }) togetherWith
-        slideOutHorizontally(targetOffsetX = { it })
+      slideIntoContainer(
+        towards = AnimatedContentTransitionScope.SlideDirection.End,
+        animationSpec = motion.defaultSpatialSpec(),
+      ) togetherWith
+        slideOutOfContainer(
+          towards = AnimatedContentTransitionScope.SlideDirection.End,
+          animationSpec = motion.defaultSpatialSpec(),
+        )
     },
     predictivePopTransitionSpec = {
-      slideInHorizontally(initialOffsetX = { -it }) togetherWith
-        slideOutHorizontally(targetOffsetX = { it })
+      slideIntoContainer(
+        towards = AnimatedContentTransitionScope.SlideDirection.End,
+        animationSpec = motion.defaultSpatialSpec(),
+      ) togetherWith
+        slideOutOfContainer(
+          towards = AnimatedContentTransitionScope.SlideDirection.End,
+          animationSpec = motion.defaultSpatialSpec(),
+        )
     },
     modifier = modifier.fillMaxSize(),
     entryProvider = entryProvider {

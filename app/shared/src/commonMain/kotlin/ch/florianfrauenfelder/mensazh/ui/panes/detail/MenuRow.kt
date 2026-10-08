@@ -2,6 +2,12 @@ package ch.florianfrauenfelder.mensazh.ui.panes.detail
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -15,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilledIconButton
@@ -33,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
@@ -40,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import ch.florianfrauenfelder.mensazh.domain.model.Menu
 import ch.florianfrauenfelder.mensazh.domain.value.NutrientsPer
 import ch.florianfrauenfelder.mensazh.ui.domain.toClipEntry
+import ch.florianfrauenfelder.mensazh.ui.theme.myMotionSpec
 import coil3.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.launch
 import mensazh.app.shared.generated.resources.Res
@@ -77,7 +86,7 @@ fun MenuRow(
   val haptics = LocalHapticFeedback.current
   val scope = rememberCoroutineScope()
 
-  var showMore by rememberSaveable { mutableStateOf(if (autoShowImage) selected else false) }
+  var showMore by rememberSaveable { mutableStateOf(autoShowImage && selected) }
   val painter = rememberAsyncImagePainter(model = menu.imageUrl)
 
   val showImage = remember { mutableStateOf(false) }
@@ -102,7 +111,6 @@ fun MenuRow(
       } else {
         CardDefaults.elevatedCardColors()
       },
-      modifier = Modifier.animateContentSize(),
     ) {
       Row(
         modifier = Modifier
@@ -124,6 +132,7 @@ fun MenuRow(
                 text = menu.title,
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.animateContentSize(myMotionSpec()),
               )
               if (menu.isVegan || menu.isVegetarian) {
                 Spacer(modifier = Modifier.width(8.dp))
@@ -131,6 +140,7 @@ fun MenuRow(
                   text = stringResource(if (menu.isVegan) Res.string.vegan else Res.string.vegetarian),
                   color = Color(0xFF22AA22),
                   fontWeight = FontWeight.Bold,
+                  modifier = Modifier.animateContentSize(myMotionSpec()),
                 )
               }
             }
@@ -139,6 +149,7 @@ fun MenuRow(
             Text(
               text = menu.price.joinToString(" / "),
               style = MaterialTheme.typography.bodyMedium,
+              modifier = Modifier.animateContentSize(myMotionSpec()),
             )
           }
           if (menu.description.isNotBlank()) {
@@ -147,7 +158,8 @@ fun MenuRow(
               style = MaterialTheme.typography.bodyMedium,
               modifier = Modifier
                 .padding(top = 8.dp)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .animateContentSize(myMotionSpec()),
             )
           }
           if (!menu.allergens.isNullOrBlank()) {
@@ -156,16 +168,21 @@ fun MenuRow(
               style = MaterialTheme.typography.bodySmall,
               modifier = Modifier
                 .padding(top = 8.dp)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .animateContentSize(myMotionSpec()),
             )
           }
           Nutrients(
             menu = menu,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().animateContentSize(myMotionSpec()),
           )
         }
-        AnimatedVisibility(showMore) {
-          Column(verticalArrangement = Arrangement.Bottom) {
+        Column(verticalArrangement = Arrangement.Bottom) {
+          AnimatedVisibility(
+            visible = showMore,
+            enter = scaleIn(myMotionSpec()),
+            exit = scaleOut(myMotionSpec()),
+          ) {
             FilledIconButton(
               onClick = { scope.launch { clipboard.setClipEntry(menu.toClipEntry()) } },
             ) {
@@ -174,6 +191,12 @@ fun MenuRow(
                 stringResource(Res.string.copy_menu),
               )
             }
+          }
+          AnimatedVisibility(
+            visible = showMore,
+            enter = scaleIn(myMotionSpec()),
+            exit = scaleOut(myMotionSpec()),
+          ) {
             ShareButton(menu = menu) {
               Icon(painterResource(Res.drawable.ic_share_24), stringResource(Res.string.share))
             }
@@ -181,7 +204,11 @@ fun MenuRow(
         }
       }
       if (!menu.imageUrl.isNullOrEmpty()) {
-        AnimatedVisibility(showMore) {
+        AnimatedVisibility(
+          visible = showMore,
+          enter = expandVertically(myMotionSpec()),
+          exit = shrinkVertically(myMotionSpec()),
+        ) {
           Image(
             painter = painter,
             contentDescription = null,
@@ -196,14 +223,15 @@ fun MenuRow(
     if (!menu.imageUrl.isNullOrEmpty()) {
       AnimatedVisibility(
         visible = !showMore,
-        modifier = Modifier
-          .size(48.dp)
-          .align(Alignment.TopEnd),
+        enter = expandIn(myMotionSpec(), Alignment.TopEnd),
+        exit = shrinkOut(myMotionSpec(), Alignment.TopEnd),
+        modifier = Modifier.align(Alignment.TopEnd).clip(RoundedCornerShape(4.dp)),
       ) {
         Image(
           painter = painter,
           contentDescription = stringResource(Res.string.image_available),
-          alignment = Alignment.TopEnd,
+          contentScale = ContentScale.Crop,
+          modifier = Modifier.size(48.dp),
         )
       }
     }
