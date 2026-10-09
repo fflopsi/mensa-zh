@@ -37,7 +37,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.retain.retain
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -57,6 +57,7 @@ import ch.florianfrauenfelder.mensazh.ui.shared.OpenInBrowserButton
 import ch.florianfrauenfelder.mensazh.ui.shared.SettingsDropdown
 import ch.florianfrauenfelder.mensazh.ui.theme.MensaZHTheme
 import ch.florianfrauenfelder.mensazh.ui.theme.myMotionSpec
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import mensazh.app.shared.generated.resources.Res
@@ -75,10 +76,12 @@ import mensazh.app.shared.generated.resources.slow_internet
 import mensazh.app.shared.generated.resources.unknown_error
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import kotlin.coroutines.EmptyCoroutineContext
 
 @Composable
 fun MensaApp(container: AppContainer) {
   val layoutDirection = LocalLayoutDirection.current
+  val scope = retain { CoroutineScope(EmptyCoroutineContext) }
 
   val appViewModel: AppViewModel = viewModel(factory = AppViewModel.Factory(container))
   val params by appViewModel.params.collectAsStateWithLifecycle()
@@ -97,7 +100,7 @@ fun MensaApp(container: AppContainer) {
     (backStack.lastOrNull { it is Route.Detail } as? Route.Detail)?.let { mensasById[it.mensaId] }
 
   val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
-  val snackbarState = remember { SnackbarHostState() }
+  val snackbarState = retain { SnackbarHostState() }
   val navSuiteScaffoldState = rememberNavigationSuiteScaffoldState(
     initialValue = if (destinationSettings.showAny) {
       NavigationSuiteScaffoldValue.Visible
@@ -118,42 +121,39 @@ fun MensaApp(container: AppContainer) {
   val unknownErrorMessage = stringResource(Res.string.unknown_error)
   val slowInternetMessage = stringResource(Res.string.slow_internet)
   val cancelMessage = stringResource(Res.string.cancel)
-  val slowInternetSnackbarJobs = remember { mutableStateListOf<Job?>() }
+  val slowInternetSnackbarJobs = retain { mutableStateListOf<Job>() }
   LaunchedEffect(Unit) {
     appViewModel.events.collect { event ->
       when (event) {
         Event.NoInternet -> {
-          snackbarState.showSnackbar(message = noInternetMessage, withDismissAction = true)
+          scope.launch {
+            snackbarState.showSnackbar(message = noInternetMessage, withDismissAction = true)
+          }
         }
         Event.ApiError -> {
-          snackbarState.showSnackbar(message = apiErrorMessage, withDismissAction = true)
+          scope.launch {
+            snackbarState.showSnackbar(message = apiErrorMessage, withDismissAction = true)
+          }
         }
         Event.UnknownError -> {
-          snackbarState.showSnackbar(message = unknownErrorMessage, withDismissAction = true)
+          scope.launch {
+            snackbarState.showSnackbar(message = unknownErrorMessage, withDismissAction = true)
+          }
         }
         is Event.SlowInternet -> {
-          slowInternetSnackbarJobs.add(
-            this@LaunchedEffect.launch {
-              val result = snackbarState.showSnackbar(
-                message = slowInternetMessage,
-                actionLabel = cancelMessage,
-              )
-              if (result == SnackbarResult.ActionPerformed) {
-                event.onCancel()
-              }
-            }
-          )
+          slowInternetSnackbarJobs += scope.launch {
+            val result = snackbarState.showSnackbar(
+              message = slowInternetMessage,
+              actionLabel = cancelMessage,
+            )
+            if (result == SnackbarResult.ActionPerformed) event.onCancel()
+          }
         }
         Event.DismissSlowInternet -> {
-          slowInternetSnackbarJobs.firstOrNull { it?.isActive == true }?.cancel()
+          slowInternetSnackbarJobs.firstOrNull { it.isActive }?.cancel()
+          slowInternetSnackbarJobs.removeAll { !it.isActive }
         }
       }
-    }
-  }
-
-  LaunchedEffect(slowInternetSnackbarJobs) {
-    slowInternetSnackbarJobs.forEach {
-      if (it?.isActive == false) slowInternetSnackbarJobs.remove(it)
     }
   }
 

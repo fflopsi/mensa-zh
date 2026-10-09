@@ -17,7 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.retain.retain
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,7 +57,7 @@ fun <T> ListSelectorDialog(
   showMoveButtons: Boolean = false,
 ) {
   if (show.value) {
-    val selected = remember { selectedList.toMutableStateList() }
+    val selected = retain { selectedList.toMutableStateList() }
 
     AlertDialog(
       onDismissRequest = { show.value = false },

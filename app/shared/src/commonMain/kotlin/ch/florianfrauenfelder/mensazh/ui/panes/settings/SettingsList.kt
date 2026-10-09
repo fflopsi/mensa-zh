@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.retain.retain
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -112,11 +113,11 @@ fun SettingsList(
 ) {
   val layoutDirection = LocalLayoutDirection.current
 
-  val showLocationSelector = remember { mutableStateOf(false) }
-  val showFavoriteMensaSelector = remember { mutableStateOf(false) }
-  val showHiddenMensaSelector = remember { mutableStateOf(false) }
-  val showMenuTypeSelector = remember { mutableStateOf(false) }
-  var showMoreSettings by remember { mutableStateOf(false) }
+  val showLocationSelector = retain { mutableStateOf(false) }
+  val showFavoriteMensaSelector = retain { mutableStateOf(false) }
+  val showHiddenMensaSelector = retain { mutableStateOf(false) }
+  val showMenuTypeSelector = retain { mutableStateOf(false) }
+  var showMoreSettings by retain { mutableStateOf(false) }
 
   ListSelectorDialog(
     show = showLocationSelector,
