@@ -72,6 +72,7 @@ import mensazh.app.shared.generated.resources.vegan
 import mensazh.app.shared.generated.resources.vegetarian
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import kotlin.math.roundToInt
 
 @Composable
 fun MenuRow(
@@ -239,26 +240,30 @@ fun MenuRow(
 
 @Composable
 fun Nutrients(menu: Menu, modifier: Modifier = Modifier) {
-  if (menu.energy == null && menu.fat == null && menu.saturatedFattyAcids == null
-    && menu.carbohydrates == null && menu.sugar == null && menu.fiber == null
-    && menu.protein == null && menu.salt == null
-  ) return
+  fun Double.round(decimals: Int = 1): Double {
+    var m = 1.0
+    repeat(decimals) { m *= 10 }
+    return (this * m).roundToInt() / m
+  }
+
+  val nutrients = listOfNotNull(
+    menu.energy?.let { "${stringResource(Res.string.energy)}: ${it.round()}kcal" },
+    menu.fat?.let { "${stringResource(Res.string.fat)}: ${it.round()}g" },
+    menu.saturatedFattyAcids?.let { "${stringResource(Res.string.saturated_fatty_acids)}: ${it.round()}g" },
+    menu.carbohydrates?.let { "${stringResource(Res.string.carbohydrates)}: ${it.round()}g" },
+    menu.sugar?.let { "${stringResource(Res.string.sugar)}: ${it.round()}g" },
+    menu.fiber?.let { "${stringResource(Res.string.fiber)}: ${it.round()}g" },
+    menu.protein?.let { "${stringResource(Res.string.protein)}: ${it.round()}g" },
+    menu.salt?.let { "${stringResource(Res.string.salt)}: ${it.round()}g" },
+  )
+  if (nutrients.isEmpty()) return
   Text(
     text = "(${stringResource(Res.string.per)} ${
       when (menu.nutrientsPer) {
         NutrientsPer.Serving -> stringResource(Res.string.serving)
         NutrientsPer.OneHundredGrams -> stringResource(Res.string.one_hundred_grams)
       }
-    }) " +
-      (menu.energy?.let { "${stringResource(Res.string.energy)}: ${it}kcal, " } ?: "") +
-      (menu.fat?.let { "${stringResource(Res.string.fat)}: ${it}g, " } ?: "") +
-      (menu.saturatedFattyAcids?.let { "${stringResource(Res.string.saturated_fatty_acids)}: ${it}g, " }
-        ?: "") +
-      (menu.carbohydrates?.let { "${stringResource(Res.string.carbohydrates)}: ${it}g, " } ?: "") +
-      (menu.sugar?.let { "${stringResource(Res.string.sugar)}: ${it}g, " } ?: "") +
-      (menu.fiber?.let { "${stringResource(Res.string.fiber)}: ${it}g, " } ?: "") +
-      (menu.protein?.let { "${stringResource(Res.string.protein)}: ${it}g, " } ?: "") +
-      (menu.salt?.let { "${stringResource(Res.string.salt)}: ${it}g" } ?: ""),
+    }) " + nutrients.joinToString(", "),
     style = MaterialTheme.typography.bodySmall,
     modifier = modifier.padding(top = 8.dp),
   )
