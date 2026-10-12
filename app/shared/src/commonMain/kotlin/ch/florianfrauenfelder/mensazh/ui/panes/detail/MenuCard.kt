@@ -75,7 +75,7 @@ import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
 @Composable
-fun MenuRow(
+fun MenuCard(
   menu: Menu,
   selected: Boolean,
   select: (Menu) -> Unit,

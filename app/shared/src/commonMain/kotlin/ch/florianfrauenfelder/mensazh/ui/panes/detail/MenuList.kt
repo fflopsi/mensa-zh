@@ -26,7 +26,7 @@ fun MenuList(
       items = menus,
       key = { it.title + it.description },
     ) {
-      MenuRow(
+      MenuCard(
         menu = it,
         selected = it.index == selectedMenuIndex,
         select = selectMenu,
