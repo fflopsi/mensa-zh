@@ -98,11 +98,7 @@ fun MenuRow(
       .fillMaxHeight(0.7f),
   )
 
-  Box(
-    modifier = modifier
-      .padding(horizontal = 8.dp, vertical = 4.dp)
-      .clip(CardDefaults.shape),
-  ) {
+  Box(modifier = modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
     ElevatedCard(
       colors = if (selected) {
         CardDefaults.elevatedCardColors(
