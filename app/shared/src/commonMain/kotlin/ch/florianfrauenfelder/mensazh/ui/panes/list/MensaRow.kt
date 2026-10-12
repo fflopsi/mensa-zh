@@ -32,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.retain.retain
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.CustomAccessibilityAction
@@ -41,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import ch.florianfrauenfelder.mensazh.domain.model.MensaState
 import ch.florianfrauenfelder.mensazh.domain.model.Menu
 import ch.florianfrauenfelder.mensazh.domain.preferences.DetailSettings
@@ -127,7 +129,7 @@ fun MensaRow(
       ElevatedCard(
         modifier = Modifier
           .fillMaxWidth()
-          .padding(horizontal = 8.dp, vertical = 4.dp)
+          .padding(horizontal = 8.dp, vertical = 5.dp)
           .semantics {
             CustomAccessibilityAction(label = if (mensa.favorite) unfavorite else favorite) {
               toggleIsFavoriteMensa()
@@ -137,6 +139,7 @@ fun MensaRow(
           }
       ) {
         Row(
+          verticalAlignment = Alignment.CenterVertically,
           modifier = Modifier
             .clickable(enabled = mensa.state.active, onClick = toggleIsExpandedMensa)
             .background(containerColor)
@@ -144,13 +147,14 @@ fun MensaRow(
         ) {
           Text(
             text = mensa.mensa.title,
+            fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             overflow = TextOverflow.Ellipsis,
             maxLines = 1,
             color = contentColor,
             modifier = Modifier
               .weight(1f)
-              .padding(8.dp),
+              .padding(9.dp),
           )
           AnimatedContent(targetState = mensa.state == MensaState.State.Closed) { closed ->
             Text(
