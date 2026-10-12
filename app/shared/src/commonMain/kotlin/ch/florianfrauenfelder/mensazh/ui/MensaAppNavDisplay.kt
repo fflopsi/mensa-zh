@@ -1,6 +1,7 @@
 package ch.florianfrauenfelder.mensazh.ui
 
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -18,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.IntOffset
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -25,6 +27,7 @@ import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.scene.Scene
 import androidx.navigation3.ui.NavDisplay
 import ch.florianfrauenfelder.mensazh.AppContainer
 import ch.florianfrauenfelder.mensazh.domain.model.Location
@@ -54,8 +57,6 @@ fun MensaAppNavDisplay(
   innerPadding: PaddingValues,
   modifier: Modifier = Modifier,
 ) {
-  val motion = MaterialTheme.motionScheme
-
   val sceneStrategy = rememberListDetailSceneStrategy<NavKey>(
     paneExpansionDragHandle = {
       val interactionSource = remember { MutableInteractionSource() }
@@ -70,6 +71,14 @@ fun MensaAppNavDisplay(
     },
   )
   val listPadding = PaddingValues(bottom = innerPadding.calculateBottomPadding())
+  val motionSpec = MaterialTheme.motionScheme.defaultSpatialSpec<IntOffset>()
+
+  fun AnimatedContentTransitionScope<Scene<NavKey>>.spec(
+    towards: AnimatedContentTransitionScope.SlideDirection,
+  ): ContentTransform {
+    return slideIntoContainer(towards = towards, animationSpec = motionSpec) togetherWith
+      slideOutOfContainer(towards = towards, animationSpec = motionSpec)
+  }
 
   NavDisplay(
     backStack = backStack,
@@ -78,36 +87,9 @@ fun MensaAppNavDisplay(
       rememberSaveableStateHolderNavEntryDecorator(),
       rememberViewModelStoreNavEntryDecorator(),
     ),
-    transitionSpec = {
-      slideIntoContainer(
-        towards = AnimatedContentTransitionScope.SlideDirection.Start,
-        animationSpec = motion.defaultSpatialSpec(),
-      ) togetherWith
-        slideOutOfContainer(
-          towards = AnimatedContentTransitionScope.SlideDirection.Start,
-          animationSpec = motion.defaultSpatialSpec(),
-        )
-    },
-    popTransitionSpec = {
-      slideIntoContainer(
-        towards = AnimatedContentTransitionScope.SlideDirection.End,
-        animationSpec = motion.defaultSpatialSpec(),
-      ) togetherWith
-        slideOutOfContainer(
-          towards = AnimatedContentTransitionScope.SlideDirection.End,
-          animationSpec = motion.defaultSpatialSpec(),
-        )
-    },
-    predictivePopTransitionSpec = {
-      slideIntoContainer(
-        towards = AnimatedContentTransitionScope.SlideDirection.End,
-        animationSpec = motion.defaultSpatialSpec(),
-      ) togetherWith
-        slideOutOfContainer(
-          towards = AnimatedContentTransitionScope.SlideDirection.End,
-          animationSpec = motion.defaultSpatialSpec(),
-        )
-    },
+    transitionSpec = { spec(AnimatedContentTransitionScope.SlideDirection.Start) },
+    popTransitionSpec = { spec(AnimatedContentTransitionScope.SlideDirection.End) },
+    predictivePopTransitionSpec = { spec(AnimatedContentTransitionScope.SlideDirection.End) },
     modifier = modifier.fillMaxSize(),
     entryProvider = entryProvider {
       entry<Route.List>(
