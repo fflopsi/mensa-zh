@@ -1,7 +1,6 @@
 package ch.florianfrauenfelder.mensazh.ui.panes.list
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -32,11 +31,7 @@ fun MenuRow(
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  Row(
-    modifier = modifier
-      .clickable(onClick = onClick)
-      .focusable(),
-  ) {
+  Row(modifier = modifier.clickable(onClick = onClick)) {
     Column(
       modifier = Modifier
         .padding(8.dp)

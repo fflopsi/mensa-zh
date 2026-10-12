@@ -1,6 +1,5 @@
 package ch.florianfrauenfelder.mensazh.ui.shared
 
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -42,10 +41,7 @@ fun SettingsDropdown(
 ) {
   var expanded by remember { mutableStateOf(false) }
   Box(modifier = modifier) {
-    IconButton(
-      onClick = { expanded = !expanded },
-      modifier = Modifier.focusable(),
-    ) {
+    IconButton(onClick = { expanded = !expanded }) {
       Icon(painterResource(Res.drawable.ic_more_horiz_24), stringResource(Res.string.settings))
     }
     DropdownMenu(
