@@ -61,13 +61,13 @@ fun LocationList(
     item(key = 0) {
       InfoLinks(
         modifier = Modifier
+          .animateItemModifier()
           .padding(
             start = 8.dp,
             end = 8.dp,
             top = 32.dp,
             bottom = 16.dp,
           )
-          .animateItemModifier()
           .fillMaxWidth(),
       )
     }

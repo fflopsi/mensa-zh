@@ -26,13 +26,13 @@ fun LazyListScope.locationItem(
     Text(
       text = location.title,
       modifier = Modifier
+        .animateItemModifier()
         .padding(
           start = 16.dp,
           end = 8.dp,
           top = 16.dp,
           bottom = 4.dp,
-        )
-        .animateItemModifier(),
+        ),
     )
   }
   items(
