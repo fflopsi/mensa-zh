@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import ch.florianfrauenfelder.mensazh.domain.model.Menu
 import ch.florianfrauenfelder.mensazh.domain.preferences.DetailSettings
@@ -41,6 +42,7 @@ fun MenuRow(
         text = menu.description,
         style = MaterialTheme.typography.bodyMedium,
         maxLines = if (detail.listUseShortDescription) 2 else 3,
+        overflow = TextOverflow.Ellipsis,
       )
       if (detail.listShowAllergens && menu.allergens?.isNotBlank() == true) {
         Text(
@@ -48,6 +50,7 @@ fun MenuRow(
           style = MaterialTheme.typography.bodySmall,
           fontStyle = FontStyle.Italic,
           maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
         )
       }
     }
