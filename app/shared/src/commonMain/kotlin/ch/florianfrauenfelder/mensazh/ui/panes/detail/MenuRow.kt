@@ -89,14 +89,16 @@ fun MenuRow(
   var showMore by rememberSaveable { mutableStateOf(autoShowImage && selected) }
   val painter = rememberAsyncImagePainter(model = menu.imageUrl)
 
-  val showImage = rememberSaveable { mutableStateOf(false) }
-  ImageDialog(
-    show = showImage,
-    painter = painter,
-    modifier = Modifier
-      .fillMaxWidth()
-      .fillMaxHeight(0.7f),
-  )
+  var showImage by rememberSaveable { mutableStateOf(false) }
+  if (showImage) {
+    ImageDialog(
+      onDismiss = { showImage = false },
+      painter = painter,
+      modifier = Modifier
+        .fillMaxWidth()
+        .fillMaxHeight(0.7f),
+    )
+  }
 
   Box(modifier = modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
     ElevatedCard(
@@ -209,7 +211,7 @@ fun MenuRow(
             painter = painter,
             contentDescription = null,
             modifier = Modifier
-              .clickable { showImage.value = true }
+              .clickable { showImage = true }
               .fillMaxWidth(),
           )
         }

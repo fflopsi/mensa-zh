@@ -16,7 +16,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.retain.retain
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
@@ -43,7 +42,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun <T> ListSelectorDialog(
-  show: MutableState<Boolean>,
+  onDismiss: () -> Unit,
   entireList: List<T>,
   selectedList: List<T>,
   saveList: (List<T>) -> Unit,
@@ -56,117 +55,115 @@ fun <T> ListSelectorDialog(
   subtitleAvailableItems: StringResource? = null,
   showMoveButtons: Boolean = false,
 ) {
-  if (show.value) {
-    val selected = retain { selectedList.toMutableStateList() }
+  val selected = retain { selectedList.toMutableStateList() }
 
-    AlertDialog(
-      onDismissRequest = { show.value = false },
-      confirmButton = {
-        TextButton(
-          onClick = {
-            show.value = false
-            if (selected.toList() != selectedList) saveList(selected)
-          },
-        ) {
-          Text(text = stringResource(Res.string.ok))
-        }
-      },
-      dismissButton = {
-        TextButton(onClick = { show.value = false }) {
-          Text(text = stringResource(Res.string.cancel))
-        }
-      },
-      icon = { Icon(painterResource(icon), null) },
-      title = { Text(text = stringResource(title)) },
-      text = {
-        LazyColumn {
-          subtitle?.let {
-            item(key = -1) {
-              Text(
-                text = stringResource(it),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
-              )
-            }
+  AlertDialog(
+    onDismissRequest = onDismiss,
+    confirmButton = {
+      TextButton(
+        onClick = {
+          onDismiss()
+          if (selected.toList() != selectedList) saveList(selected)
+        },
+      ) {
+        Text(text = stringResource(Res.string.ok))
+      }
+    },
+    dismissButton = {
+      TextButton(onClick = onDismiss) {
+        Text(text = stringResource(Res.string.cancel))
+      }
+    },
+    icon = { Icon(painterResource(icon), null) },
+    title = { Text(text = stringResource(title)) },
+    text = {
+      LazyColumn {
+        subtitle?.let {
+          item(key = -1) {
+            Text(
+              text = stringResource(it),
+              textAlign = TextAlign.Center,
+              modifier = Modifier.fillMaxWidth(),
+            )
           }
-          itemsIndexed(
-            items = selected,
-            key = { _, item -> getId(item) },
-          ) { index, item ->
-            Row(
-              verticalAlignment = Alignment.CenterVertically,
-              modifier = Modifier.animateItemModifier(),
-            ) {
-              Text(
-                text = getTitle(item),
-                modifier = Modifier.weight(1f),
-              )
-              if (showMoveButtons) {
-                AnimatedVisibility(
-                  visible = index < selected.lastIndex,
-                  enter = expandHorizontally(myMotionSpec()),
-                  exit = shrinkHorizontally(myMotionSpec()),
-                ) {
-                  IconButton(onClick = { selected.add(index + 1, selected.removeAt(index)) }) {
-                    Icon(
-                      painterResource(Res.drawable.ic_keyboard_arrow_down_24),
-                      stringResource(Res.string.move_down),
-                    )
-                  }
-                }
-                AnimatedVisibility(
-                  visible = index > 0,
-                  enter = expandHorizontally(myMotionSpec()),
-                  exit = shrinkHorizontally(myMotionSpec()),
-                ) {
-                  IconButton(onClick = { selected.add(index - 1, selected.removeAt(index)) }) {
-                    Icon(
-                      painterResource(Res.drawable.ic_keyboard_arrow_up_24),
-                      stringResource(Res.string.move_up),
-                    )
-                  }
+        }
+        itemsIndexed(
+          items = selected,
+          key = { _, item -> getId(item) },
+        ) { index, item ->
+          Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.animateItemModifier(),
+          ) {
+            Text(
+              text = getTitle(item),
+              modifier = Modifier.weight(1f),
+            )
+            if (showMoveButtons) {
+              AnimatedVisibility(
+                visible = index < selected.lastIndex,
+                enter = expandHorizontally(myMotionSpec()),
+                exit = shrinkHorizontally(myMotionSpec()),
+              ) {
+                IconButton(onClick = { selected.add(index + 1, selected.removeAt(index)) }) {
+                  Icon(
+                    painterResource(Res.drawable.ic_keyboard_arrow_down_24),
+                    stringResource(Res.string.move_down),
+                  )
                 }
               }
-              IconButton(onClick = { selected.removeAt(index) }) {
-                Icon(painterResource(Res.drawable.ic_remove_24), stringResource(Res.string.remove_))
-              }
-            }
-          }
-          subtitleAvailableItems?.let {
-            if ((entireList - selected).isNotEmpty()) {
-              item(key = 0) {
-                Column(modifier = Modifier.animateItemModifier()) {
-                  HorizontalDivider()
-                  Text(
-                    text = stringResource(it),
-                    fontStyle = FontStyle.Italic,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
+              AnimatedVisibility(
+                visible = index > 0,
+                enter = expandHorizontally(myMotionSpec()),
+                exit = shrinkHorizontally(myMotionSpec()),
+              ) {
+                IconButton(onClick = { selected.add(index - 1, selected.removeAt(index)) }) {
+                  Icon(
+                    painterResource(Res.drawable.ic_keyboard_arrow_up_24),
+                    stringResource(Res.string.move_up),
                   )
                 }
               }
             }
+            IconButton(onClick = { selected.removeAt(index) }) {
+              Icon(painterResource(Res.drawable.ic_remove_24), stringResource(Res.string.remove_))
+            }
           }
-          items(
-            items = entireList - selected,
-            key = getId,
-          ) {
-            Row(
-              verticalAlignment = Alignment.CenterVertically,
-              modifier = Modifier.animateItemModifier(),
-            ) {
-              Text(
-                text = getTitle(it),
-                modifier = Modifier.weight(1f),
-              )
-              IconButton(onClick = { selected.add(it) }) {
-                Icon(painterResource(Res.drawable.ic_add_24), stringResource(Res.string.add))
+        }
+        subtitleAvailableItems?.let {
+          if ((entireList - selected).isNotEmpty()) {
+            item(key = 0) {
+              Column(modifier = Modifier.animateItemModifier()) {
+                HorizontalDivider()
+                Text(
+                  text = stringResource(it),
+                  fontStyle = FontStyle.Italic,
+                  textAlign = TextAlign.Center,
+                  modifier = Modifier.fillMaxWidth(),
+                )
               }
             }
           }
         }
-      },
-      modifier = modifier,
-    )
-  }
+        items(
+          items = entireList - selected,
+          key = getId,
+        ) {
+          Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.animateItemModifier(),
+          ) {
+            Text(
+              text = getTitle(it),
+              modifier = Modifier.weight(1f),
+            )
+            IconButton(onClick = { selected.add(it) }) {
+              Icon(painterResource(Res.drawable.ic_add_24), stringResource(Res.string.add))
+            }
+          }
+        }
+      }
+    },
+    modifier = modifier,
+  )
 }

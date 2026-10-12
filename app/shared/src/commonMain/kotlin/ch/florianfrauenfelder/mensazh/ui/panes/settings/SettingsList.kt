@@ -113,62 +113,70 @@ fun SettingsList(
 ) {
   val layoutDirection = LocalLayoutDirection.current
 
-  val showLocationSelector = retain { mutableStateOf(false) }
-  val showFavoriteMensaSelector = retain { mutableStateOf(false) }
-  val showHiddenMensaSelector = retain { mutableStateOf(false) }
-  val showMenuTypeSelector = retain { mutableStateOf(false) }
+  var showLocationSelector by retain { mutableStateOf(false) }
+  var showFavoriteMensaSelector by retain { mutableStateOf(false) }
+  var showHiddenMensaSelector by retain { mutableStateOf(false) }
+  var showMenuTypeSelector by retain { mutableStateOf(false) }
   var showMoreSettings by retain { mutableStateOf(false) }
 
-  ListSelectorDialog(
-    show = showLocationSelector,
-    entireList = baseLocations,
-    selectedList = shownLocations,
-    saveList = { locations -> update(Setting.SetShownLocations(locations.map { it.id })) },
-    getId = { it.id.toString() },
-    getTitle = { it.title },
-    icon = Res.drawable.ic_edit_location_24,
-    title = Res.string.select_locations,
-    subtitleAvailableItems = Res.string.available_locations,
-    showMoveButtons = true,
-  )
-  ListSelectorDialog(
-    show = showFavoriteMensaSelector,
-    entireList = baseLocations.flatMap { location -> location.mensas.map { it.mensa } }
-      .filter { !hiddenMensas.contains(it) },
-    selectedList = favoriteMensas,
-    saveList = { mensas -> update(Setting.SetFavoriteMensas(mensas.map { it.id })) },
-    getId = { it.id.toString() },
-    getTitle = { it.title },
-    icon = Res.drawable.ic_hotel_class_24,
-    title = Res.string.favorite_mensas,
-    subtitleAvailableItems = Res.string.available_mensas,
-    showMoveButtons = true,
-  )
-  ListSelectorDialog(
-    show = showHiddenMensaSelector,
-    entireList = shownLocations.flatMap { location -> location.mensas.map { it.mensa } }
-      .filter { !favoriteMensas.contains(it) },
-    selectedList = hiddenMensas,
-    saveList = { mensas -> update(Setting.SetHiddenMensas(mensas.map { it.id })) },
-    getId = { it.id.toString() },
-    getTitle = { it.title },
-    icon = Res.drawable.ic_filter_list_off_24,
-    title = Res.string.hide_mensas,
-    subtitleAvailableItems = Res.string.available_mensas,
-  )
-  ListSelectorDialog(
-    show = showMenuTypeSelector,
-    entireList = MenuType.entries,
-    selectedList = visibility.menuTypes,
-    saveList = { update(Setting.SetMenuTypes(it)) },
-    getId = MenuType::code,
-    getTitle = { stringResource(it.label) },
-    icon = Res.drawable.ic_no_meals_24,
-    title = Res.string.select_menu_types,
-    subtitle = Res.string.select_menu_types_desc,
-    subtitleAvailableItems = Res.string.hidden_menu_types,
-    showMoveButtons = true,
-  )
+  if (showLocationSelector) {
+    ListSelectorDialog(
+      onDismiss = { showLocationSelector = false },
+      entireList = baseLocations,
+      selectedList = shownLocations,
+      saveList = { locations -> update(Setting.SetShownLocations(locations.map { it.id })) },
+      getId = { it.id.toString() },
+      getTitle = { it.title },
+      icon = Res.drawable.ic_edit_location_24,
+      title = Res.string.select_locations,
+      subtitleAvailableItems = Res.string.available_locations,
+      showMoveButtons = true,
+    )
+  }
+  if (showFavoriteMensaSelector) {
+    ListSelectorDialog(
+      onDismiss = { showFavoriteMensaSelector = false },
+      entireList = baseLocations.flatMap { location -> location.mensas.map { it.mensa } }
+        .filter { !hiddenMensas.contains(it) },
+      selectedList = favoriteMensas,
+      saveList = { mensas -> update(Setting.SetFavoriteMensas(mensas.map { it.id })) },
+      getId = { it.id.toString() },
+      getTitle = { it.title },
+      icon = Res.drawable.ic_hotel_class_24,
+      title = Res.string.favorite_mensas,
+      subtitleAvailableItems = Res.string.available_mensas,
+      showMoveButtons = true,
+    )
+  }
+  if (showHiddenMensaSelector) {
+    ListSelectorDialog(
+      onDismiss = { showHiddenMensaSelector = false },
+      entireList = shownLocations.flatMap { location -> location.mensas.map { it.mensa } }
+        .filter { !favoriteMensas.contains(it) },
+      selectedList = hiddenMensas,
+      saveList = { mensas -> update(Setting.SetHiddenMensas(mensas.map { it.id })) },
+      getId = { it.id.toString() },
+      getTitle = { it.title },
+      icon = Res.drawable.ic_filter_list_off_24,
+      title = Res.string.hide_mensas,
+      subtitleAvailableItems = Res.string.available_mensas,
+    )
+  }
+  if (showMenuTypeSelector) {
+    ListSelectorDialog(
+      onDismiss = { showMenuTypeSelector = false },
+      entireList = MenuType.entries,
+      selectedList = visibility.menuTypes,
+      saveList = { update(Setting.SetMenuTypes(it)) },
+      getId = MenuType::code,
+      getTitle = { stringResource(it.label) },
+      icon = Res.drawable.ic_no_meals_24,
+      title = Res.string.select_menu_types,
+      subtitle = Res.string.select_menu_types_desc,
+      subtitleAvailableItems = Res.string.hidden_menu_types,
+      showMoveButtons = true,
+    )
+  }
 
   LazyColumn(
     contentPadding = contentPadding,
@@ -214,7 +222,7 @@ fun SettingsList(
           .map { it.title }
           .ifEmpty { stringResource(Res.string.none_selected) }
           .toString(),
-        onClick = { showLocationSelector.value = true },
+        onClick = { showLocationSelector = true },
         modifier = Modifier.animateItemModifier(),
       ) {
         Icon(painterResource(Res.drawable.ic_arrow_next_24), null)
@@ -227,7 +235,7 @@ fun SettingsList(
           .map { it.title }
           .ifEmpty { stringResource(Res.string.none_selected) }
           .toString(),
-        onClick = { showFavoriteMensaSelector.value = true },
+        onClick = { showFavoriteMensaSelector = true },
         modifier = Modifier.animateItemModifier(),
       ) {
         Icon(painterResource(Res.drawable.ic_arrow_next_24), null)
@@ -240,7 +248,7 @@ fun SettingsList(
           .map { it.title }
           .ifEmpty { stringResource(Res.string.none_selected) }
           .toString(),
-        onClick = { showHiddenMensaSelector.value = true },
+        onClick = { showHiddenMensaSelector = true },
         modifier = Modifier.animateItemModifier(),
       ) {
         Icon(painterResource(Res.drawable.ic_arrow_next_24), null)
@@ -254,7 +262,7 @@ fun SettingsList(
           .map { stringResource(it.label) }
           .ifEmpty { stringResource(Res.string.none_selected) }
           .toString(),
-        onClick = { showMenuTypeSelector.value = true },
+        onClick = { showMenuTypeSelector = true },
         modifier = Modifier.animateItemModifier(),
       ) {
         Icon(painterResource(Res.drawable.ic_arrow_next_24), null)
