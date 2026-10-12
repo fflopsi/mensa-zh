@@ -138,7 +138,7 @@ fun MensaAppNavDisplay(
       }
       entry<Route.Detail>(metadata = ListDetailSceneStrategy.detailPane()) { detail ->
         val mensa = mensasById[detail.mensaId]
-        if (mensa != null) {
+        if (mensa != null && mensa.menus.isNotEmpty()) {
           MenuList(
             menus = mensa.menus,
             selectedMenuIndex = menuIndices[mensa.mensa.id],
