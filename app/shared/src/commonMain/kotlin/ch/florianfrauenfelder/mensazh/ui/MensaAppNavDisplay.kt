@@ -1,5 +1,6 @@
 package ch.florianfrauenfelder.mensazh.ui
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.togetherWith
@@ -120,21 +121,23 @@ fun MensaAppNavDisplay(
       }
       entry<Route.Detail>(metadata = ListDetailSceneStrategy.detailPane()) { detail ->
         val mensa = mensasById[detail.mensaId]
-        if (mensa != null && mensa.menus.isNotEmpty()) {
-          MenuList(
-            menus = mensa.menus,
-            selectedMenuIndex = menuIndices[mensa.mensa.id],
-            selectMenu = { selectMenu(mensa.mensa.id, it.index) },
-            autoShowImage = detailSettings.autoShowImage,
-            contentPadding = listPadding,
-            modifier = Modifier.fillMaxWidth(),
-          )
-        } else {
-          Box(modifier = Modifier.fillMaxSize()) {
-            Text(
-              text = stringResource(Res.string.no_menus),
-              modifier = Modifier.align(Alignment.Center),
+        AnimatedContent(targetState = mensa?.menus) { menus ->
+          if (!menus.isNullOrEmpty()) {
+            MenuList(
+              menus = menus,
+              selectedMenuIndex = menuIndices[mensa!!.mensa.id],
+              selectMenu = { selectMenu(mensa.mensa.id, it.index) },
+              autoShowImage = detailSettings.autoShowImage,
+              contentPadding = listPadding,
+              modifier = Modifier.fillMaxWidth(),
             )
+          } else {
+            Box(modifier = Modifier.fillMaxSize()) {
+              Text(
+                text = stringResource(Res.string.no_menus),
+                modifier = Modifier.align(Alignment.Center),
+              )
+            }
           }
         }
       }

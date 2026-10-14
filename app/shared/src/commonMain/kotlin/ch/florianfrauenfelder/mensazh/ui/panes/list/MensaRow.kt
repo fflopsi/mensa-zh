@@ -1,7 +1,6 @@
 package ch.florianfrauenfelder.mensazh.ui.panes.list
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.expandVertically
@@ -136,7 +135,7 @@ fun MensaRow(
               true
             }
             CustomAccessibilityAction(label = hide) { hideMensa(); true }
-          }
+          },
       ) {
         Row(
           verticalAlignment = Alignment.CenterVertically,
@@ -170,20 +169,7 @@ fun MensaRow(
           enter = expandVertically(myMotionSpec()),
           exit = shrinkVertically(myMotionSpec()),
         ) {
-          val motionSpec = myMotionSpec<IntOffset>()
-          AnimatedContent(
-            targetState = mensa.menus,
-            transitionSpec = {
-              slideIntoContainer(
-                animationSpec = motionSpec,
-                towards = AnimatedContentTransitionScope.SlideDirection.Down,
-              ) togetherWith
-                slideOutOfContainer(
-                  animationSpec = motionSpec,
-                  towards = AnimatedContentTransitionScope.SlideDirection.Down,
-                )
-            },
-          ) { menus ->
+          AnimatedContent(targetState = mensa.menus) { menus ->
             Column(modifier = Modifier.fillMaxWidth()) {
               menus.forEach {
                 MenuRow(
