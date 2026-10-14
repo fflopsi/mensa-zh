@@ -1,8 +1,6 @@
 package ch.florianfrauenfelder.mensazh.ui.panes.settings
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,8 +20,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
-import ch.florianfrauenfelder.mensazh.ui.theme.animateItemModifier
-import ch.florianfrauenfelder.mensazh.ui.theme.myMotionSpec
+import ch.florianfrauenfelder.mensazh.ui.theme.myAnimateItem
+import ch.florianfrauenfelder.mensazh.ui.theme.myExpandHorizontally
+import ch.florianfrauenfelder.mensazh.ui.theme.myShrinkHorizontally
 import mensazh.app.shared.generated.resources.Res
 import mensazh.app.shared.generated.resources.add
 import mensazh.app.shared.generated.resources.cancel
@@ -93,7 +92,7 @@ fun <T> ListSelectorDialog(
         ) { index, item ->
           Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.animateItemModifier(),
+            modifier = Modifier.myAnimateItem(),
           ) {
             Text(
               text = getTitle(item),
@@ -102,8 +101,8 @@ fun <T> ListSelectorDialog(
             if (showMoveButtons) {
               AnimatedVisibility(
                 visible = index < selected.lastIndex,
-                enter = expandHorizontally(myMotionSpec()),
-                exit = shrinkHorizontally(myMotionSpec()),
+                enter = myExpandHorizontally(),
+                exit = myShrinkHorizontally(),
               ) {
                 IconButton(onClick = { selected.add(index + 1, selected.removeAt(index)) }) {
                   Icon(
@@ -114,8 +113,8 @@ fun <T> ListSelectorDialog(
               }
               AnimatedVisibility(
                 visible = index > 0,
-                enter = expandHorizontally(myMotionSpec()),
-                exit = shrinkHorizontally(myMotionSpec()),
+                enter = myExpandHorizontally(),
+                exit = myShrinkHorizontally(),
               ) {
                 IconButton(onClick = { selected.add(index - 1, selected.removeAt(index)) }) {
                   Icon(
@@ -133,7 +132,7 @@ fun <T> ListSelectorDialog(
         subtitleAvailableItems?.let {
           if ((entireList - selected).isNotEmpty()) {
             item(key = 0) {
-              Column(modifier = Modifier.animateItemModifier()) {
+              Column(modifier = Modifier.myAnimateItem()) {
                 HorizontalDivider()
                 Text(
                   text = stringResource(it),
@@ -151,7 +150,7 @@ fun <T> ListSelectorDialog(
         ) {
           Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.animateItemModifier(),
+            modifier = Modifier.myAnimateItem(),
           ) {
             Text(
               text = getTitle(it),

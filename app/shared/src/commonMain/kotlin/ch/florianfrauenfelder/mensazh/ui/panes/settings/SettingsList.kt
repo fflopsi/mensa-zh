@@ -43,7 +43,7 @@ import ch.florianfrauenfelder.mensazh.domain.value.MenuType
 import ch.florianfrauenfelder.mensazh.domain.value.Theme
 import ch.florianfrauenfelder.mensazh.ui.domain.label
 import ch.florianfrauenfelder.mensazh.ui.shared.InfoLinks
-import ch.florianfrauenfelder.mensazh.ui.theme.animateItemModifier
+import ch.florianfrauenfelder.mensazh.ui.theme.myAnimateItem
 import mensazh.app.shared.generated.resources.Res
 import mensazh.app.shared.generated.resources.active
 import mensazh.app.shared.generated.resources.auto
@@ -187,7 +187,7 @@ fun SettingsList(
         title = stringResource(Res.string.show_only_open),
         subtitle = stringResource(Res.string.show_only_open_desc),
         onClick = { update(Setting.SetShowOnlyOpenMensas(!visibility.showOnlyOpenMensas)) },
-        modifier = Modifier.animateItemModifier(),
+        modifier = Modifier.myAnimateItem(),
       ) {
         Switch(checked = visibility.showOnlyOpenMensas, onCheckedChange = null)
       }
@@ -199,7 +199,7 @@ fun SettingsList(
         onClick = {
           update(Setting.SetShowOnlyExpandedMensas(!visibility.showOnlyExpandedMensas))
         },
-        modifier = Modifier.animateItemModifier(),
+        modifier = Modifier.myAnimateItem(),
       ) {
         Switch(checked = visibility.showOnlyExpandedMensas, onCheckedChange = null)
       }
@@ -209,12 +209,12 @@ fun SettingsList(
         title = stringResource(Res.string.show_menus_in_german),
         subtitle = stringResource(Res.string.show_menus_in_german_desc),
         onClick = { update(Setting.SetMenusLanguage(!visibility.language)) },
-        modifier = Modifier.animateItemModifier(),
+        modifier = Modifier.myAnimateItem(),
       ) {
         Switch(checked = visibility.language.showMenusInGerman, onCheckedChange = null)
       }
     }
-    item(key = 3) { HorizontalDivider(modifier = Modifier.animateItemModifier()) }
+    item(key = 3) { HorizontalDivider(modifier = Modifier.myAnimateItem()) }
     item(key = 4) {
       SettingsRow(
         title = stringResource(Res.string.select_locations),
@@ -223,7 +223,7 @@ fun SettingsList(
           .ifEmpty { stringResource(Res.string.none_selected) }
           .toString(),
         onClick = { showLocationSelector = true },
-        modifier = Modifier.animateItemModifier(),
+        modifier = Modifier.myAnimateItem(),
       ) {
         Icon(painterResource(Res.drawable.ic_arrow_next_24), null)
       }
@@ -236,7 +236,7 @@ fun SettingsList(
           .ifEmpty { stringResource(Res.string.none_selected) }
           .toString(),
         onClick = { showFavoriteMensaSelector = true },
-        modifier = Modifier.animateItemModifier(),
+        modifier = Modifier.myAnimateItem(),
       ) {
         Icon(painterResource(Res.drawable.ic_arrow_next_24), null)
       }
@@ -249,7 +249,7 @@ fun SettingsList(
           .ifEmpty { stringResource(Res.string.none_selected) }
           .toString(),
         onClick = { showHiddenMensaSelector = true },
-        modifier = Modifier.animateItemModifier(),
+        modifier = Modifier.myAnimateItem(),
       ) {
         Icon(painterResource(Res.drawable.ic_arrow_next_24), null)
       }
@@ -263,18 +263,18 @@ fun SettingsList(
           .ifEmpty { stringResource(Res.string.none_selected) }
           .toString(),
         onClick = { showMenuTypeSelector = true },
-        modifier = Modifier.animateItemModifier(),
+        modifier = Modifier.myAnimateItem(),
       ) {
         Icon(painterResource(Res.drawable.ic_arrow_next_24), null)
       }
     }
-    item(key = 8) { HorizontalDivider(modifier = Modifier.animateItemModifier()) }
+    item(key = 8) { HorizontalDivider(modifier = Modifier.myAnimateItem()) }
     item(key = 9) {
       SettingsRow(
         title = stringResource(Res.string.show_tomorrow),
         subtitle = stringResource(Res.string.show_tomorrow_desc),
         onClick = { update(Setting.SetShowTomorrow(!destination.showTomorrow)) },
-        modifier = Modifier.animateItemModifier(),
+        modifier = Modifier.myAnimateItem(),
       ) {
         Switch(checked = destination.showTomorrow, onCheckedChange = null)
       }
@@ -284,7 +284,7 @@ fun SettingsList(
         title = stringResource(Res.string.show_this_week),
         subtitle = stringResource(Res.string.show_this_week_desc),
         onClick = { update(Setting.SetShowThisWeek(!destination.showThisWeek)) },
-        modifier = Modifier.animateItemModifier(),
+        modifier = Modifier.myAnimateItem(),
       ) {
         Switch(checked = destination.showThisWeek, onCheckedChange = null)
       }
@@ -294,18 +294,18 @@ fun SettingsList(
         title = stringResource(Res.string.show_next_week),
         subtitle = stringResource(Res.string.show_next_week_desc),
         onClick = { update(Setting.SetShowNextWeek(!destination.showNextWeek)) },
-        modifier = Modifier.animateItemModifier(),
+        modifier = Modifier.myAnimateItem(),
       ) {
         Switch(checked = destination.showNextWeek, onCheckedChange = null)
       }
     }
-    item(key = 12) { HorizontalDivider(modifier = Modifier.animateItemModifier()) }
+    item(key = 12) { HorizontalDivider(modifier = Modifier.myAnimateItem()) }
     item(key = 13) {
       SettingsRow(
         title = stringResource(Res.string.short_description_overview),
         subtitle = stringResource(Res.string.short_description_overview_desc),
         onClick = { update(Setting.SetListUseShortDescription(!detail.listUseShortDescription)) },
-        modifier = Modifier.animateItemModifier(),
+        modifier = Modifier.myAnimateItem(),
       ) {
         Switch(checked = detail.listUseShortDescription, onCheckedChange = null)
       }
@@ -315,7 +315,7 @@ fun SettingsList(
         title = stringResource(Res.string.show_allergens_overview),
         subtitle = stringResource(Res.string.show_allergens_overview_desc),
         onClick = { update(Setting.SetListShowAllergens(!detail.listShowAllergens)) },
-        modifier = Modifier.animateItemModifier(),
+        modifier = Modifier.myAnimateItem(),
       ) {
         Switch(checked = detail.listShowAllergens, onCheckedChange = null)
       }
@@ -325,17 +325,17 @@ fun SettingsList(
         title = stringResource(Res.string.auto_show_image),
         subtitle = stringResource(Res.string.auto_show_image_desc),
         onClick = { update(Setting.SetAutoShowImage(!detail.autoShowImage)) },
-        modifier = Modifier.animateItemModifier(),
+        modifier = Modifier.myAnimateItem(),
       ) {
         Switch(checked = detail.autoShowImage, onCheckedChange = null)
       }
     }
-    item(key = 16) { HorizontalDivider(modifier = Modifier.animateItemModifier()) }
+    item(key = 16) { HorizontalDivider(modifier = Modifier.myAnimateItem()) }
     item(key = 17) {
       Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-          .animateItemModifier()
+          .myAnimateItem()
           .clickable { showMoreSettings = !showMoreSettings }
           .padding(horizontal = 16.dp, vertical = 8.dp),
       ) {
@@ -370,7 +370,7 @@ fun SettingsList(
             },
           ),
           weightTitle = false,
-          modifier = Modifier.animateItemModifier(),
+          modifier = Modifier.myAnimateItem(),
         ) {
           val contentPadding = ButtonDefaults.ButtonWithIconContentPadding
           val icons = listOf(
@@ -437,27 +437,27 @@ fun SettingsList(
           title = stringResource(Res.string.use_expressive_animations),
           subtitle = stringResource(Res.string.use_expressive_animations_desc),
           onClick = { update(Setting.SetUseExpressiveAnimations(!theme.useExpressiveAnimations)) },
-          modifier = Modifier.animateItemModifier(),
+          modifier = Modifier.myAnimateItem(),
         ) {
           Switch(checked = theme.useExpressiveAnimations, onCheckedChange = null)
         }
       }
-      item(key = 20) { HorizontalDivider(modifier = Modifier.animateItemModifier()) }
+      item(key = 20) { HorizontalDivider(modifier = Modifier.myAnimateItem()) }
       item(key = 21) {
         SettingsRow(
           title = stringResource(Res.string.clear_app_cache),
           subtitle = stringResource(Res.string.clear_app_cache_desc),
           onClick = clearCache,
-          modifier = Modifier.animateItemModifier(),
+          modifier = Modifier.myAnimateItem(),
         )
       }
       openSystemSettingsSetting()
     }
-    item(key = 23) { HorizontalDivider(modifier = Modifier.animateItemModifier()) }
+    item(key = 23) { HorizontalDivider(modifier = Modifier.myAnimateItem()) }
     item(key = 24) {
       InfoLinks(
         modifier = Modifier
-          .animateItemModifier()
+          .myAnimateItem()
           .padding(16.dp)
           .fillMaxWidth(),
       )

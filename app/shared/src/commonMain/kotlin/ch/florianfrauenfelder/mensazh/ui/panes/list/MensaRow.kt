@@ -3,10 +3,8 @@ package ch.florianfrauenfelder.mensazh.ui.panes.list
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -45,7 +43,8 @@ import androidx.compose.ui.unit.sp
 import ch.florianfrauenfelder.mensazh.domain.model.MensaState
 import ch.florianfrauenfelder.mensazh.domain.model.Menu
 import ch.florianfrauenfelder.mensazh.domain.preferences.DetailSettings
-import ch.florianfrauenfelder.mensazh.ui.theme.myMotionSpec
+import ch.florianfrauenfelder.mensazh.ui.theme.myExpandVertically
+import ch.florianfrauenfelder.mensazh.ui.theme.myShrinkVertically
 import mensazh.app.shared.generated.resources.Res
 import mensazh.app.shared.generated.resources.closed
 import mensazh.app.shared.generated.resources.favorite
@@ -166,8 +165,8 @@ fun MensaRow(
         }
         AnimatedVisibility(
           visible = mensa.state == MensaState.State.Expanded,
-          enter = expandVertically(myMotionSpec()),
-          exit = shrinkVertically(myMotionSpec()),
+          enter = myExpandVertically(),
+          exit = myShrinkVertically(),
         ) {
           AnimatedContent(targetState = mensa.menus) { menus ->
             Column(modifier = Modifier.fillMaxWidth()) {

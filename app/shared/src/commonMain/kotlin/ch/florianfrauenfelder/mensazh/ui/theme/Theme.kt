@@ -1,5 +1,14 @@
 package ch.florianfrauenfelder.mensazh.ui.theme
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.shrinkOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.material3.ColorScheme
@@ -7,6 +16,7 @@ import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MotionScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 @Composable
@@ -35,8 +45,32 @@ fun standardColorScheme(darkTheme: Boolean = isSystemInDarkTheme()) =
 fun <T> myMotionSpec() = MaterialTheme.motionScheme.fastSpatialSpec<T>()
 
 @Composable
+fun myExpandVertically() = expandVertically(myMotionSpec())
+
+@Composable
+fun myShrinkVertically() = shrinkVertically(myMotionSpec())
+
+@Composable
+fun myExpandHorizontally() = expandHorizontally(myMotionSpec())
+
+@Composable
+fun myShrinkHorizontally() = shrinkHorizontally(myMotionSpec())
+
+@Composable
+fun myScaleIn() = scaleIn(myMotionSpec())
+
+@Composable
+fun myScaleOut() = scaleOut(myMotionSpec())
+
+@Composable
+fun myExpandIn(expandFrom: Alignment) = expandIn(myMotionSpec(), expandFrom = expandFrom)
+
+@Composable
+fun myShrinkOut(shrinkTowards: Alignment) = shrinkOut(myMotionSpec(), shrinkTowards = shrinkTowards)
+
+@Composable
 context(scope: LazyItemScope)
-fun Modifier.animateItemModifier(): Modifier {
+fun Modifier.myAnimateItem(): Modifier {
   return with(scope) {
     animateItem(
       fadeInSpec = myMotionSpec(),
@@ -45,3 +79,6 @@ fun Modifier.animateItemModifier(): Modifier {
     )
   }
 }
+
+@Composable
+fun Modifier.myAnimateContentSize() = animateContentSize(myMotionSpec())

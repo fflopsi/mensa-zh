@@ -1,13 +1,6 @@
 package ch.florianfrauenfelder.mensazh.ui.panes.detail
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.expandIn
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.shrinkOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -47,7 +40,13 @@ import androidx.compose.ui.unit.dp
 import ch.florianfrauenfelder.mensazh.domain.model.Menu
 import ch.florianfrauenfelder.mensazh.domain.value.NutrientsPer
 import ch.florianfrauenfelder.mensazh.ui.domain.toClipEntry
-import ch.florianfrauenfelder.mensazh.ui.theme.myMotionSpec
+import ch.florianfrauenfelder.mensazh.ui.theme.myAnimateContentSize
+import ch.florianfrauenfelder.mensazh.ui.theme.myExpandIn
+import ch.florianfrauenfelder.mensazh.ui.theme.myExpandVertically
+import ch.florianfrauenfelder.mensazh.ui.theme.myScaleIn
+import ch.florianfrauenfelder.mensazh.ui.theme.myScaleOut
+import ch.florianfrauenfelder.mensazh.ui.theme.myShrinkOut
+import ch.florianfrauenfelder.mensazh.ui.theme.myShrinkVertically
 import coil3.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.launch
 import mensazh.app.shared.generated.resources.Res
@@ -130,7 +129,7 @@ fun MenuCard(
                 text = menu.title,
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.animateContentSize(myMotionSpec()),
+                modifier = Modifier.myAnimateContentSize(),
               )
               if (menu.isVegan || menu.isVegetarian) {
                 Spacer(modifier = Modifier.width(8.dp))
@@ -138,7 +137,7 @@ fun MenuCard(
                   text = stringResource(if (menu.isVegan) Res.string.vegan else Res.string.vegetarian),
                   color = Color(0xFF22AA22),
                   fontWeight = FontWeight.Bold,
-                  modifier = Modifier.animateContentSize(myMotionSpec()),
+                  modifier = Modifier.myAnimateContentSize(),
                 )
               }
             }
@@ -147,7 +146,7 @@ fun MenuCard(
             Text(
               text = menu.price.joinToString(" / "),
               style = MaterialTheme.typography.bodyMedium,
-              modifier = Modifier.animateContentSize(myMotionSpec()),
+              modifier = Modifier.myAnimateContentSize(),
             )
           }
           if (menu.description.isNotBlank()) {
@@ -157,7 +156,7 @@ fun MenuCard(
               modifier = Modifier
                 .padding(top = 8.dp)
                 .fillMaxWidth()
-                .animateContentSize(myMotionSpec()),
+                .myAnimateContentSize(),
             )
           }
           if (!menu.allergens.isNullOrBlank()) {
@@ -167,19 +166,19 @@ fun MenuCard(
               modifier = Modifier
                 .padding(top = 8.dp)
                 .fillMaxWidth()
-                .animateContentSize(myMotionSpec()),
+                .myAnimateContentSize(),
             )
           }
           Nutrients(
             menu = menu,
-            modifier = Modifier.fillMaxWidth().animateContentSize(myMotionSpec()),
+            modifier = Modifier.fillMaxWidth().myAnimateContentSize(),
           )
         }
         Column(verticalArrangement = Arrangement.Bottom) {
           AnimatedVisibility(
             visible = showMore,
-            enter = scaleIn(myMotionSpec()),
-            exit = scaleOut(myMotionSpec()),
+            enter = myScaleIn(),
+            exit = myScaleOut(),
           ) {
             FilledIconButton(
               onClick = { scope.launch { clipboard.setClipEntry(menu.toClipEntry()) } },
@@ -192,8 +191,8 @@ fun MenuCard(
           }
           AnimatedVisibility(
             visible = showMore,
-            enter = scaleIn(myMotionSpec()),
-            exit = scaleOut(myMotionSpec()),
+            enter = myScaleIn(),
+            exit = myScaleOut(),
           ) {
             ShareButton(menu = menu) {
               Icon(painterResource(Res.drawable.ic_share_24), stringResource(Res.string.share))
@@ -204,8 +203,8 @@ fun MenuCard(
       if (!menu.imageUrl.isNullOrEmpty()) {
         AnimatedVisibility(
           visible = showMore,
-          enter = expandVertically(myMotionSpec()),
-          exit = shrinkVertically(myMotionSpec()),
+          enter = myExpandVertically(),
+          exit = myShrinkVertically(),
         ) {
           Image(
             painter = painter,
@@ -221,8 +220,8 @@ fun MenuCard(
     if (!menu.imageUrl.isNullOrEmpty()) {
       AnimatedVisibility(
         visible = !showMore,
-        enter = expandIn(myMotionSpec(), Alignment.TopEnd),
-        exit = shrinkOut(myMotionSpec(), Alignment.TopEnd),
+        enter = myExpandIn(Alignment.TopEnd),
+        exit = myShrinkOut(Alignment.TopEnd),
         modifier = Modifier.align(Alignment.TopEnd).clip(RoundedCornerShape(4.dp)),
       ) {
         Image(

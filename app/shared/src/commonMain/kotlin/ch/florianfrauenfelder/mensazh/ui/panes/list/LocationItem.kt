@@ -12,7 +12,7 @@ import ch.florianfrauenfelder.mensazh.domain.model.Mensa
 import ch.florianfrauenfelder.mensazh.domain.model.MensaState
 import ch.florianfrauenfelder.mensazh.domain.model.Menu
 import ch.florianfrauenfelder.mensazh.domain.preferences.DetailSettings
-import ch.florianfrauenfelder.mensazh.ui.theme.animateItemModifier
+import ch.florianfrauenfelder.mensazh.ui.theme.myAnimateItem
 
 fun LazyListScope.locationItem(
   location: Location,
@@ -26,7 +26,7 @@ fun LazyListScope.locationItem(
     Text(
       text = location.title,
       modifier = Modifier
-        .animateItemModifier()
+        .myAnimateItem()
         .padding(
           start = 16.dp,
           end = 8.dp,
@@ -47,7 +47,7 @@ fun LazyListScope.locationItem(
       toggleIsFavoriteMensa = { toggleFavoriteMensa(mensa.mensa) },
       hideMensa = { hideMensa(mensa.mensa) },
       modifier = Modifier
-        .animateItemModifier()
+        .myAnimateItem()
         .fillMaxWidth(),
     )
   }

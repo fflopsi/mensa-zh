@@ -16,7 +16,7 @@ import ch.florianfrauenfelder.mensazh.domain.model.MensaState
 import ch.florianfrauenfelder.mensazh.domain.model.Menu
 import ch.florianfrauenfelder.mensazh.domain.preferences.DetailSettings
 import ch.florianfrauenfelder.mensazh.ui.shared.InfoLinks
-import ch.florianfrauenfelder.mensazh.ui.theme.animateItemModifier
+import ch.florianfrauenfelder.mensazh.ui.theme.myAnimateItem
 import mensazh.app.shared.generated.resources.Res
 import mensazh.app.shared.generated.resources.no_expanded_canteens
 import org.jetbrains.compose.resources.stringResource
@@ -41,7 +41,7 @@ fun LocationList(
         Row(
           horizontalArrangement = Arrangement.Center,
           modifier = Modifier
-            .animateItemModifier()
+            .myAnimateItem()
             .fillMaxWidth(),
         ) {
           Text(text = stringResource(Res.string.no_expanded_canteens))
@@ -61,7 +61,7 @@ fun LocationList(
     item(key = 0) {
       InfoLinks(
         modifier = Modifier
-          .animateItemModifier()
+          .myAnimateItem()
           .padding(
             start = 8.dp,
             end = 8.dp,

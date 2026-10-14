@@ -2,9 +2,7 @@ package ch.florianfrauenfelder.mensazh.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.calculateEndPadding
@@ -56,7 +54,8 @@ import ch.florianfrauenfelder.mensazh.ui.domain.ui
 import ch.florianfrauenfelder.mensazh.ui.shared.OpenInBrowserButton
 import ch.florianfrauenfelder.mensazh.ui.shared.SettingsDropdown
 import ch.florianfrauenfelder.mensazh.ui.theme.MensaZHTheme
-import ch.florianfrauenfelder.mensazh.ui.theme.myMotionSpec
+import ch.florianfrauenfelder.mensazh.ui.theme.myExpandVertically
+import ch.florianfrauenfelder.mensazh.ui.theme.myShrinkVertically
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -294,8 +293,8 @@ fun MensaApp(container: AppContainer) {
             )
             androidx.compose.animation.AnimatedVisibility(
               visible = isRefreshing,
-              enter = expandVertically(myMotionSpec()),
-              exit = shrinkVertically(myMotionSpec()),
+              enter = myExpandVertically(),
+              exit = myShrinkVertically(),
               modifier = Modifier.align(Alignment.TopCenter),
             ) {
               LinearWavyProgressIndicator(modifier = Modifier.fillMaxWidth())
@@ -309,8 +308,8 @@ fun MensaApp(container: AppContainer) {
           }
           AnimatedVisibility(
             visible = params.destination in listOf(Destination.ThisWeek, Destination.NextWeek),
-            enter = expandVertically(myMotionSpec()),
-            exit = shrinkVertically(myMotionSpec()),
+            enter = myExpandVertically(),
+            exit = myShrinkVertically(),
           ) {
             SecondaryTabRow(selectedTabIndex = params.weekday.ordinal) {
               Weekday.entries.forEach { weekday ->
