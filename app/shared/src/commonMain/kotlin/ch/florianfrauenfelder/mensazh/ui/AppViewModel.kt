@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import ch.florianfrauenfelder.mensazh.AppCommand
 import ch.florianfrauenfelder.mensazh.AppContainer
 import ch.florianfrauenfelder.mensazh.data.repository.MensaRepository
 import ch.florianfrauenfelder.mensazh.data.repository.PreferencesRepository
@@ -23,6 +24,7 @@ import ch.florianfrauenfelder.mensazh.domain.preferences.VisibilitySettings
 import ch.florianfrauenfelder.mensazh.domain.value.Language
 import ch.florianfrauenfelder.mensazh.domain.value.type
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -50,6 +52,7 @@ import kotlin.uuid.Uuid
 class AppViewModel(
   private val mensaRepository: MensaRepository,
   private val preferencesRepository: PreferencesRepository,
+  private val commandChannel: Channel<AppCommand>,
 ) : ViewModel() {
   val params: StateFlow<Params>
     field = MutableStateFlow(Params(destination = Destination.Today, weekday = currentWeekday()))
@@ -128,6 +131,14 @@ class AppViewModel(
             }
           }
           else -> {}
+        }
+      }
+      .launchIn(viewModelScope)
+    commandChannel
+      .receiveAsFlow()
+      .onEach {
+        when (it) {
+          AppCommand.Reload -> forceRefresh()
         }
       }
       .launchIn(viewModelScope)
@@ -289,6 +300,7 @@ class AppViewModel(
         AppViewModel(
           mensaRepository = container.mensaRepository,
           preferencesRepository = container.preferencesRepository,
+          commandChannel = container.commandChannel,
         )
       }
     }
