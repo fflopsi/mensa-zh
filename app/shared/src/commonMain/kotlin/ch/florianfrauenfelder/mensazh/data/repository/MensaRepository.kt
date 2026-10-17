@@ -54,20 +54,18 @@ class MensaRepository(
   private val _isRefreshing = mapKeys.associateWith { MutableStateFlow(false) }
   val isRefreshing = combine(_isRefreshing.values) { refreshes -> refreshes.any { it } }
 
-  val eventChannel = Channel<Event>()
+  val eventChannel = Channel<Event>(capacity = Channel.BUFFERED)
   private val noInternetSent = AtomicBoolean(false)
   private val slowInternetSent = AtomicBoolean(false)
   private val handler = CoroutineExceptionHandler { _, throwable ->
     when (throwable) {
       is IOException -> {
         if (noInternetSent.compareAndSet(expectedValue = false, newValue = true)) {
-          appScope.launch { eventChannel.send(Event.NoInternet) }
+          eventChannel.trySend(Event.NoInternet)
         }
       }
-      is JsonConvertException -> {
-        appScope.launch { eventChannel.send(Event.ApiError) }
-      }
-      else -> appScope.launch { eventChannel.send(Event.UnknownError) }
+      is JsonConvertException -> eventChannel.trySend(Event.ApiError)
+      else -> eventChannel.trySend(Event.UnknownError)
     }
   }
 
