@@ -200,12 +200,16 @@ class AppViewModel(
 
   fun selectMenu(mensaId: Uuid, menuIndex: Int) = menuIndices.update { it + (mensaId to menuIndex) }
 
-  fun updateSetting(setting: Setting) = viewModelScope.launch {
-    preferencesRepository.updateSetting(setting)
+  fun updateSetting(setting: Setting) {
+    viewModelScope.launch {
+      preferencesRepository.updateSetting(setting)
+    }
   }
 
-  fun forceRefresh() = viewModelScope.launch {
-    mensaRepository.forceRefresh(params.value.destination, visibilitySettings.value.language)
+  fun forceRefresh() {
+    viewModelScope.launch {
+      mensaRepository.forceRefresh(params.value.destination, visibilitySettings.value.language)
+    }
   }
 
   private fun locationListFlow(
