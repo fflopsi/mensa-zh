@@ -11,6 +11,7 @@ import ch.florianfrauenfelder.mensazh.domain.value.Institution
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.Channel
 
 class AppContainer(dataStore: DataStore<Preferences>, database: CacheDatabase) {
   private val menuDao = database.menuDao()
@@ -27,4 +28,10 @@ class AppContainer(dataStore: DataStore<Preferences>, database: CacheDatabase) {
   )
 
   val preferencesRepository = PreferencesRepository(dataStore)
+
+  val commandChannel = Channel<AppCommand>(Channel.BUFFERED)
+}
+
+sealed interface AppCommand {
+  data object Reload : AppCommand
 }
