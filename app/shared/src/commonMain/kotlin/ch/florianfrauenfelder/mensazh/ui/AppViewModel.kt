@@ -1,6 +1,9 @@
 package ch.florianfrauenfelder.mensazh.ui
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.serialization.saved
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -17,7 +20,6 @@ import ch.florianfrauenfelder.mensazh.domain.navigation.Params
 import ch.florianfrauenfelder.mensazh.domain.navigation.Weekday
 import ch.florianfrauenfelder.mensazh.domain.preferences.DestinationSettings
 import ch.florianfrauenfelder.mensazh.domain.preferences.DetailSettings
-import ch.florianfrauenfelder.mensazh.domain.preferences.SelectionSettings
 import ch.florianfrauenfelder.mensazh.domain.preferences.Setting
 import ch.florianfrauenfelder.mensazh.domain.preferences.ThemeSettings
 import ch.florianfrauenfelder.mensazh.domain.preferences.VisibilitySettings
@@ -31,14 +33,16 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
@@ -53,28 +57,48 @@ class AppViewModel(
   private val mensaRepository: MensaRepository,
   private val preferencesRepository: PreferencesRepository,
   private val commandChannel: Channel<AppCommand>,
+  private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
+  private var savedParams by savedStateHandle.saved {
+    Params(destination = Destination.Today, weekday = currentWeekday())
+  }
   val params: StateFlow<Params>
-    field = MutableStateFlow(Params(destination = Destination.Today, weekday = currentWeekday()))
+    field = MutableStateFlow(savedParams)
 
+  private var savedMenuIndices: Map<Uuid, Int> by savedStateHandle.saved {
+    emptyMap()
+  }
   val menuIndices: StateFlow<Map<Uuid, Int>>
-    field = MutableStateFlow(emptyMap())
+    field = MutableStateFlow(savedMenuIndices)
 
   val events = mensaRepository.eventChannel.receiveAsFlow()
 
-  val visibilitySettings = preferencesRepository.visibilitySettings.stateIn(
+  private val visibilityFlow = preferencesRepository.visibilitySettings.distinctUntilChanged()
+    .shareIn(
+      scope = viewModelScope,
+      started = SharingStarted.Eagerly,
+      replay = 1,
+    )
+  val visibilitySettings = visibilityFlow.stateIn(
     scope = viewModelScope,
     started = SharingStarted.WhileSubscribed(5000),
     initialValue = VisibilitySettings(),
   )
 
-  private val selectionSettings = preferencesRepository.selectionSettings.stateIn(
-    scope = viewModelScope,
-    started = SharingStarted.WhileSubscribed(5000),
-    initialValue = SelectionSettings(),
-  )
+  private val selectionFlow = preferencesRepository.selectionSettings.distinctUntilChanged()
+    .shareIn(
+      scope = viewModelScope,
+      started = SharingStarted.Eagerly,
+      replay = 1,
+    )
 
-  val destinationSettings = preferencesRepository.destinationSettings.stateIn(
+  private val destinationFlow = preferencesRepository.destinationSettings.distinctUntilChanged()
+    .shareIn(
+      scope = viewModelScope,
+      started = SharingStarted.Eagerly,
+      replay = 1,
+    )
+  val destinationSettings = destinationFlow.stateIn(
     scope = viewModelScope,
     started = SharingStarted.WhileSubscribed(5000),
     initialValue = DestinationSettings(),
@@ -93,17 +117,17 @@ class AppViewModel(
   )
 
   private val destinationTriggers = combine(
-    params.map { it.destination },
-    destinationSettings,
+    params.map { it.destination }.distinctUntilChanged(),
+    destinationFlow,
   ) { destination, destinationSettings ->
     destination to destinationSettings
   }.distinctUntilChanged()
 
   private val refreshTriggers = combine(
-    params,
-    visibilitySettings.map { it.language },
-  ) { params, language ->
-    params.destination to language
+    params.map { it.destination }.distinctUntilChanged(),
+    visibilityFlow.map { it.language }.distinctUntilChanged(),
+  ) { destination, language ->
+    destination to language
   }.distinctUntilChanged()
 
   init {
@@ -144,16 +168,20 @@ class AppViewModel(
       .launchIn(viewModelScope)
   }
 
-  private val allLocations = combine(params, visibilitySettings) { params, visibility ->
-    params to visibility.language
-  }.flatMapLatest { (params, language) ->
-    locationListFlow(params.destination, params.weekday, language)
+  private val allLocations = combine(
+    params,
+    visibilityFlow.map { it.language }.distinctUntilChanged(),
+  ) { params, language ->
+    params to language
   }
+    .flatMapLatest { (params, language) ->
+      locationListFlow(params.destination, params.weekday, language)
+    }
 
   val locations = combine(
     allLocations,
-    visibilitySettings,
-    selectionSettings,
+    visibilityFlow,
+    selectionFlow,
   ) { locations, visibility, selection ->
     val shownOrder = selection.shownLocations.withIndex().associate { it.value to it.index }
     val favoriteOrder = selection.favoriteMensas.withIndex().associate { it.value to it.index }
@@ -207,9 +235,13 @@ class AppViewModel(
     initialValue = false,
   )
 
-  fun setParams(transform: (Params) -> Params) = params.update(transform)
+  fun setParams(transform: (Params) -> Params) {
+    savedParams = params.updateAndGet(transform)
+  }
 
-  fun selectMenu(mensaId: Uuid, menuIndex: Int) = menuIndices.update { it + (mensaId to menuIndex) }
+  fun selectMenu(mensaId: Uuid, menuIndex: Int) {
+    savedMenuIndices = menuIndices.updateAndGet { it + (mensaId to menuIndex) }
+  }
 
   fun updateSetting(setting: Setting) {
     viewModelScope.launch {
@@ -219,7 +251,7 @@ class AppViewModel(
 
   fun forceRefresh() {
     viewModelScope.launch {
-      mensaRepository.forceRefresh(params.value.destination, visibilitySettings.value.language)
+      mensaRepository.forceRefresh(params.value.destination, visibilityFlow.first().language)
     }
   }
 
@@ -256,15 +288,15 @@ class AppViewModel(
     language: Language,
     date: LocalDate,
   ): Flow<MensaState> = combine(
-    visibilitySettings.map { it.expandedMensas },
-    selectionSettings.map { it.favoriteMensas },
-    visibilitySettings.map { it.menuTypes },
+    visibilityFlow.map { it.expandedMensas }.distinctUntilChanged(),
+    selectionFlow.map { it.favoriteMensas }.distinctUntilChanged(),
+    visibilityFlow.map { it.menuTypes }.distinctUntilChanged(),
     mensaRepository.observeMenus(mensaId = mensa.id, language = language, date = date),
     mensaRepository.observeMenus(mensaId = mensa.id, language = !language, date = date),
   ) { expandedMensas, favoriteMensas, menuTypes, menus, fallbackMenus ->
     val returnedMenus = if (menus.isEmpty() && fallbackMenus.isNotEmpty()) fallbackMenus else menus
     val sortedMenus = returnedMenus
-      .filter { if (menuTypes.isNotEmpty()) it.type in menuTypes else true }
+      .filter { menuTypes.isEmpty() || it.type in menuTypes }
       .sortedBy { it.index }
       .sortedBy { menuTypes.indexOf(it.type) }
 
@@ -301,6 +333,7 @@ class AppViewModel(
           mensaRepository = container.mensaRepository,
           preferencesRepository = container.preferencesRepository,
           commandChannel = container.commandChannel,
+          savedStateHandle = createSavedStateHandle(),
         )
       }
     }
