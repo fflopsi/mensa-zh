@@ -40,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -93,6 +94,11 @@ fun MensaApp(container: AppContainer) {
   val detailSettings by appViewModel.detailSettings.collectAsStateWithLifecycle()
   val themeSettings by appViewModel.themeSettings.collectAsStateWithLifecycle()
   fun updateSetting(setting: Setting) = appViewModel.updateSetting(setting)
+
+  LifecycleResumeEffect(appViewModel) {
+    appViewModel.onResume()
+    onPauseOrDispose {}
+  }
 
   val backStack = rememberNavBackStack(routeConfig, Route.List)
   val selectedMensa =

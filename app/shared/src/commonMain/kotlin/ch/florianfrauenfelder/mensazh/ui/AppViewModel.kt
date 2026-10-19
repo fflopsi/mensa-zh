@@ -123,10 +123,13 @@ class AppViewModel(
     destination to destinationSettings
   }.distinctUntilChanged()
 
+  private val today = MutableStateFlow(currentDate())
+
   private val refreshTriggers = combine(
     params.map { it.destination }.distinctUntilChanged(),
     visibilityFlow.map { it.language }.distinctUntilChanged(),
-  ) { destination, language ->
+    today,
+  ) { destination, language, _ ->
     destination to language
   }.distinctUntilChanged()
 
@@ -166,6 +169,10 @@ class AppViewModel(
         }
       }
       .launchIn(viewModelScope)
+  }
+
+  fun onResume() {
+    today.value = currentDate()
   }
 
   private val allLocations = combine(
@@ -311,6 +318,8 @@ class AppViewModel(
       favorite = mensa.id in favoriteMensas,
     )
   }
+
+  private fun currentDate() = Clock.System.todayIn(TimeZone.currentSystemDefault())
 
   private fun computeDate(destination: Destination, weekday: Weekday): LocalDate {
     val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
