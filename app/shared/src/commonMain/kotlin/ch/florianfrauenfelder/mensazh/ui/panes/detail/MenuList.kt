@@ -1,0 +1,38 @@
+package ch.florianfrauenfelder.mensazh.ui.panes.detail
+
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import ch.florianfrauenfelder.mensazh.domain.model.Menu
+import ch.florianfrauenfelder.mensazh.ui.theme.myAnimateItem
+
+@Composable
+fun MenuList(
+  menus: List<Menu>,
+  selectedMenuIndex: Int?,
+  selectMenu: (Menu) -> Unit,
+  autoShowImage: Boolean,
+  modifier: Modifier = Modifier,
+  contentPadding: PaddingValues = PaddingValues(),
+) {
+  LazyColumn(
+    contentPadding = contentPadding,
+    modifier = modifier,
+  ) {
+    items(
+      items = menus,
+      key = { it.title + it.description },
+    ) {
+      MenuCard(
+        menu = it,
+        selected = it.index == selectedMenuIndex,
+        select = selectMenu,
+        autoShowImage = autoShowImage,
+        modifier = Modifier.myAnimateItem().fillMaxWidth(),
+      )
+    }
+  }
+}
